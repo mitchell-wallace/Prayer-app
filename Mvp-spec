@@ -1,0 +1,385 @@
+Prayer List App (Client-Side) — Refined Requirements and Plan
+
+Overview
+
+A mobile-first, fully client-side prayer request tracker. Users create prayer requests with a priority and duration, review them via an infinite-scroll feed of cards, and maintain update notes over time. Local persistence uses IndexedDB via Dexie. No backend.
+
+Core Features (MVP)
+
+1. Create and manage prayer requests
+
+
+
+Create a request with:
+
+Title (required)
+
+Details (optional)
+
+Priority: urgent | high | medium | low
+
+Duration: 10 days | 1 month | 3 months | 1 year
+
+
+Edit request fields after creation:
+
+title/details/priority/duration
+
+Duration changes recompute expiresAt from createdAt (not from “now”)
+
+
+
+2. Prayer interaction tracking
+
+
+
+Each request maintains prayedAt[] (array of timestamps).
+
+“Prayed” action appends now to prayedAt.
+
+Feed recency is based on latest prayed date:
+
+lastPrayedAt = max(prayedAt) (or null if empty)
+
+
+
+3. Notes / updates
+
+
+
+Add notes to a request as discrete entries with timestamps.
+
+Notes are editable and deletable.
+
+Notes are displayed newest-first by default.
+
+
+4. Feed-driven UI (infinite scroll)
+
+
+
+Unified feed of request cards.
+
+Interleaves priorities (not strict bucketing).
+
+Continues cycling after all eligible requests have been shown once in-session.
+
+When repeats begin (i.e., second cycle starts), display a subtle “You’ve covered everything” message.
+
+
+5. Status handling
+
+
+
+Status values:
+
+active
+
+answered
+
+archived (optional for MVP; if included, treat similarly to answered)
+
+
+Answered requests are excluded from the default feed.
+
+Future goal: “praise sessions” / answered-prayer feed view (not MVP).
+
+
+6. Search, tags, reminders, streaks, import/export
+
+
+
+Explicitly out of scope for MVP.
+
+Planned for future roadmap iterations.
+
+
+Roadmap (High-Level)
+
+Phase 1: MVP (core CRUD + prayed tracking + notes + feed) Phase 2: PWA support (simple, silent) Phase 3: Future enhancements (search, tags, reminders, streaks, import/export, praise sessions)
+
+
+---
+
+Data Model
+
+PrayerRequest
+
+id: string (UUID)
+
+title: string
+
+details: string | null
+
+priority: "urgent" | "high" | "medium" | "low"
+
+durationPreset: "10d" | "1m" | "3m" | "1y"
+
+createdAt: number (epoch ms)
+
+expiresAt: number (epoch ms; computed calendar-accurately from createdAt + durationPreset)
+
+status: "active" | "answered" | "archived"
+
+prayedAt: number[] (epoch ms timestamps; append-only via “Prayed” action, but deletable/editable not required)
+
+updatedAt: number (epoch ms; updated on any change, note edit, note delete, prayedAt append)
+
+
+PrayerNote
+
+id: string (UUID)
+
+requestId: string (FK to PrayerRequest.id)
+
+createdAt: number (epoch ms)
+
+body: string
+
+updatedAt: number (epoch ms)
+
+Notes are editable and deletable.
+
+
+Derived fields (not necessarily stored)
+
+lastPrayedAt: number | null (max of prayedAt)
+
+isExpired: boolean (now > expiresAt) for display/filtering
+
+
+Expiry semantics
+
+Default feed should include only status=active and expiresAt >= now (expired excluded by default; can be added later via filter/view).
+
+
+Calendar-accurate duration rules
+
+10 days: add 10 calendar days
+
+1 month: add 1 calendar month
+
+3 months: add 3 calendar months
+
+1 year: add 1 calendar year
+
+For “end-of-month” cases (e.g., Jan 31 + 1 month), adopt standard calendar roll-forward behavior (implementation detail left to date library choice; must be consistent across browsers).
+
+
+
+---
+
+Storage (Dexie / IndexedDB)
+
+Use Dexie for persistence.
+
+Suggested schema and indexes:
+
+prayerRequests: id, status, priority, expiresAt, updatedAt, createdAt
+
+prayerNotes: id, requestId, createdAt, updatedAt
+
+
+DB versioning:
+
+Start at version 1 with forward-compatible structure; expect additional indexes later.
+
+
+
+All data remains local to the device/browser. No telemetry by default.
+
+
+---
+
+Feed Algorithm
+
+Objectives
+
+Prefer higher priority.
+
+Prefer items not prayed for recently (using lastPrayedAt).
+
+Ensure the feed never “runs out”: once all eligible requests have appeared, the feed cycles and shows repeats.
+
+Maintain interleaving (not strict priority sections).
+
+
+Eligibility (default feed)
+
+status = active
+
+expiresAt >= now
+
+(No search, no filters in MVP)
+
+
+Scoring (conceptual) Compute a per-request score for ordering within a “cycle”:
+
+Priority weight:
+
+urgent > high > medium > low (use large gaps)
+
+
+Recency component based on now - lastPrayedAt (or treat “never prayed” as maximal)
+
+Optional small stabilizer (e.g., createdAt or updatedAt) to reduce jitter
+
+
+Cycle-based infinite scroll
+
+Maintain a session feed state:
+
+cycleNumber: 0..n
+
+cycleSeedOrder: [requestId...] computed at cycle start by sorting all eligible requests by score
+
+cursor into cycleSeedOrder
+
+
+As user scrolls:
+
+Yield next slice from cycleSeedOrder.
+
+When cursor reaches end:
+
+increment cycleNumber
+
+show subtle message “You’ve covered everything” (only once per transition into cycle 1)
+
+recompute ordering (scores refreshed) and start again from the top
+
+
+
+This guarantees:
+
+Every eligible request appears at least once per cycle
+
+Feed continues indefinitely
+
+
+
+Interleaving detail
+
+Interleaving emerges naturally from the combined score. If strict priority dominance is too strong in practice, introduce a bounded priority influence (e.g., smaller weight gaps) so medium/low items can surface when very stale.
+
+
+Prayed interaction effects
+
+When “Prayed” is tapped:
+
+Append to prayedAt
+
+Update updatedAt
+
+The card should typically fall later in the ordering on next cycle recompute (or immediately if you choose to re-rank live; MVP can defer re-ranking until next cycle for simplicity and stability).
+
+
+
+
+---
+
+UI Requirements (Mobile-First)
+
+Add request
+
+Compact form optimized for rapid entry:
+
+title input (focus by default)
+
+priority selector
+
+duration selector
+
+optional details (expandable)
+
+
+Submit returns user to feed, new item appears promptly.
+
+
+Card content (minimum)
+
+Title
+
+Priority indicator
+
+Expiry indicator (relative “X days left” or absolute date)
+
+Last prayed indicator (“Never”, “Today”, “3 days ago”)
+
+Quick actions:
+
+Prayed (appends timestamp)
+
+Add note
+
+Mark answered
+
+Edit request
+
+
+Expand/collapse or details view for:
+
+full details
+
+notes thread (newest-first)
+
+edit/delete notes
+
+
+
+Answered handling
+
+Mark answered removes it from default feed immediately.
+
+No answered feed view in MVP.
+
+
+
+---
+
+Non-Functional Requirements
+
+Performance: use list virtualization for the feed to stay smooth with hundreds/thousands of items.
+
+Consistency: date arithmetic must be deterministic across browsers; avoid time zone edge cases by storing epoch ms and being explicit about display formatting.
+
+Offline by default: since no network is required, the app should function without connectivity from day one.
+
+
+
+---
+
+PWA Support (Phase 2, After MVP)
+
+Minimal and silent:
+
+manifest.json with icons and standalone display
+
+service worker caches static assets (app shell)
+
+no notification prompts, no update nags; standard SW update flow only
+
+
+Dexie/IndexedDB remains the source of truth for user data; SW is only for offline asset caching.
+
+
+
+---
+
+Explicit Non-Goals (For Now)
+
+Search
+
+Tags
+
+Reminders / notifications
+
+Streaks
+
+Import/export
+
+Sync/accounts
+
+Encryption
+
+Praise sessions / answered feed view (not MVP; future phase)
