@@ -2,12 +2,13 @@ const durationOffsets = {
   '10d': { days: 10 },
   '1m': { months: 1 },
   '3m': { months: 3 },
+  '6m': { months: 6 },
   '1y': { years: 1 },
 };
 
 export function computeExpiry(createdAt, preset) {
   const base = new Date(createdAt);
-  const offset = durationOffsets[preset] || durationOffsets['1m'];
+  const offset = durationOffsets[preset] || durationOffsets['6m'];
   const next = new Date(base.getTime());
   if (offset.days) {
     next.setDate(next.getDate() + offset.days);
