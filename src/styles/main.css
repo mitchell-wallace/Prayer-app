@@ -1,59 +1,46 @@
-:root {
-  --bg: #0d0d10;
-  --card: #15151c;
-  --card-muted: #1d1d26;
-  --text: #f8fafc;
-  --muted: #9ca3af;
-  --accent: #9d7bff;
-  --danger: #ef4444;
-  --success: #4ade80;
-  --border: #23232c;
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  :root {
+    --bg: #0d0d10;
+    --card: #15151c;
+    --card-muted: #1d1d26;
+    --text: #f8fafc;
+    --muted: #9ca3af;
+    --accent: #9d7bff;
+    --danger: #ef4444;
+    --success: #4ade80;
+    --border: #23232c;
+    --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-#app {
-  min-height: 100vh;
-}
+  body {
+    @apply m-0 min-h-screen bg-[var(--bg)] text-[var(--text)];
+  }
 
-button {
-  cursor: pointer;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-}
+  a {
+    color: inherit;
+  }
 
-input,
-select,
-textarea,
-button {
-  font-family: inherit;
-}
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
 
-a {
-  color: inherit;
-}
+  ::-webkit-scrollbar-thumb {
+    background: #2d2d36;
+    border-radius: 999px;
+  }
 
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #2d2d36;
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg);
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
 }

@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import { computeExpiry } from './utils/time.js';
 
 export const db = new Dexie('prayer-list');
 
@@ -10,15 +11,16 @@ export async function bootstrapSeed() {
   const count = await db.requests.count();
   if (count > 0) return;
   const now = Date.now();
+  const outreachCreated = now - 1000 * 60 * 60 * 24 * 3;
+  const familyCreated = now - 1000 * 60 * 60 * 24;
   await db.requests.bulkAdd([
     {
       id: crypto.randomUUID(),
       title: 'Community outreach',
-      details: 'Pray for wisdom and compassion during weekly outreach.',
       priority: 'high',
-      durationPreset: '1m',
-      createdAt: now - 1000 * 60 * 60 * 24 * 3,
-      expiresAt: now + 1000 * 60 * 60 * 24 * 27,
+      durationPreset: '3m',
+      createdAt: outreachCreated,
+      expiresAt: computeExpiry(outreachCreated, '3m'),
       status: 'active',
       prayedAt: [now - 1000 * 60 * 60 * 2],
       updatedAt: now - 1000 * 60 * 60 * 2,
@@ -29,11 +31,10 @@ export async function bootstrapSeed() {
     {
       id: crypto.randomUUID(),
       title: 'Family health',
-      details: 'Cover dad\'s recovery and follow-up appointment.',
       priority: 'urgent',
       durationPreset: '10d',
-      createdAt: now - 1000 * 60 * 60 * 24,
-      expiresAt: now + 1000 * 60 * 60 * 24 * 9,
+      createdAt: familyCreated,
+      expiresAt: computeExpiry(familyCreated, '10d'),
       status: 'active',
       prayedAt: [],
       updatedAt: now - 1000 * 60 * 60 * 24,

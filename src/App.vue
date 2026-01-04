@@ -1,44 +1,50 @@
 <template>
-  <div class="page">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">Prayer list</p>
-        <h1>Keep every request close</h1>
-        <p class="sub">Mobile-first feed with quick “Prayed”, notes, and smart cycling.</p>
-        <div class="stats">
-          <span class="pill">Active: {{ activeRequests.length }}</span>
-          <span class="pill">Answered: {{ answeredRequests.length }}</span>
+  <div class="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+    <header
+      class="sticky top-0 z-30 w-full border-b border-[var(--border)] bg-[rgba(13,13,16,0.92)] backdrop-blur"
+    >
+      <div class="mx-auto flex h-12 max-w-3xl items-center justify-between px-4 sm:px-6">
+        <span class="text-sm font-semibold tracking-wide uppercase">prayer rhythm</span>
+        <div class="flex items-center gap-3 text-xs text-[var(--muted)]">
+          <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
+            Active {{ activeRequests.length }}
+          </span>
+          <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
+            Answered {{ answeredRequests.length }}
+          </span>
         </div>
-      </div>
-      <div class="tip" v-if="cycleCount > 0">
-        <strong>You’ve covered everything once.</strong>
-        <p class="muted">Requests now cycle again so nothing gets stale.</p>
       </div>
     </header>
 
-    <main class="layout">
-      <AddRequestForm @save="createRequest" />
+    <main class="mx-auto flex max-w-3xl flex-col gap-3 px-4 pb-28 pt-3 sm:px-6">
+      <div class="flex items-center justify-between text-xs text-[var(--muted)]">
+        <span class="truncate">
+          Cycle {{ cycleCount + 1 }} · {{ renderQueue.length || 0 }} queued · {{ activeRequests.length }} active
+        </span>
+        <button
+          v-if="renderQueue.length > 1"
+          class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)]"
+          type="button"
+          @click="nextCard"
+        >
+          Next
+        </button>
+      </div>
 
-      <section class="feed" ref="feedRef">
-        <div class="feed__header">
-          <div>
-            <p class="eyebrow">Feed</p>
-            <h2>Prioritized cards</h2>
-          </div>
-          <span class="muted">{{ renderQueue.length }} showing · cycles: {{ cycleCount }}</span>
+      <section class="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow)]">
+        <div class="mb-2 flex items-center justify-between gap-3">
+          <p class="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Queue</p>
         </div>
 
-        <p v-if="!activeRequests.length && !loading" class="muted">
-          No active requests yet. Add one to start praying.
+        <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-[var(--muted)]">
+          No active requests yet. Add one below.
         </p>
 
-        <div v-if="loading" class="muted">Loading requests…</div>
+        <div v-if="loading" class="text-sm text-[var(--muted)]">Loading requests…</div>
 
-        <div class="feed__list">
+        <div v-if="currentItem" class="grid">
           <RequestCard
-            v-for="(item, index) in renderQueue"
-            :key="`${item.request.id}-${item.cycle}-${index}`"
-            :request="item.request"
+            :request="currentItem.request"
             @pray="recordPrayer"
             @mark-answered="markAnswered"
             @update-request="updateRequest"
@@ -48,18 +54,28 @@
           />
         </div>
 
-        <div class="divider" />
-        <div class="footer">
-          <button class="ghost" type="button" @click="loadMore">Load more</button>
-          <span class="muted">Cards auto-cycle as you scroll.</span>
+        <div v-if="indicatorWindow.length > 1" class="mt-3 flex justify-center gap-2" role="list">
+          <button
+            v-for="entry in indicatorWindow"
+            :key="`${entry.request.id}-${entry.index}`"
+            :class="[
+              'h-2 w-2 rounded-full border border-[var(--border)] bg-[var(--border)]',
+              entry.index === currentIndex ? 'bg-[var(--accent)]' : '',
+            ]"
+            type="button"
+            @click="currentIndex = entry.index"
+            aria-label="Jump to card"
+          ></button>
         </div>
       </section>
     </main>
+
+    <AddRequestForm @save="createRequest" />
   </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import AddRequestForm from './components/AddRequestForm.vue';
 import RequestCard from './components/RequestCard.vue';
 import { db, bootstrapSeed } from './db.js';
@@ -67,11 +83,11 @@ import { computeExpiry } from './utils/time.js';
 
 const requests = ref([]);
 const loading = ref(true);
-const feedRef = ref(null);
 const pageSize = 6;
 const renderQueue = ref([]);
 const feedIndex = ref(0);
 const cycleCount = ref(0);
+const currentIndex = ref(0);
 
 const priorityScore = {
   urgent: 4,
@@ -93,6 +109,14 @@ const activeRequests = computed(() =>
 );
 
 const answeredRequests = computed(() => requests.value.filter((r) => r.status === 'answered'));
+const currentItem = computed(() => renderQueue.value[currentIndex.value] || null);
+const indicatorWindow = computed(() => {
+  const items = renderQueue.value.map((entry, index) => ({ ...entry, index }));
+  if (items.length <= 6) return items;
+  const start = Math.max(0, currentIndex.value - 2);
+  const end = Math.min(items.length, start + 5);
+  return items.slice(start, end);
+});
 
 watch(activeRequests, () => resetFeed());
 
@@ -101,37 +125,13 @@ onMounted(async () => {
   requests.value = await db.requests.toArray();
   loading.value = false;
   resetFeed();
-  bindScroll();
 });
-
-onBeforeUnmount(() => {
-  unbindScroll();
-});
-
-function bindScroll() {
-  const handler = () => {
-    const el = feedRef.value;
-    if (!el) return;
-    const threshold = 220;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - threshold) {
-      loadMore();
-    }
-  };
-  feedRef.value?.addEventListener('scroll', handler);
-  feedRef.value && (feedRef.value._scrollHandler = handler);
-}
-
-function unbindScroll() {
-  const el = feedRef.value;
-  if (el?._scrollHandler) {
-    el.removeEventListener('scroll', el._scrollHandler);
-  }
-}
 
 function resetFeed() {
   renderQueue.value = [];
   feedIndex.value = 0;
   cycleCount.value = 0;
+  currentIndex.value = 0;
   if (activeRequests.value.length) {
     loadMore();
   }
@@ -152,8 +152,16 @@ function loadMore() {
     cycleCount.value += completed;
     feedIndex.value = feedIndex.value % pool.length;
   }
-  const limit = pool.length * 2;
-  renderQueue.value = [...renderQueue.value, ...next].slice(-limit || undefined);
+  renderQueue.value = [...renderQueue.value, ...next];
+}
+
+function nextCard() {
+  if (renderQueue.value.length <= 1) return;
+  currentIndex.value = (currentIndex.value + 1) % renderQueue.value.length;
+  const remaining = renderQueue.value.length - currentIndex.value;
+  if (remaining <= 2) {
+    loadMore();
+  }
 }
 
 function getLastPrayed(request) {
@@ -175,7 +183,6 @@ async function createRequest(payload) {
   const record = {
     id: crypto.randomUUID(),
     title: payload.title,
-    details: payload.details || '',
     priority: payload.priority,
     durationPreset: payload.durationPreset,
     createdAt: now,
@@ -231,133 +238,3 @@ async function deleteNote({ request, note }) {
   replaceRequest(updated);
 }
 </script>
-
-<style scoped>
-.page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  display: grid;
-  gap: 18px;
-}
-
-.hero {
-  background: linear-gradient(135deg, rgba(157, 123, 255, 0.12), rgba(124, 157, 255, 0.12));
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 18px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  box-shadow: var(--shadow);
-}
-
-.hero h1 {
-  margin: 4px 0 8px;
-  font-size: 28px;
-}
-
-.sub {
-  margin: 0 0 12px 0;
-  color: var(--muted);
-}
-
-.stats {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.tip {
-  background: rgba(74, 222, 128, 0.12);
-  border: 1px solid rgba(74, 222, 128, 0.35);
-  border-radius: 14px;
-  padding: 12px;
-  align-self: flex-start;
-}
-
-.layout {
-  display: grid;
-  gap: 16px;
-}
-
-.feed {
-  background: var(--card);
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  padding: 16px;
-  box-shadow: var(--shadow);
-  max-height: 70vh;
-  overflow-y: auto;
-  display: grid;
-  gap: 12px;
-}
-
-.feed__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.feed__list {
-  display: grid;
-  gap: 12px;
-}
-
-.divider {
-  height: 1px;
-  background: var(--border);
-}
-
-.footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ghost {
-  background: var(--card-muted);
-  color: var(--text);
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: var(--card-muted);
-  border: 1px solid var(--border);
-}
-
-.eyebrow {
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0;
-}
-
-.muted {
-  color: var(--muted);
-}
-
-@media (max-width: 768px) {
-  .page {
-    padding: 14px;
-  }
-  .hero {
-    flex-direction: column;
-  }
-  .feed {
-    max-height: unset;
-  }
-  .footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-}
-</style>
