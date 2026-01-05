@@ -78,7 +78,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import AddRequestForm from './components/AddRequestForm.vue';
 import RequestCard from './components/RequestCard.vue';
-import { db, bootstrapSeed } from './db.js';
+import { bootstrapSeed, fetchAllRequests, saveRequest } from './db.js';
 import { computeExpiry } from './utils/time.js';
 
 const requests = ref([]);
@@ -122,7 +122,7 @@ watch(activeRequests, () => resetFeed());
 
 onMounted(async () => {
   await bootstrapSeed();
-  requests.value = await db.requests.toArray();
+  requests.value = await fetchAllRequests();
   loading.value = false;
   resetFeed();
 });
@@ -192,7 +192,7 @@ async function createRequest(payload) {
     notes: [],
     updatedAt: now,
   };
-  await db.requests.add(record);
+  await saveRequest(record);
   requests.value = [record, ...requests.value];
   resetFeed();
 }
@@ -200,41 +200,41 @@ async function createRequest(payload) {
 async function recordPrayer(request) {
   const now = Date.now();
   const updated = { ...request, prayedAt: [...(request.prayedAt || []), now], updatedAt: now };
-  await db.requests.put(updated);
+  await saveRequest(updated);
   replaceRequest(updated);
 }
 
 async function markAnswered(request) {
   const updated = { ...request, status: 'answered', updatedAt: Date.now() };
-  await db.requests.put(updated);
+  await saveRequest(updated);
   replaceRequest(updated);
 }
 
 async function updateRequest(request) {
   const expiresAt = computeExpiry(request.createdAt, request.durationPreset);
   const updated = { ...request, expiresAt, updatedAt: Date.now() };
-  await db.requests.put(updated);
+  await saveRequest(updated);
   replaceRequest(updated);
 }
 
 async function addNote({ request, text }) {
   const entry = { id: crypto.randomUUID(), text, createdAt: Date.now() };
   const updated = { ...request, notes: [...(request.notes || []), entry], updatedAt: Date.now() };
-  await db.requests.put(updated);
+  await saveRequest(updated);
   replaceRequest(updated);
 }
 
 async function editNote({ request, note }) {
   const updatedNotes = (request.notes || []).map((n) => (n.id === note.id ? { ...note } : n));
   const updated = { ...request, notes: updatedNotes, updatedAt: Date.now() };
-  await db.requests.put(updated);
+  await saveRequest(updated);
   replaceRequest(updated);
 }
 
 async function deleteNote({ request, note }) {
   const updatedNotes = (request.notes || []).filter((n) => n.id !== note.id);
   const updated = { ...request, notes: updatedNotes, updatedAt: Date.now() };
-  await db.requests.put(updated);
+  await saveRequest(updated);
   replaceRequest(updated);
 }
 </script>

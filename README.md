@@ -1,6 +1,6 @@
 # Prayer App (Vue + Vite)
 
-A mobile-first client-side prayer request tracker with prioritized feed cycling, “Prayed” tracking, and timestamped notes stored locally in IndexedDB via Dexie.
+A mobile-first client-side prayer request tracker with prioritized feed cycling, “Prayed” tracking, and timestamped notes stored locally using SQL.js (SQLite in WebAssembly) persisted through IndexedDB.
 
 ## Features
 - Create and edit prayer requests with priority and duration presets (10d, 1m, 3m, 6m, 1y).
@@ -9,7 +9,7 @@ A mobile-first client-side prayer request tracker with prioritized feed cycling,
 - Notes thread per request with add/edit/delete, displayed newest-first.
 - Prayer requests focus on a single title field; add any extra context as notes instead of a separate “details” field.
 - Infinite-style feed that cycles through active requests and surfaces a completion banner once everything is covered.
-- Local persistence with Dexie for offline-first behavior.
+- Local persistence with SQL.js + IndexedDB for offline-first behavior.
 
 ## Getting started
 1. Install dependencies (internet access required):

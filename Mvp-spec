@@ -2,7 +2,7 @@ Prayer List App (Client-Side) — Refined Requirements and Plan
 
 Overview
 
-A mobile-first, fully client-side prayer request tracker. Users create prayer requests with a priority and duration, review them via an infinite-scroll feed of cards, and maintain update notes over time. Local persistence uses IndexedDB via Dexie. No backend.
+A mobile-first, fully client-side prayer request tracker. Users create prayer requests with a priority and duration, review them via an infinite-scroll feed of cards, and maintain update notes over time. Local persistence uses SQLite (via SQL.js) stored in IndexedDB. No backend.
 
 Core Features (MVP)
 
@@ -169,9 +169,9 @@ For “end-of-month” cases (e.g., Jan 31 + 1 month), adopt standard calendar r
 
 ---
 
-Storage (Dexie / IndexedDB)
+Storage (SQL.js / IndexedDB)
 
-Use Dexie for persistence.
+Use SQL.js (WASM SQLite) for persistence, writing exported database bytes into IndexedDB.
 
 Suggested schema and indexes:
 
@@ -182,7 +182,7 @@ prayerNotes: id, requestId, createdAt, updatedAt
 
 DB versioning:
 
-Start at version 1 with forward-compatible structure; expect additional indexes later.
+Maintain a single user-facing database file; apply schema migrations inside SQL.js as needed to keep forward compatibility.
 
 
 
