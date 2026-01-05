@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Prayer List logo">
+  <defs>
+    <linearGradient id="g" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#22d3ee" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="28" fill="#0d0d10" />
+  <circle cx="96" cy="64" r="36" fill="url(#g)" />
+  <path d="M64 100c0-10.5 8.5-19 19-19h26c10.5 0 19 8.5 19 19v22c0 17.1-13.9 31-31 31S64 139.1 64 122z" fill="#111827" />
+  <path d="M78 114c0-5.5 4.5-10 10-10h16c5.5 0 10 4.5 10 10v12c0 8.8-7.2 16-16 16s-20-4.2-20-16z" fill="url(#g)" />
+</svg>
