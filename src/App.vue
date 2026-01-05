@@ -18,64 +18,125 @@
 
     <main class="mx-auto flex max-w-3xl flex-col gap-3 px-4 pb-28 pt-3 sm:px-6">
       <div class="flex items-center justify-between text-xs text-[var(--muted)]">
-        <span class="truncate">
+        <p class="text-[11px] uppercase tracking-[0.14em]">Active queue</p>
+        <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)]">
+          {{ renderQueue.length || 0 }} queued
+        </span>
+      </div>
+
+      <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-[var(--muted)]">
+        No active requests yet. Add one below.
+      </p>
+
+      <div v-if="loading" class="text-sm text-[var(--muted)]">Loading requests…</div>
+
+      <div
+        v-if="currentItem"
+        class="grid"
+        @touchstart.passive="handleTouchStart"
+        @touchend.passive="handleTouchEnd"
+      >
+        <RequestCard
+          :request="currentItem.request"
+          @pray="recordPrayer"
+          @mark-answered="openAnsweredModal"
+          @update-request="updateRequest"
+          @add-note="addNote"
+          @edit-note="editNote"
+          @delete-note="deleteNote"
+        />
+      </div>
+
+      <div v-if="indicatorWindow.length > 1" class="flex justify-center gap-2" role="list">
+        <button
+          v-for="entry in indicatorWindow"
+          :key="`${entry.request.id}-${entry.index}`"
+          :class="[
+            'h-2 w-2 rounded-full border border-[var(--border)] bg-[var(--border)]',
+            entry.index === currentIndex ? 'bg-[var(--accent)]' : '',
+          ]"
+          type="button"
+          @click="currentIndex = entry.index"
+          aria-label="Jump to card"
+        ></button>
+      </div>
+
+      <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-[var(--muted)]">
+        <button
+          class="justify-self-start rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)] disabled:opacity-60"
+          type="button"
+          :disabled="renderQueue.length <= 1"
+          @click="previousCard"
+        >
+          < Back
+        </button>
+        <span class="text-center text-[11px] uppercase tracking-[0.14em]">
           Cycle {{ cycleCount + 1 }} · {{ renderQueue.length || 0 }} queued · {{ activeRequests.length }} active
         </span>
         <button
-          v-if="renderQueue.length > 1"
-          class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)]"
+          class="justify-self-end rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)] disabled:opacity-60"
           type="button"
+          :disabled="renderQueue.length <= 1"
           @click="nextCard"
         >
-          Next
+          Next >
         </button>
       </div>
-
-      <section class="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow)]">
-        <div class="mb-2 flex items-center justify-between gap-3">
-          <p class="text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">Queue</p>
-        </div>
-
-        <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-[var(--muted)]">
-          No active requests yet. Add one below.
-        </p>
-
-        <div v-if="loading" class="text-sm text-[var(--muted)]">Loading requests…</div>
-
-        <div v-if="currentItem" class="grid">
-          <RequestCard
-            :request="currentItem.request"
-            @pray="recordPrayer"
-            @mark-answered="markAnswered"
-            @update-request="updateRequest"
-            @add-note="addNote"
-            @edit-note="editNote"
-            @delete-note="deleteNote"
-          />
-        </div>
-
-        <div v-if="indicatorWindow.length > 1" class="mt-3 flex justify-center gap-2" role="list">
-          <button
-            v-for="entry in indicatorWindow"
-            :key="`${entry.request.id}-${entry.index}`"
-            :class="[
-              'h-2 w-2 rounded-full border border-[var(--border)] bg-[var(--border)]',
-              entry.index === currentIndex ? 'bg-[var(--accent)]' : '',
-            ]"
-            type="button"
-            @click="currentIndex = entry.index"
-            aria-label="Jump to card"
-          ></button>
-        </div>
-      </section>
     </main>
 
     <AddRequestForm @save="createRequest" />
+
+    <Teleport to="body">
+      <div
+        v-if="answeredModal.open"
+        class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
+        @click.self="closeAnsweredModal"
+      >
+        <div class="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)]">
+          <header class="mb-3 flex items-center justify-between">
+            <h4 class="m-0 text-base font-semibold">Answered prayer</h4>
+            <button
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--card-muted)] text-lg"
+              type="button"
+              @click="closeAnsweredModal"
+            >
+              ×
+            </button>
+          </header>
+          <div class="grid gap-3">
+            <p class="text-sm text-[var(--muted)]">How did God answer your prayer?</p>
+            <textarea
+              v-model="answeredModal.text"
+              rows="3"
+              placeholder="How did God answer your prayer?"
+              class="w-full rounded-lg border border-[var(--border)] bg-[var(--card-muted)] p-3 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none"
+            ></textarea>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <button
+              class="w-full rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-3 py-2 text-sm font-semibold"
+              type="button"
+              @click="closeAnsweredModal"
+            >
+              Cancel
+            </button>
+            <button
+              class="w-full rounded-lg bg-gradient-to-r from-[#9d7bff] to-[#7c9dff] px-3 py-2 text-sm font-semibold text-[#0d0d10] disabled:opacity-60"
+              type="button"
+              :disabled="!answeredModal.text.trim()"
+              @click="saveAnsweredNote"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { Teleport, computed, onMounted, reactive, ref } from 'vue';
 import AddRequestForm from './components/AddRequestForm.vue';
 import RequestCard from './components/RequestCard.vue';
 import { bootstrapSeed, fetchAllRequests, saveRequest } from './db.js';
@@ -88,6 +149,8 @@ const renderQueue = ref([]);
 const feedIndex = ref(0);
 const cycleCount = ref(0);
 const currentIndex = ref(0);
+const touchStart = ref(null);
+const answeredModal = reactive({ open: false, request: null, text: '' });
 
 const priorityScore = {
   urgent: 4,
@@ -117,8 +180,6 @@ const indicatorWindow = computed(() => {
   const end = Math.min(items.length, start + 5);
   return items.slice(start, end);
 });
-
-watch(activeRequests, () => resetFeed());
 
 onMounted(async () => {
   await bootstrapSeed();
@@ -164,6 +225,11 @@ function nextCard() {
   }
 }
 
+function previousCard() {
+  if (renderQueue.value.length <= 1) return;
+  currentIndex.value = (currentIndex.value - 1 + renderQueue.value.length) % renderQueue.value.length;
+}
+
 function getLastPrayed(request) {
   return request.prayedAt?.length ? Math.max(...request.prayedAt) : null;
 }
@@ -202,12 +268,19 @@ async function recordPrayer(request) {
   const updated = { ...request, prayedAt: [...(request.prayedAt || []), now], updatedAt: now };
   await saveRequest(updated);
   replaceRequest(updated);
+  nextCard();
 }
 
-async function markAnswered(request) {
-  const updated = { ...request, status: 'answered', updatedAt: Date.now() };
-  await saveRequest(updated);
-  replaceRequest(updated);
+function openAnsweredModal(request) {
+  answeredModal.open = true;
+  answeredModal.request = request;
+  answeredModal.text = '';
+}
+
+function closeAnsweredModal() {
+  answeredModal.open = false;
+  answeredModal.request = null;
+  answeredModal.text = '';
 }
 
 async function updateRequest(request) {
@@ -218,7 +291,7 @@ async function updateRequest(request) {
 }
 
 async function addNote({ request, text }) {
-  const entry = { id: crypto.randomUUID(), text, createdAt: Date.now() };
+  const entry = { id: crypto.randomUUID(), text, createdAt: Date.now(), isAnswer: false };
   const updated = { ...request, notes: [...(request.notes || []), entry], updatedAt: Date.now() };
   await saveRequest(updated);
   replaceRequest(updated);
@@ -236,5 +309,64 @@ async function deleteNote({ request, note }) {
   const updated = { ...request, notes: updatedNotes, updatedAt: Date.now() };
   await saveRequest(updated);
   replaceRequest(updated);
+}
+
+async function saveAnsweredNote() {
+  if (!answeredModal.request || !answeredModal.text.trim()) return;
+  const entry = {
+    id: crypto.randomUUID(),
+    text: answeredModal.text.trim(),
+    createdAt: Date.now(),
+    isAnswer: true,
+  };
+  const updated = {
+    ...answeredModal.request,
+    status: 'answered',
+    notes: [...(answeredModal.request.notes || []), entry],
+    updatedAt: Date.now(),
+  };
+  await saveRequest(updated);
+  replaceRequest(updated);
+  removeRequestFromQueue(updated.id, { autoAdvance: true });
+  closeAnsweredModal();
+  if (renderQueue.value.length === 0) {
+    resetFeed();
+  } else {
+    const remaining = renderQueue.value.length - currentIndex.value;
+    if (remaining <= 2) loadMore();
+  }
+}
+
+function removeRequestFromQueue(requestId, { autoAdvance = false } = {}) {
+  const instancesInQueue = renderQueue.value.filter((item) => item.request.id === requestId).length;
+  renderQueue.value = renderQueue.value.filter((item) => item.request.id !== requestId);
+  const adjustedIndex = Math.max(0, currentIndex.value - instancesInQueue);
+  if (renderQueue.value.length) {
+    currentIndex.value = Math.min(adjustedIndex, renderQueue.value.length - 1);
+    if (autoAdvance && renderQueue.value.length > 1) {
+      currentIndex.value = (currentIndex.value + 1) % renderQueue.value.length;
+    }
+  } else {
+    currentIndex.value = 0;
+  }
+}
+
+function handleTouchStart(event) {
+  const touch = event.changedTouches[0];
+  touchStart.value = { x: touch.clientX, y: touch.clientY };
+}
+
+function handleTouchEnd(event) {
+  if (!touchStart.value) return;
+  const touch = event.changedTouches[0];
+  const dx = touch.clientX - touchStart.value.x;
+  const dy = touch.clientY - touchStart.value.y;
+  touchStart.value = null;
+  if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+  if (dx < 0) {
+    nextCard();
+  } else {
+    previousCard();
+  }
 }
 </script>

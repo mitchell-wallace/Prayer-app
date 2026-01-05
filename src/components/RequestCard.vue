@@ -65,6 +65,10 @@
                 rows="2"
                 class="w-full rounded-lg border border-[var(--border)] bg-[#0f0e16] p-2 text-sm text-[var(--text)] focus:outline-none"
               ></textarea>
+              <div v-if="editingNote.isAnswer" class="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-amber-200">
+                <span class="inline-flex h-2 w-2 rounded-full bg-amber-300"></span>
+                Answered note
+              </div>
               <div class="flex justify-end gap-2">
                 <button
                   class="rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-3 py-2 text-sm font-semibold"
@@ -82,7 +86,15 @@
                 </button>
               </div>
             </div>
-            <p v-else class="mt-2 text-sm leading-relaxed">{{ note.text }}</p>
+            <div v-else class="mt-2 flex items-start gap-2 text-sm leading-relaxed">
+              <span
+                v-if="note.isAnswer"
+                class="mt-[3px] inline-flex items-center rounded-full border border-amber-200/50 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-100"
+              >
+                Answered
+              </span>
+              <p class="m-0 whitespace-pre-line">{{ note.isAnswer ? `ANSWERED · ${note.text}` : note.text }}</p>
+            </div>
           </li>
         </ol>
       </div>
