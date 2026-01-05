@@ -1,15 +1,16 @@
-const CACHE_NAME = 'prayer-app-shell-v2';
-const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/service-worker.js',
-  '/icons/icon.svg',
-];
+const CACHE_NAME = 'prayer-app-shell-v3';
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/service-worker.js', '/icons/icon.svg'];
+const ASSET_PATTERN = /["'](\/assets\/[^"'>\s]+\.(?:js|css))["']/g;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
+    caches
+      .open(CACHE_NAME)
+      .then(async (cache) => {
+        await cache.addAll(APP_SHELL);
+        await precacheBuildAssets(cache);
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -66,4 +67,23 @@ async function staleWhileRevalidate(event) {
   }
 
   return new Response('Offline', { status: 503, statusText: 'Offline' });
+}
+
+async function precacheBuildAssets(cache) {
+  try {
+    const response = await fetch('/index.html', { cache: 'no-cache' });
+
+    if (!response || !response.ok) return;
+
+    const responseClone = response.clone();
+    cache.put('/index.html', responseClone);
+
+    const html = await response.text();
+    const assets = Array.from(html.matchAll(ASSET_PATTERN), (match) => match[1]);
+    const uniqueAssets = [...new Set(assets)];
+
+    await Promise.all(uniqueAssets.map((asset) => cache.add(new Request(asset, { cache: 'no-cache' }))));
+  } catch (error) {
+    console.error('Failed to precache build assets', error);
+  }
 }
