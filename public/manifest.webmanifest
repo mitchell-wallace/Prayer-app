@@ -1,0 +1,19 @@
+{
+  "name": "Prayer List",
+  "short_name": "Prayer",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "background_color": "#0d0d10",
+  "theme_color": "#0d0d10",
+  "description": "Track and revisit prayer requests offline.",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
