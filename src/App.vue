@@ -21,16 +21,17 @@
 
       <div v-if="loading" class="text-sm text-muted">Loading requests…</div>
 
+      <!-- Outer wrapper clips horizontal overflow for slide animation, padding allows shadows -->
       <div
         v-if="currentItem"
-        class="relative flex-1 min-h-0 overflow-hidden"
+        class="relative flex-1 min-h-0 overflow-x-clip overflow-y-visible -mx-4 px-4 -mt-2 pt-2 pb-4"
         @touchstart.passive="handleTouchStart"
         @touchend.passive="handleTouchEnd"
       >
         <Transition :name="slideDirection">
           <RequestCard
             :key="currentItem.request.id + '-' + currentIndex"
-            class="absolute inset-0 h-full"
+            class="absolute inset-x-4 top-2 bottom-4"
             :request="currentItem.request"
             @pray="recordPrayer"
             @mark-answered="openAnsweredModal"
@@ -60,29 +61,47 @@
           </button>
 
           <div class="flex items-center gap-1.5" role="list">
-            <!-- Left overflow indicator -->
+            <!-- Left overflow indicator (pale blue if it's a loop point) -->
             <span
               v-if="progressIndicator.hasLeftOverflow"
-              class="h-1.5 w-1.5 rounded-full bg-dot-overflow"
-            ></span>
-            <!-- Main dots -->
-            <button
-              v-for="dot in progressIndicator.dots"
-              :key="dot.index"
               :class="[
-                'rounded-full transition-all duration-150',
-                dot.index === currentIndex
-                  ? 'h-2.5 w-2.5 bg-dot-active'
-                  : 'h-2 w-2 bg-dot hover:bg-dot-active',
+                'h-1.5 w-1.5 rounded-full transition-colors duration-150',
+                progressIndicator.leftOverflowIsLoopAdjacent ? 'bg-primary/40' : 'bg-dot-overflow',
               ]"
-              type="button"
-              @click="navigateToIndex(dot.index)"
-              aria-label="Jump to card"
-            ></button>
-            <!-- Right overflow indicator -->
+            ></span>
+            <!-- Main dots / loop icons -->
+            <template v-for="item in progressIndicator.items" :key="item.index">
+              <!-- Loop icon (shown when this position is a loop point and NOT current) -->
+              <button
+                v-if="item.isLoopPoint && item.index !== currentIndex"
+                class="inline-flex h-5 w-5 items-center justify-center text-primary/70 transition-all duration-150 hover:text-primary"
+                type="button"
+                @click="navigateToIndex(item.index)"
+                aria-label="Jump to cycle start"
+              >
+                <IconRefresh :size="14" stroke-width="2.5" />
+              </button>
+              <!-- Regular dot (shown when NOT a loop point, OR when it IS current) -->
+              <button
+                v-else
+                :class="[
+                  'rounded-full transition-all duration-150',
+                  item.index === currentIndex
+                    ? 'h-2.5 w-2.5 bg-dot-active'
+                    : 'h-2 w-2 bg-dot hover:bg-dot-active',
+                ]"
+                type="button"
+                @click="navigateToIndex(item.index)"
+                aria-label="Jump to card"
+              ></button>
+            </template>
+            <!-- Right overflow indicator (pale blue if it's a loop point) -->
             <span
               v-if="progressIndicator.hasRightOverflow"
-              class="h-1.5 w-1.5 rounded-full bg-dot-overflow"
+              :class="[
+                'h-1.5 w-1.5 rounded-full transition-colors duration-150',
+                progressIndicator.rightOverflowIsLoopAdjacent ? 'bg-primary/40' : 'bg-dot-overflow',
+              ]"
             ></span>
           </div>
 
@@ -154,7 +173,7 @@
 
 <script setup>
 import { Teleport, Transition, computed, onMounted, reactive, ref } from 'vue';
-import { IconChevronLeft, IconChevronRight, IconX } from '@tabler/icons-vue';
+import { IconChevronLeft, IconChevronRight, IconRefresh, IconX } from '@tabler/icons-vue';
 import AddRequestForm from './components/AddRequestForm.vue';
 import InfoModal from './components/InfoModal.vue';
 import RequestCard from './components/RequestCard.vue';
@@ -199,38 +218,63 @@ const activeRequests = computed(() =>
 const answeredRequests = computed(() => requests.value.filter((r) => r.status === 'answered'));
 const currentItem = computed(() => renderQueue.value[currentIndex.value] || null);
 
-// Progress indicator with max 5 dots and overflow indicators
+/**
+ * Progress indicator with loop point visualization.
+ * 
+ * Loop points mark where the queue cycles back to the first card.
+ * They appear at indices that are multiples of the pool size (activeRequests.length).
+ * 
+ * Display rules:
+ * - Max 5 large items (dots or loop icons) visible at once
+ * - Loop points show as a refresh icon (unless it's the current position)
+ * - Current position always shows as an active dot (even if it's a loop point)
+ * - Overflow indicators (small dots) turn pale blue if they're adjacent to a loop point
+ */
 const progressIndicator = computed(() => {
   const total = renderQueue.value.length;
-  const maxDots = 5;
+  const poolSize = activeRequests.value.length; // Number of unique cards per cycle
+  const maxVisible = 5;
   
-  if (total <= maxDots) {
-    return {
-      dots: renderQueue.value.map((entry, index) => ({ ...entry, index })),
-      hasLeftOverflow: false,
-      hasRightOverflow: false,
-    };
-  }
+  // Helper: Check if an index is a loop point (start of a new cycle)
+  // Loop points are at indices: 0, poolSize, 2*poolSize, etc.
+  // Only valid if we have cards in the pool
+  const isLoopPoint = (index) => poolSize > 0 && index % poolSize === 0;
   
-  // Calculate window around current index
+  // Calculate the visible window centered around current index
   let start = Math.max(0, currentIndex.value - 2);
-  let end = start + maxDots;
+  let end = start + maxVisible;
   
-  // Adjust if we're near the end
+  // Adjust window if we're near the end of the queue
   if (end > total) {
     end = total;
-    start = Math.max(0, end - maxDots);
+    start = Math.max(0, end - maxVisible);
   }
   
-  const dots = renderQueue.value.slice(start, end).map((entry, i) => ({
-    ...entry,
-    index: start + i,
-  }));
+  // Build the items array with loop point information
+  const items = [];
+  for (let i = start; i < end; i++) {
+    items.push({
+      ...renderQueue.value[i],
+      index: i,
+      isLoopPoint: isLoopPoint(i),
+    });
+  }
+  
+  // Determine overflow states and whether they're adjacent to loop points
+  const hasLeftOverflow = start > 0;
+  const hasRightOverflow = end < total;
+  
+  // Check if the position just outside the visible window is a loop point
+  // If so, we show a pale blue indicator instead of the regular gray one
+  const leftOverflowIsLoopAdjacent = hasLeftOverflow && isLoopPoint(start - 1);
+  const rightOverflowIsLoopAdjacent = hasRightOverflow && isLoopPoint(end);
   
   return {
-    dots,
-    hasLeftOverflow: start > 0,
-    hasRightOverflow: end < total,
+    items,
+    hasLeftOverflow,
+    hasRightOverflow,
+    leftOverflowIsLoopAdjacent,
+    rightOverflowIsLoopAdjacent,
   };
 });
 
