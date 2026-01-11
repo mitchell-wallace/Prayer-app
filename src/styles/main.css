@@ -2,6 +2,7 @@
 
 @layer base {
   :root {
+    /* Default dark theme */
     --bg: #0d0d10;
     --card: #15151c;
     --card-muted: #1d1d26;
@@ -12,9 +13,43 @@
     --success: #4ade80;
     --border: #23232c;
     --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    --header-bg: rgba(13, 13, 16, 0.92);
+    --footer-bg: rgba(13, 13, 16, 0.82);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background: var(--bg);
     color: var(--text);
+  }
+
+  /* Light theme */
+  :root[data-theme="light"] {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --card-muted: #f1f5f9;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #7c3aed;
+    --danger: #dc2626;
+    --success: #16a34a;
+    --border: #e2e8f0;
+    --shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    --header-bg: rgba(248, 250, 252, 0.92);
+    --footer-bg: rgba(248, 250, 252, 0.82);
+  }
+
+  /* Dark theme (explicit) */
+  :root[data-theme="dark"] {
+    --bg: #0d0d10;
+    --card: #15151c;
+    --card-muted: #1d1d26;
+    --text: #f8fafc;
+    --muted: #9ca3af;
+    --accent: #9d7bff;
+    --danger: #ef4444;
+    --success: #4ade80;
+    --border: #23232c;
+    --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    --header-bg: rgba(13, 13, 16, 0.92);
+    --footer-bg: rgba(13, 13, 16, 0.82);
   }
 
   * {

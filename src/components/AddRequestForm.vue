@@ -91,6 +91,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { settings } from '../settings.js';
 
 const emit = defineEmits(['save']);
 
@@ -111,8 +112,8 @@ const durationOptions = [
 
 const blank = () => ({
   title: '',
-  priority: 'medium',
-  durationPreset: '6m',
+  priority: settings.defaultPriority,
+  durationPreset: settings.defaultDuration,
 });
 
 const form = reactive(blank());

@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-[100dvh] flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)]">
     <header
-      class="z-30 w-full flex-none border-b border-[var(--border)] bg-[rgba(13,13,16,0.92)] backdrop-blur"
+      class="z-30 w-full flex-none border-b border-[var(--border)] bg-[var(--header-bg)] backdrop-blur"
     >
       <div class="mx-auto max-w-3xl px-4 sm:px-6">
         <div class="flex h-12 items-center justify-between">
@@ -13,6 +13,7 @@
             <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
               Answered {{ answeredRequests.length }}
             </span>
+            <SettingsModal />
           </div>
         </div>
 
@@ -54,7 +55,7 @@
     </main>
 
     <footer
-      class="flex-none border-t border-[var(--border)] bg-gradient-to-b from-transparent via-[rgba(13,13,16,0.82)] to-[var(--bg)] pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+      class="flex-none border-t border-[var(--border)] bg-gradient-to-b from-transparent via-[var(--footer-bg)] to-[var(--bg)] pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
     >
       <div class="mx-auto grid max-w-3xl gap-3 px-4 sm:px-6">
         <div v-if="indicatorWindow.length > 1" class="flex justify-center gap-2" role="list">
@@ -150,8 +151,13 @@
 import { Teleport, computed, onMounted, reactive, ref } from 'vue';
 import AddRequestForm from './components/AddRequestForm.vue';
 import RequestCard from './components/RequestCard.vue';
+import SettingsModal from './components/SettingsModal.vue';
 import { bootstrapSeed, fetchAllRequests, saveRequest } from './db.js';
+import { initThemeWatcher } from './settings.js';
 import { computeExpiry } from './utils/time.js';
+
+// Initialize theme watcher
+initThemeWatcher();
 
 const requests = ref([]);
 const loading = ref(true);
