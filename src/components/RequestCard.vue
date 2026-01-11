@@ -1,10 +1,10 @@
 <template>
-  <section :class="['flex h-full min-h-0 flex-col overflow-hidden', request.status === 'answered' ? 'opacity-90' : '']">
+  <section :class="['flex h-full min-h-0 flex-col', request.status === 'answered' ? 'opacity-90' : '']">
     <!-- Scroll container with horizontal padding for shadow overflow -->
     <div class="relative flex-1 min-h-0 overflow-auto pb-8 -mx-3 px-3">
       <div class="absolute right-3 top-0">
         <button
-          class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted transition-colors duration-150 hover:text-text"
           type="button"
           @click="toggleRequestMenu"
           aria-label="Request options"

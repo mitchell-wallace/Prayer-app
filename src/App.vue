@@ -14,7 +14,7 @@
       </div>
     </header>
 
-    <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 px-4 pt-3 pb-2 sm:px-6">
+    <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-x-clip px-4 pt-3 pb-2 sm:px-6">
       <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-muted">
         No active requests yet. Add one below.
       </p>
@@ -28,8 +28,8 @@
         @touchstart.passive="handleTouchStart"
         @touchend.passive="handleTouchEnd"
       >
-        <!-- Inner wrapper clips horizontal only for slide animation -->
-        <div class="relative h-full min-h-0 overflow-x-clip">
+        <!-- Inner wrapper for slide animation positioning -->
+        <div class="relative h-full min-h-0">
           <Transition :name="slideDirection">
             <RequestCard
               :key="currentItem.request.id + '-' + currentIndex"
