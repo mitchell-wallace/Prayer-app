@@ -29,7 +29,7 @@
         @touchend.passive="handleTouchEnd"
       >
         <!-- Inner wrapper clips horizontal only for slide animation -->
-        <div class="relative h-full overflow-x-clip">
+        <div class="relative h-full min-h-0 overflow-x-clip">
           <Transition :name="slideDirection">
             <RequestCard
               :key="currentItem.request.id + '-' + currentIndex"
@@ -38,6 +38,7 @@
               @pray="recordPrayer"
               @mark-answered="openAnsweredModal"
               @update-request="updateRequest"
+              @delete-request="deleteRequest"
               @add-note="addNote"
               @edit-note="editNote"
               @delete-note="deleteNote"
@@ -187,7 +188,7 @@ import AddRequestForm from './components/AddRequestForm.vue';
 import InfoModal from './components/InfoModal.vue';
 import RequestCard from './components/RequestCard.vue';
 import SettingsModal from './components/SettingsModal.vue';
-import { bootstrapSeed, fetchAllRequests, saveRequest } from './db.js';
+import { bootstrapSeed, deleteRequest as dbDeleteRequest, fetchAllRequests, saveRequest } from './db.js';
 import { initThemeWatcher } from './settings.js';
 import { computeExpiry } from './utils/time.js';
 
@@ -454,6 +455,15 @@ async function deleteNote({ request, note }) {
   const updated = { ...request, notes: updatedNotes, updatedAt: Date.now() };
   await saveRequest(updated);
   replaceRequest(updated);
+}
+
+async function deleteRequest(request) {
+  await dbDeleteRequest(request.id);
+  requests.value = requests.value.filter((r) => r.id !== request.id);
+  removeRequestFromQueue(request.id, { autoAdvance: true });
+  if (renderQueue.value.length === 0) {
+    resetFeed();
+  }
 }
 
 async function saveAnsweredNote() {

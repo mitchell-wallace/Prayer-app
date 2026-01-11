@@ -1,14 +1,36 @@
 <template>
-  <section :class="['relative flex h-full min-h-0 flex-col', request.status === 'answered' ? 'opacity-90' : '']">
-    <div class="relative flex-1 min-h-0 overflow-auto pb-8">
-      <button
-        class="absolute right-0 top-0 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
-        type="button"
-        @click="toggleEditing"
-        aria-label="Edit request"
-      >
-        <IconPencil :size="18" stroke-width="2" />
-      </button>
+  <section :class="['flex h-full min-h-0 flex-col overflow-hidden', request.status === 'answered' ? 'opacity-90' : '']">
+    <!-- Scroll container with horizontal padding for shadow overflow -->
+    <div class="relative flex-1 min-h-0 overflow-auto pb-8 -mx-3 px-3">
+      <div class="absolute right-3 top-0">
+        <button
+          class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+          type="button"
+          @click="toggleRequestMenu"
+          aria-label="Request options"
+        >
+          <IconDotsVertical :size="18" stroke-width="2" />
+        </button>
+        <div
+          v-if="requestMenuOpen"
+          class="absolute right-0 top-full mt-1 w-32 rounded-xl bg-card p-1 shadow-modal z-10"
+        >
+          <button
+            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-text transition-colors duration-150 hover:bg-card-muted"
+            type="button"
+            @click="openEditFromMenu"
+          >
+            Edit
+          </button>
+          <button
+            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-card-muted"
+            type="button"
+            @click="promptDeleteRequest"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
 
       <header class="flex flex-col gap-2 pr-12">
         <h3 class="m-0 text-lg font-semibold leading-tight">{{ request.title }}</h3>
@@ -184,7 +206,7 @@
         <div
           v-if="editing"
           class="fixed inset-0 z-40 grid place-items-center bg-overlay p-4"
-          @click.self="toggleEditing"
+          @click.self="closeEditing"
         >
           <div class="w-full max-w-lg rounded-2xl bg-card p-5 shadow-modal">
             <header class="mb-4 flex items-center justify-between">
@@ -192,7 +214,7 @@
               <button
                 class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
                 type="button"
-                @click="toggleEditing"
+                @click="closeEditing"
               >
                 <IconX :size="18" stroke-width="2" />
               </button>
@@ -238,7 +260,7 @@
               <button
                 class="rounded-xl bg-card-muted px-4 py-2.5 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
                 type="button"
-                @click="toggleEditing"
+                @click="closeEditing"
               >
                 Cancel
               </button>
@@ -290,19 +312,55 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Delete request confirmation modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div
+          v-if="deleteConfirmRequest"
+          class="fixed inset-0 z-50 grid place-items-center bg-overlay p-4"
+          @click.self="cancelDeleteRequest"
+        >
+          <div class="w-full max-w-sm rounded-2xl bg-card p-5 shadow-modal">
+            <header class="mb-3">
+              <h4 class="m-0 text-base font-semibold">Delete prayer request?</h4>
+            </header>
+            <p class="text-sm text-muted">
+              Are you sure you want to delete this prayer request and all its notes? This action cannot be undone.
+            </p>
+            <div class="mt-5 grid grid-cols-2 gap-3">
+              <button
+                class="w-full rounded-xl bg-card-muted px-4 py-2.5 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                type="button"
+                @click="cancelDeleteRequest"
+              >
+                Cancel
+              </button>
+              <button
+                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:opacity-90 hover:shadow-card"
+                type="button"
+                @click="confirmDeleteRequest"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </section>
 </template>
 
 <script setup>
 import { Teleport, Transition, computed, nextTick, reactive, ref, watch } from 'vue';
-import { IconDotsVertical, IconPencil, IconPlus, IconX } from '@tabler/icons-vue';
+import { IconDotsVertical, IconPlus, IconX } from '@tabler/icons-vue';
 import { daysLeft, timeAgo } from '../utils/time.js';
 
 const props = defineProps({
   request: { type: Object, required: true },
 });
 
-const emit = defineEmits(['pray', 'mark-answered', 'update-request', 'add-note', 'edit-note', 'delete-note']);
+const emit = defineEmits(['pray', 'mark-answered', 'update-request', 'delete-request', 'add-note', 'edit-note', 'delete-note']);
 
 const priorityClasses = {
   urgent: 'border-priority-urgent-border bg-priority-urgent-bg text-priority-urgent-text',
@@ -318,6 +376,8 @@ const editingNote = ref(null);
 const noteInputRef = ref(null);
 const noteMenuOpen = ref(null); // note id of open menu
 const deleteConfirmNote = ref(null); // note to confirm deletion
+const requestMenuOpen = ref(false);
+const deleteConfirmRequest = ref(false);
 
 const editForm = reactive({ ...props.request });
 
@@ -337,11 +397,32 @@ const expiryCopy = computed(() => daysLeft(props.request.expiresAt));
 
 const sortedNotes = computed(() => [...(props.request.notes || [])].sort((a, b) => b.createdAt - a.createdAt));
 
-function toggleEditing() {
-  editing.value = !editing.value;
-  if (editing.value) {
-    Object.assign(editForm, props.request);
-  }
+function toggleRequestMenu() {
+  requestMenuOpen.value = !requestMenuOpen.value;
+}
+
+function openEditFromMenu() {
+  requestMenuOpen.value = false;
+  editing.value = true;
+  Object.assign(editForm, props.request);
+}
+
+function closeEditing() {
+  editing.value = false;
+}
+
+function promptDeleteRequest() {
+  requestMenuOpen.value = false;
+  deleteConfirmRequest.value = true;
+}
+
+function confirmDeleteRequest() {
+  emit('delete-request', props.request);
+  deleteConfirmRequest.value = false;
+}
+
+function cancelDeleteRequest() {
+  deleteConfirmRequest.value = false;
 }
 
 function saveEdit() {

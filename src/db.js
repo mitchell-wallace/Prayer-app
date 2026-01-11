@@ -115,6 +115,14 @@ export async function saveRequest(record) {
   await persistDb(db);
 }
 
+export async function deleteRequest(id) {
+  const db = await initDb();
+  const stmt = db.prepare('DELETE FROM requests WHERE id = ?');
+  stmt.run([id]);
+  stmt.free();
+  await persistDb(db);
+}
+
 async function countRequests() {
   const db = await initDb();
   const result = db.exec('SELECT COUNT(*) as count FROM requests');
