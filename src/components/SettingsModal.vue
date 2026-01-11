@@ -3,7 +3,7 @@
     <!-- Cog button trigger -->
     <button
       type="button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--card-muted)] text-[var(--muted)] transition hover:text-[var(--text)] hover:border-[var(--accent)]"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card-muted text-muted transition hover:text-text hover:border-accent"
       aria-label="Open settings"
       @click="open = true"
     >
@@ -30,11 +30,11 @@
         class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
         @click.self="open = false"
       >
-        <div class="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)]">
+        <div class="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-card">
           <header class="mb-4 flex items-center justify-between">
             <h2 class="m-0 text-base font-semibold">Settings</h2>
             <button
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--card-muted)] text-lg"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card-muted text-lg"
               type="button"
               @click="open = false"
             >
@@ -45,7 +45,7 @@
           <div class="grid gap-5">
             <!-- Theme setting -->
             <div class="grid gap-2">
-              <label class="text-sm font-medium text-[var(--text)]">Theme</label>
+              <label class="text-sm font-medium text-text">Theme</label>
               <div class="grid grid-cols-3 gap-2">
                 <button
                   v-for="option in themeOptions"
@@ -54,8 +54,8 @@
                   :class="[
                     'rounded-lg border px-3 py-2 text-sm font-semibold transition',
                     settings.theme === option.value
-                      ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--text)]'
-                      : 'border-[var(--border)] bg-[var(--card-muted)] text-[var(--muted)] hover:text-[var(--text)]',
+                      ? 'border-accent bg-accent/10 text-text'
+                      : 'border-border bg-card-muted text-muted hover:text-text',
                   ]"
                   @click="settings.theme = option.value"
                 >
@@ -66,7 +66,7 @@
 
             <!-- Default Priority -->
             <div class="grid gap-2">
-              <label class="text-sm font-medium text-[var(--text)]">Default Priority</label>
+              <label class="text-sm font-medium text-text">Default Priority</label>
               <div class="grid grid-cols-4 gap-2">
                 <button
                   v-for="option in priorityOptions"
@@ -75,8 +75,8 @@
                   :class="[
                     'rounded-lg border px-3 py-2 text-xs font-semibold transition',
                     settings.defaultPriority === option.value
-                      ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--text)]'
-                      : 'border-[var(--border)] bg-[var(--card-muted)] text-[var(--muted)] hover:text-[var(--text)]',
+                      ? 'border-accent bg-accent/10 text-text'
+                      : 'border-border bg-card-muted text-muted hover:text-text',
                   ]"
                   @click="settings.defaultPriority = option.value"
                 >
@@ -87,7 +87,7 @@
 
             <!-- Default Duration -->
             <div class="grid gap-2">
-              <label class="text-sm font-medium text-[var(--text)]">Default Duration</label>
+              <label class="text-sm font-medium text-text">Default Duration</label>
               <div class="grid grid-cols-5 gap-2">
                 <button
                   v-for="option in durationOptions"
@@ -96,8 +96,8 @@
                   :class="[
                     'rounded-lg border px-2 py-2 text-xs font-semibold transition',
                     settings.defaultDuration === option.value
-                      ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--text)]'
-                      : 'border-[var(--border)] bg-[var(--card-muted)] text-[var(--muted)] hover:text-[var(--text)]',
+                      ? 'border-accent bg-accent/10 text-text'
+                      : 'border-border bg-card-muted text-muted hover:text-text',
                   ]"
                   @click="settings.defaultDuration = option.value"
                 >
@@ -107,7 +107,7 @@
             </div>
           </div>
 
-          <p class="mt-5 text-center text-xs text-[var(--muted)]">
+          <p class="mt-5 text-center text-xs text-muted">
             Settings are saved automatically
           </p>
         </div>

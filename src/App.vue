@@ -1,26 +1,26 @@
 <template>
-  <div class="flex h-[100dvh] flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)]">
+  <div class="flex h-[100dvh] flex-col overflow-hidden bg-bg text-text">
     <header
-      class="z-30 w-full flex-none border-b border-[var(--border)] bg-[var(--header-bg)] backdrop-blur"
+      class="z-30 w-full flex-none border-b border-border bg-header-bg backdrop-blur"
     >
       <div class="mx-auto max-w-3xl px-4 sm:px-6">
         <div class="flex h-12 items-center justify-between">
           <span class="text-sm font-semibold tracking-wide uppercase">prayer rhythm</span>
-          <div class="flex items-center gap-3 text-xs text-[var(--muted)]">
-            <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
+          <div class="flex items-center gap-3 text-xs text-muted">
+            <span class="rounded-full border border-border bg-card-muted px-3 py-1">
               Active {{ activeRequests.length }}
             </span>
-            <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
+            <span class="rounded-full border border-border bg-card-muted px-3 py-1">
               Answered {{ answeredRequests.length }}
             </span>
             <SettingsModal />
           </div>
         </div>
 
-        <div class="flex items-center justify-between pb-3 text-xs text-[var(--muted)]">
+        <div class="flex items-center justify-between pb-3 text-xs text-muted">
           <p class="text-[11px] uppercase tracking-[0.14em]">Active queue</p>
           <span
-            class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)]"
+            class="rounded-full border border-border bg-card-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-text"
           >
             {{ renderQueue.length || 0 }} queued
           </span>
@@ -29,11 +29,11 @@
     </header>
 
     <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-hidden px-4 pt-3 sm:px-6">
-      <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-[var(--muted)]">
+      <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-muted">
         No active requests yet. Add one below.
       </p>
 
-      <div v-if="loading" class="text-sm text-[var(--muted)]">Loading requests…</div>
+      <div v-if="loading" class="text-sm text-muted">Loading requests…</div>
 
       <div
         v-if="currentItem"
@@ -55,7 +55,7 @@
     </main>
 
     <footer
-      class="flex-none border-t border-[var(--border)] bg-gradient-to-b from-transparent via-[var(--footer-bg)] to-[var(--bg)] pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+      class="flex-none border-t border-border bg-gradient-to-b from-transparent via-footer-bg to-bg pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
     >
       <div class="mx-auto grid max-w-3xl gap-3 px-4 sm:px-6">
         <div v-if="indicatorWindow.length > 1" class="flex justify-center gap-2" role="list">
@@ -63,8 +63,8 @@
             v-for="entry in indicatorWindow"
             :key="`${entry.request.id}-${entry.index}`"
             :class="[
-              'h-2 w-2 rounded-full border border-[var(--border)] bg-[var(--border)]',
-              entry.index === currentIndex ? 'bg-[var(--accent)]' : '',
+              'h-2 w-2 rounded-full border border-border bg-border',
+              entry.index === currentIndex ? 'bg-accent' : '',
             ]"
             type="button"
             @click="currentIndex = entry.index"
@@ -72,9 +72,9 @@
           ></button>
         </div>
 
-        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-[var(--muted)]">
+        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-muted">
           <button
-            class="justify-self-start rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)] disabled:opacity-60"
+            class="justify-self-start rounded-full border border-border bg-card-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-text disabled:opacity-60"
             type="button"
             :disabled="renderQueue.length <= 1"
             @click="previousCard"
@@ -85,7 +85,7 @@
             Cycle {{ cycleCount + 1 }} · {{ renderQueue.length || 0 }} queued · {{ activeRequests.length }} active
           </span>
           <button
-            class="justify-self-end rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)] disabled:opacity-60"
+            class="justify-self-end rounded-full border border-border bg-card-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-text disabled:opacity-60"
             type="button"
             :disabled="renderQueue.length <= 1"
             @click="nextCard"
@@ -104,11 +104,11 @@
         class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
         @click.self="closeAnsweredModal"
       >
-        <div class="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-[var(--shadow)]">
+        <div class="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-card">
           <header class="mb-3 flex items-center justify-between">
             <h4 class="m-0 text-base font-semibold">Answered prayer</h4>
             <button
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--card-muted)] text-lg"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card-muted text-lg"
               type="button"
               @click="closeAnsweredModal"
             >
@@ -116,24 +116,24 @@
             </button>
           </header>
           <div class="grid gap-3">
-            <p class="text-sm text-[var(--muted)]">How did God answer your prayer?</p>
+            <p class="text-sm text-muted">How did God answer your prayer?</p>
             <textarea
               v-model="answeredModal.text"
               rows="3"
               placeholder="How did God answer your prayer?"
-              class="w-full rounded-lg border border-[var(--border)] bg-[var(--card-muted)] p-3 text-sm text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none"
+              class="w-full rounded-lg border border-border bg-card-muted p-3 text-sm text-text placeholder:text-muted focus:outline-none"
             ></textarea>
           </div>
           <div class="mt-4 grid grid-cols-2 gap-2">
             <button
-              class="w-full rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-3 py-2 text-sm font-semibold"
+              class="w-full rounded-lg border border-border bg-card-muted px-3 py-2 text-sm font-semibold"
               type="button"
               @click="closeAnsweredModal"
             >
               Cancel
             </button>
             <button
-              class="w-full rounded-lg bg-gradient-to-r from-[#9d7bff] to-[#7c9dff] px-3 py-2 text-sm font-semibold text-[#0d0d10] disabled:opacity-60"
+              class="w-full rounded-lg bg-gradient-to-r from-accent to-accent-secondary px-3 py-2 text-sm font-semibold text-bg disabled:opacity-60"
               type="button"
               :disabled="!answeredModal.text.trim()"
               @click="saveAnsweredNote"
