@@ -1,7 +1,7 @@
 <template>
   <article
     :class="[
-      'relative grid gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow)]',
+      'relative grid h-full gap-4 overflow-auto rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow)]',
       request.status === 'answered' ? 'opacity-90 border-white/10' : '',
     ]"
   >
@@ -40,64 +40,7 @@
         <span>Notes</span>
         <span>{{ notesLabel }}</span>
       </div>
-      <div class="grid gap-3 overflow-hidden">
-        <p v-if="!sortedNotes.length" class="m-0 text-sm text-[var(--muted)]">no notes</p>
-        <ol v-else class="grid max-h-48 gap-3 overflow-auto pr-1 text-sm" role="list">
-          <li
-            v-for="note in sortedNotes"
-            :key="note.id"
-            class="rounded-xl border border-[var(--border)] bg-[#0f0e16] p-3"
-          >
-            <div class="flex items-start justify-between gap-2 text-xs text-[var(--muted)]">
-              <span>{{ formatTimestamp(note.createdAt) }}</span>
-              <div class="flex gap-2">
-                <button class="text-[var(--accent)]" type="button" @click="startNoteEdit(note)">
-                  {{ editingNote?.id === note.id ? 'Cancel' : 'Edit' }}
-                </button>
-                <button class="text-rose-300" type="button" @click="emit('delete-note', { request, note })">
-                  Delete
-                </button>
-              </div>
-            </div>
-            <div v-if="editingNote?.id === note.id" class="mt-2 grid gap-2">
-              <textarea
-                v-model="editingNote.text"
-                rows="2"
-                class="w-full rounded-lg border border-[var(--border)] bg-[#0f0e16] p-2 text-sm text-[var(--text)] focus:outline-none"
-              ></textarea>
-              <div v-if="editingNote.isAnswer" class="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-amber-200">
-                <span class="inline-flex h-2 w-2 rounded-full bg-amber-300"></span>
-                Answered note
-              </div>
-              <div class="flex justify-end gap-2">
-                <button
-                  class="rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-3 py-2 text-sm font-semibold"
-                  type="button"
-                  @click="editingNote = null"
-                >
-                  Dismiss
-                </button>
-                <button
-                  class="rounded-lg bg-gradient-to-r from-[#9d7bff] to-[#7c9dff] px-3 py-2 text-sm font-semibold text-[#0d0d10]"
-                  type="button"
-                  @click="saveNoteEdit(note)"
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-            <div v-else class="mt-2 flex items-start gap-2 text-sm leading-relaxed">
-              <span
-                v-if="note.isAnswer"
-                class="mt-[3px] inline-flex items-center rounded-full border border-amber-200/50 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-100"
-              >
-                Answered
-              </span>
-              <p class="m-0 whitespace-pre-line">{{ note.isAnswer ? `ANSWERED · ${note.text}` : note.text }}</p>
-            </div>
-          </li>
-        </ol>
-      </div>
+
       <div v-if="noteFormOpen" class="grid gap-2">
         <textarea
           v-model="noteDraft"
@@ -131,6 +74,61 @@
       >
         + add note
       </button>
+
+      <p v-if="!sortedNotes.length" class="m-0 text-sm text-[var(--muted)]">no notes</p>
+      <ol v-else class="grid gap-3 text-sm" role="list">
+        <li
+          v-for="note in sortedNotes"
+          :key="note.id"
+          class="rounded-xl border border-[var(--border)] bg-[#0f0e16] p-3"
+        >
+          <div class="flex items-start justify-between gap-2 text-xs text-[var(--muted)]">
+            <span>{{ formatTimestamp(note.createdAt) }}</span>
+            <div class="flex gap-2">
+              <button class="text-[var(--accent)]" type="button" @click="startNoteEdit(note)">
+                {{ editingNote?.id === note.id ? 'Cancel' : 'Edit' }}
+              </button>
+              <button class="text-rose-300" type="button" @click="emit('delete-note', { request, note })">Delete</button>
+            </div>
+          </div>
+          <div v-if="editingNote?.id === note.id" class="mt-2 grid gap-2">
+            <textarea
+              v-model="editingNote.text"
+              rows="2"
+              class="w-full rounded-lg border border-[var(--border)] bg-[#0f0e16] p-2 text-sm text-[var(--text)] focus:outline-none"
+            ></textarea>
+            <div v-if="editingNote.isAnswer" class="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-amber-200">
+              <span class="inline-flex h-2 w-2 rounded-full bg-amber-300"></span>
+              Answered note
+            </div>
+            <div class="flex justify-end gap-2">
+              <button
+                class="rounded-lg border border-[var(--border)] bg-[var(--card-muted)] px-3 py-2 text-sm font-semibold"
+                type="button"
+                @click="editingNote = null"
+              >
+                Dismiss
+              </button>
+              <button
+                class="rounded-lg bg-gradient-to-r from-[#9d7bff] to-[#7c9dff] px-3 py-2 text-sm font-semibold text-[#0d0d10]"
+                type="button"
+                @click="saveNoteEdit(note)"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+          <div v-else class="mt-2 flex items-start gap-2 text-sm leading-relaxed">
+            <span
+              v-if="note.isAnswer"
+              class="mt-[3px] inline-flex items-center rounded-full border border-amber-200/50 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-100"
+            >
+              Answered
+            </span>
+            <p class="m-0 whitespace-pre-line">{{ note.isAnswer ? `ANSWERED · ${note.text}` : note.text }}</p>
+          </div>
+        </li>
+      </ol>
     </div>
 
     <div class="grid grid-cols-2 gap-3">

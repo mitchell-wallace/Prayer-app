@@ -1,29 +1,33 @@
 <template>
-  <div class="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+  <div class="flex h-[100dvh] flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)]">
     <header
-      class="sticky top-0 z-30 w-full border-b border-[var(--border)] bg-[rgba(13,13,16,0.92)] backdrop-blur"
+      class="z-30 w-full flex-none border-b border-[var(--border)] bg-[rgba(13,13,16,0.92)] backdrop-blur"
     >
-      <div class="mx-auto flex h-12 max-w-3xl items-center justify-between px-4 sm:px-6">
-        <span class="text-sm font-semibold tracking-wide uppercase">prayer rhythm</span>
-        <div class="flex items-center gap-3 text-xs text-[var(--muted)]">
-          <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
-            Active {{ activeRequests.length }}
-          </span>
-          <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
-            Answered {{ answeredRequests.length }}
+      <div class="mx-auto max-w-3xl px-4 sm:px-6">
+        <div class="flex h-12 items-center justify-between">
+          <span class="text-sm font-semibold tracking-wide uppercase">prayer rhythm</span>
+          <div class="flex items-center gap-3 text-xs text-[var(--muted)]">
+            <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
+              Active {{ activeRequests.length }}
+            </span>
+            <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1">
+              Answered {{ answeredRequests.length }}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pb-3 text-xs text-[var(--muted)]">
+          <p class="text-[11px] uppercase tracking-[0.14em]">Active queue</p>
+          <span
+            class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)]"
+          >
+            {{ renderQueue.length || 0 }} queued
           </span>
         </div>
       </div>
     </header>
 
-    <main class="mx-auto flex max-w-3xl flex-col gap-3 px-4 pb-28 pt-3 sm:px-6">
-      <div class="flex items-center justify-between text-xs text-[var(--muted)]">
-        <p class="text-[11px] uppercase tracking-[0.14em]">Active queue</p>
-        <span class="rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)]">
-          {{ renderQueue.length || 0 }} queued
-        </span>
-      </div>
-
+    <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-hidden px-4 pt-3 sm:px-6">
       <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-[var(--muted)]">
         No active requests yet. Add one below.
       </p>
@@ -32,11 +36,12 @@
 
       <div
         v-if="currentItem"
-        class="grid"
+        class="flex-1 min-h-0"
         @touchstart.passive="handleTouchStart"
         @touchend.passive="handleTouchEnd"
       >
         <RequestCard
+          class="h-full"
           :request="currentItem.request"
           @pray="recordPrayer"
           @mark-answered="openAnsweredModal"
@@ -46,45 +51,51 @@
           @delete-note="deleteNote"
         />
       </div>
-
-      <div v-if="indicatorWindow.length > 1" class="flex justify-center gap-2" role="list">
-        <button
-          v-for="entry in indicatorWindow"
-          :key="`${entry.request.id}-${entry.index}`"
-          :class="[
-            'h-2 w-2 rounded-full border border-[var(--border)] bg-[var(--border)]',
-            entry.index === currentIndex ? 'bg-[var(--accent)]' : '',
-          ]"
-          type="button"
-          @click="currentIndex = entry.index"
-          aria-label="Jump to card"
-        ></button>
-      </div>
-
-      <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-[var(--muted)]">
-        <button
-          class="justify-self-start rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)] disabled:opacity-60"
-          type="button"
-          :disabled="renderQueue.length <= 1"
-          @click="previousCard"
-        >
-          < Back
-        </button>
-        <span class="text-center text-[11px] uppercase tracking-[0.14em]">
-          Cycle {{ cycleCount + 1 }} · {{ renderQueue.length || 0 }} queued · {{ activeRequests.length }} active
-        </span>
-        <button
-          class="justify-self-end rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)] disabled:opacity-60"
-          type="button"
-          :disabled="renderQueue.length <= 1"
-          @click="nextCard"
-        >
-          Next >
-        </button>
-      </div>
     </main>
 
-    <AddRequestForm @save="createRequest" />
+    <footer
+      class="flex-none border-t border-[var(--border)] bg-gradient-to-b from-transparent via-[rgba(13,13,16,0.82)] to-[var(--bg)] pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+    >
+      <div class="mx-auto grid max-w-3xl gap-3 px-4 sm:px-6">
+        <div v-if="indicatorWindow.length > 1" class="flex justify-center gap-2" role="list">
+          <button
+            v-for="entry in indicatorWindow"
+            :key="`${entry.request.id}-${entry.index}`"
+            :class="[
+              'h-2 w-2 rounded-full border border-[var(--border)] bg-[var(--border)]',
+              entry.index === currentIndex ? 'bg-[var(--accent)]' : '',
+            ]"
+            type="button"
+            @click="currentIndex = entry.index"
+            aria-label="Jump to card"
+          ></button>
+        </div>
+
+        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-[var(--muted)]">
+          <button
+            class="justify-self-start rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)] disabled:opacity-60"
+            type="button"
+            :disabled="renderQueue.length <= 1"
+            @click="previousCard"
+          >
+            < Back
+          </button>
+          <span class="text-center text-[11px] uppercase tracking-[0.14em]">
+            Cycle {{ cycleCount + 1 }} · {{ renderQueue.length || 0 }} queued · {{ activeRequests.length }} active
+          </span>
+          <button
+            class="justify-self-end rounded-full border border-[var(--border)] bg-[var(--card-muted)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text)] disabled:opacity-60"
+            type="button"
+            :disabled="renderQueue.length <= 1"
+            @click="nextCard"
+          >
+            Next >
+          </button>
+        </div>
+
+        <AddRequestForm @save="createRequest" />
+      </div>
+    </footer>
 
     <Teleport to="body">
       <div
