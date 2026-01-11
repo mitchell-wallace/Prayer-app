@@ -31,10 +31,7 @@
       </header>
 
       <div class="mt-4 grid gap-3 rounded-xl border border-border bg-card-muted p-3">
-        <div class="flex items-center justify-between text-xs text-muted">
-          <span>Notes</span>
-          <span>{{ notesLabel }}</span>
-        </div>
+        <p class="text-xs text-muted">Notes</p>
 
         <div v-if="noteFormOpen" class="grid gap-2">
           <textarea
@@ -225,7 +222,7 @@
 
 <script setup>
 import { Teleport, computed, reactive, ref, watch } from 'vue';
-import { daysLeft, formatDate, timeAgo } from '../utils/time.js';
+import { daysLeft, timeAgo } from '../utils/time.js';
 
 const props = defineProps({
   request: { type: Object, required: true },
@@ -259,8 +256,6 @@ const lastPrayed = computed(() => {
   return stamp ? timeAgo(stamp) : 'never';
 });
 const expiryCopy = computed(() => daysLeft(props.request.expiresAt));
-const createdCopy = computed(() => formatDate(props.request.createdAt));
-const notesLabel = computed(() => `${props.request.notes?.length || 0} notes · added ${createdCopy.value}`);
 
 
 const sortedNotes = computed(() => [...(props.request.notes || [])].sort((a, b) => b.createdAt - a.createdAt));

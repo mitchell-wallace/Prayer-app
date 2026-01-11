@@ -78,14 +78,20 @@
             <div v-if="stats.currentRequest" class="rounded-xl border border-border bg-card-muted p-4">
               <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Current Card</h3>
               <p class="text-sm font-medium text-text truncate">{{ stats.currentRequest.title }}</p>
-              <div class="mt-2 flex gap-2 text-xs">
+              <div class="mt-2 flex flex-wrap gap-2 text-xs">
                 <span class="rounded-full border border-border bg-card px-2 py-0.5 capitalize text-muted">
                   {{ stats.currentRequest.status }}
                 </span>
                 <span class="rounded-full border border-border bg-card px-2 py-0.5 capitalize text-muted">
                   {{ stats.currentRequest.priority }}
                 </span>
+                <span class="rounded-full border border-border bg-card px-2 py-0.5 text-muted">
+                  {{ stats.currentRequest.notes?.length || 0 }} notes
+                </span>
               </div>
+              <p class="mt-2 text-xs text-muted">
+                Added {{ formatDate(stats.currentRequest.createdAt) }}
+              </p>
             </div>
           </div>
         </div>
@@ -96,6 +102,12 @@
 
 <script setup>
 import { ref, Teleport } from 'vue';
+
+function formatDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString();
+}
 
 defineProps({
   stats: {
