@@ -1,32 +1,7 @@
 <template>
-  <section>
-    <form class="grid gap-3" @submit.prevent="submit">
-      <div
-        :class="[
-          'grid grid-cols-[1fr_auto] items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2 shadow-card transition',
-          showControls ? 'border-accent/60 shadow-lg' : '',
-        ]"
-      >
-        <input
-          v-model="form.title"
-          type="text"
-          required
-          placeholder="Add a prayer request"
-          class="w-full bg-transparent px-1 py-3 text-base text-text placeholder:text-muted focus:outline-none"
-          @focus="isFocused = true"
-          @blur="handleBlur"
-        />
-        <button
-          class="h-11 w-11 rounded-xl border border-border bg-card-muted text-xl font-bold text-text transition hover:border-accent disabled:opacity-50"
-          type="submit"
-          :disabled="!form.title.trim()"
-        >
-          <span aria-hidden="true">＋</span>
-          <span class="sr-only">Add request</span>
-        </button>
-      </div>
-
-      <div v-if="showControls" class="flex justify-end gap-2">
+  <section ref="formContainerRef">
+    <form class="grid gap-2" @submit.prevent="submit">
+      <div v-if="showControls" class="flex justify-start gap-2">
         <div class="relative" ref="priorityRef">
           <button
             type="button"
@@ -38,7 +13,7 @@
           </button>
           <ul
             v-if="priorityOpen"
-            class="absolute bottom-full mb-2 w-36 rounded-xl border border-border bg-card p-1 shadow-2xl"
+            class="absolute bottom-full mb-2 w-36 rounded-xl border border-border bg-card p-1 shadow-2xl z-10"
           >
             <li v-for="option in priorityOptions" :key="option.value">
               <button
@@ -66,7 +41,7 @@
           </button>
           <ul
             v-if="durationOpen"
-            class="absolute bottom-full mb-2 w-40 rounded-xl border border-border bg-card p-1 shadow-2xl"
+            class="absolute bottom-full mb-2 w-40 rounded-xl border border-border bg-card p-1 shadow-2xl z-10"
           >
             <li v-for="option in durationOptions" :key="option.value">
               <button
@@ -85,12 +60,42 @@
           </ul>
         </div>
       </div>
+
+      <div
+        :class="[
+          'grid grid-cols-[1fr_auto] items-start gap-2 rounded-2xl border border-border bg-card px-3 py-2 shadow-card transition',
+          showControls ? 'border-accent/60 shadow-lg' : '',
+        ]"
+      >
+        <textarea
+          ref="inputRef"
+          v-model="form.title"
+          :rows="showControls ? 3 : 1"
+          required
+          placeholder="Add a prayer request"
+          :class="[
+            'w-full resize-none bg-transparent px-1 text-base text-text placeholder:text-muted focus:outline-none transition-all',
+            showControls ? 'py-2' : 'py-3',
+          ]"
+          @focus="isFocused = true"
+          @blur="handleBlur"
+          @keydown.enter.exact.prevent="submit"
+        ></textarea>
+        <button
+          class="mt-1 h-11 w-11 rounded-xl border border-border bg-card-muted text-xl font-bold text-text transition hover:border-accent disabled:opacity-50"
+          type="submit"
+          :disabled="!form.title.trim()"
+        >
+          <span aria-hidden="true">＋</span>
+          <span class="sr-only">Add request</span>
+        </button>
+      </div>
     </form>
   </section>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { settings } from '../settings.js';
 
 const emit = defineEmits(['save']);
@@ -134,6 +139,8 @@ const priorityOpen = ref(false);
 const durationOpen = ref(false);
 const priorityRef = ref(null);
 const durationRef = ref(null);
+const formContainerRef = ref(null);
+const inputRef = ref(null);
 
 const priorityLabel = computed(() => {
   return priorityOptions.find((o) => o.value === form.priority)?.label || 'Priority';
@@ -143,6 +150,13 @@ const durationLabel = computed(() => {
 });
 const showControls = computed(() => isFocused.value || priorityOpen.value || durationOpen.value);
 
+function clearTitle() {
+  form.title = '';
+  // Reset priority/duration to defaults for next request
+  form.priority = settings.defaultPriority;
+  form.durationPreset = settings.defaultDuration;
+}
+
 function resetForm() {
   Object.assign(form, blank());
   isFocused.value = false;
@@ -150,10 +164,13 @@ function resetForm() {
   durationOpen.value = false;
 }
 
-function submit() {
+async function submit() {
   if (!form.title.trim()) return;
   emit('save', { ...form, title: form.title.trim() });
-  resetForm();
+  // Clear title but keep form active for adding more requests
+  clearTitle();
+  await nextTick();
+  inputRef.value?.focus();
 }
 
 function togglePriority() {
@@ -185,6 +202,14 @@ function handleBlur() {
 }
 
 function handleClickOutside(event) {
+  // If clicking outside the entire form container, close everything
+  if (formContainerRef.value && !formContainerRef.value.contains(event.target)) {
+    priorityOpen.value = false;
+    durationOpen.value = false;
+    isFocused.value = false;
+    return;
+  }
+  // Otherwise just close dropdowns if clicking outside them
   const targets = [priorityRef.value, durationRef.value];
   if (targets.some((node) => node?.contains(event.target))) return;
   priorityOpen.value = false;
