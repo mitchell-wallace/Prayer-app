@@ -35,6 +35,7 @@
 
         <div v-if="noteFormOpen" class="grid gap-2">
           <textarea
+            ref="noteInputRef"
             v-model="noteDraft"
             rows="2"
             required
@@ -62,7 +63,7 @@
           v-else
           class="justify-self-start text-sm font-semibold text-accent"
           type="button"
-          @click="noteFormOpen = true"
+          @click="openNoteForm"
         >
           + add note
         </button>
@@ -221,7 +222,7 @@
 </template>
 
 <script setup>
-import { Teleport, computed, reactive, ref, watch } from 'vue';
+import { Teleport, computed, nextTick, reactive, ref, watch } from 'vue';
 import { daysLeft, timeAgo } from '../utils/time.js';
 
 const props = defineProps({
@@ -241,6 +242,7 @@ const editing = ref(false);
 const noteFormOpen = ref(false);
 const noteDraft = ref('');
 const editingNote = ref(null);
+const noteInputRef = ref(null);
 
 const editForm = reactive({ ...props.request });
 
@@ -282,6 +284,12 @@ function submitNote() {
 function cancelNote() {
   noteDraft.value = '';
   noteFormOpen.value = false;
+}
+
+async function openNoteForm() {
+  noteFormOpen.value = true;
+  await nextTick();
+  noteInputRef.value?.focus();
 }
 
 function startNoteEdit(note) {
