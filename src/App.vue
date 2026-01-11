@@ -1,11 +1,11 @@
 <template>
   <div class="flex h-[100dvh] flex-col overflow-hidden bg-bg text-text">
     <header
-      class="z-30 w-full flex-none border-b border-border bg-header-bg backdrop-blur"
+      class="z-30 w-full flex-none bg-header-bg backdrop-blur"
     >
       <div class="mx-auto max-w-3xl px-4 sm:px-6">
         <div class="flex h-12 items-center justify-between">
-          <span class="text-sm font-semibold tracking-wide uppercase">prayer rhythm</span>
+          <span class="text-sm font-semibold tracking-wide uppercase text-muted">Prayer Rhythm</span>
           <div class="flex items-center gap-2">
             <InfoModal :stats="infoStats" />
             <SettingsModal />
@@ -23,57 +23,77 @@
 
       <div
         v-if="currentItem"
-        class="flex-1 min-h-0"
+        class="relative flex-1 min-h-0 overflow-hidden"
         @touchstart.passive="handleTouchStart"
         @touchend.passive="handleTouchEnd"
       >
-        <RequestCard
-          class="h-full"
-          :request="currentItem.request"
-          @pray="recordPrayer"
-          @mark-answered="openAnsweredModal"
-          @update-request="updateRequest"
-          @add-note="addNote"
-          @edit-note="editNote"
-          @delete-note="deleteNote"
-        />
+        <Transition :name="slideDirection">
+          <RequestCard
+            :key="currentItem.request.id + '-' + currentIndex"
+            class="absolute inset-0 h-full"
+            :request="currentItem.request"
+            @pray="recordPrayer"
+            @mark-answered="openAnsweredModal"
+            @update-request="updateRequest"
+            @add-note="addNote"
+            @edit-note="editNote"
+            @delete-note="deleteNote"
+          />
+        </Transition>
       </div>
     </main>
 
     <footer
-      class="flex-none border-t border-border bg-gradient-to-b from-transparent via-footer-bg to-bg pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+      class="flex-none bg-gradient-to-b from-transparent via-footer-bg to-bg pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
     >
       <div class="mx-auto grid max-w-3xl gap-3 px-4 sm:px-6">
-        <div v-if="indicatorWindow.length > 1" class="flex justify-center gap-2" role="list">
+        <!-- Unified navigation with progress dots -->
+        <div v-if="renderQueue.length > 1" class="flex items-center justify-center gap-3">
           <button
-            v-for="entry in indicatorWindow"
-            :key="`${entry.request.id}-${entry.index}`"
-            :class="[
-              'h-2 w-2 rounded-full border border-border bg-border',
-              entry.index === currentIndex ? 'bg-accent' : '',
-            ]"
-            type="button"
-            @click="currentIndex = entry.index"
-            aria-label="Jump to card"
-          ></button>
-        </div>
-
-        <div class="grid grid-cols-2 items-center gap-2 text-xs text-muted">
-          <button
-            class="justify-self-start rounded-full border border-border bg-card-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-text disabled:opacity-60"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
             type="button"
             :disabled="renderQueue.length <= 1"
-            @click="previousCard"
+            @click="navigatePrevious"
+            aria-label="Previous card"
           >
-            ← Back
+            <IconChevronLeft :size="18" stroke-width="2.5" />
           </button>
+
+          <div class="flex items-center gap-1.5" role="list">
+            <!-- Left overflow indicator -->
+            <span
+              v-if="progressIndicator.hasLeftOverflow"
+              class="h-1.5 w-1.5 rounded-full bg-dot-overflow"
+            ></span>
+            <!-- Main dots -->
+            <button
+              v-for="dot in progressIndicator.dots"
+              :key="dot.index"
+              :class="[
+                'rounded-full transition-all duration-150',
+                dot.index === currentIndex
+                  ? 'h-2.5 w-2.5 bg-dot-active'
+                  : 'h-2 w-2 bg-dot hover:bg-dot-active',
+              ]"
+              type="button"
+              @click="navigateToIndex(dot.index)"
+              aria-label="Jump to card"
+            ></button>
+            <!-- Right overflow indicator -->
+            <span
+              v-if="progressIndicator.hasRightOverflow"
+              class="h-1.5 w-1.5 rounded-full bg-dot-overflow"
+            ></span>
+          </div>
+
           <button
-            class="justify-self-end rounded-full border border-border bg-card-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-text disabled:opacity-60"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
             type="button"
             :disabled="renderQueue.length <= 1"
-            @click="nextCard"
+            @click="navigateNext"
+            aria-label="Next card"
           >
-            Next →
+            <IconChevronRight :size="18" stroke-width="2.5" />
           </button>
         </div>
 
@@ -82,56 +102,59 @@
     </footer>
 
     <Teleport to="body">
-      <div
-        v-if="answeredModal.open"
-        class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
-        @click.self="closeAnsweredModal"
-      >
-        <div class="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-card">
-          <header class="mb-3 flex items-center justify-between">
-            <h4 class="m-0 text-base font-semibold">Answered prayer</h4>
-            <button
-              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card-muted text-lg"
-              type="button"
-              @click="closeAnsweredModal"
-            >
-              ×
-            </button>
-          </header>
-          <div class="grid gap-3">
-            <p class="text-sm text-muted">How did God answer your prayer?</p>
-            <textarea
-              v-model="answeredModal.text"
-              rows="3"
-              placeholder="How did God answer your prayer?"
-              class="w-full rounded-lg border border-border bg-card-muted p-3 text-sm text-text placeholder:text-muted focus:outline-none"
-            ></textarea>
-          </div>
-          <div class="mt-4 grid grid-cols-2 gap-2">
-            <button
-              class="w-full rounded-lg border border-border bg-card-muted px-3 py-2 text-sm font-semibold"
-              type="button"
-              @click="closeAnsweredModal"
-            >
-              Cancel
-            </button>
-            <button
-              class="w-full rounded-lg bg-gradient-to-r from-accent to-accent-secondary px-3 py-2 text-sm font-semibold text-bg disabled:opacity-60"
-              type="button"
-              :disabled="!answeredModal.text.trim()"
-              @click="saveAnsweredNote"
-            >
-              Save
-            </button>
+      <Transition name="modal">
+        <div
+          v-if="answeredModal.open"
+          class="fixed inset-0 z-40 grid place-items-center bg-overlay p-4"
+          @click.self="closeAnsweredModal"
+        >
+          <div class="w-full max-w-md rounded-2xl bg-card p-5 shadow-modal">
+            <header class="mb-4 flex items-center justify-between">
+              <h4 class="m-0 text-base font-semibold">Answered prayer</h4>
+              <button
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                type="button"
+                @click="closeAnsweredModal"
+              >
+                <IconX :size="18" stroke-width="2" />
+              </button>
+            </header>
+            <div class="grid gap-3">
+              <p class="text-sm text-muted">How did God answer your prayer?</p>
+              <textarea
+                v-model="answeredModal.text"
+                rows="3"
+                placeholder="Describe how your prayer was answered..."
+                class="w-full rounded-xl bg-card-muted p-4 text-sm text-text placeholder:text-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+              ></textarea>
+            </div>
+            <div class="mt-5 grid grid-cols-2 gap-3">
+              <button
+                class="w-full rounded-xl bg-card-muted px-4 py-2.5 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                type="button"
+                @click="closeAnsweredModal"
+              >
+                Cancel
+              </button>
+              <button
+                class="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card disabled:opacity-50"
+                type="button"
+                :disabled="!answeredModal.text.trim()"
+                @click="saveAnsweredNote"
+              >
+                Save
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </Transition>
     </Teleport>
   </div>
 </template>
 
 <script setup>
-import { Teleport, computed, onMounted, reactive, ref } from 'vue';
+import { Teleport, Transition, computed, onMounted, reactive, ref } from 'vue';
+import { IconChevronLeft, IconChevronRight, IconX } from '@tabler/icons-vue';
 import AddRequestForm from './components/AddRequestForm.vue';
 import InfoModal from './components/InfoModal.vue';
 import RequestCard from './components/RequestCard.vue';
@@ -151,6 +174,7 @@ const feedIndex = ref(0);
 const cycleCount = ref(0);
 const currentIndex = ref(0);
 const touchStart = ref(null);
+const slideDirection = ref('card-slide-left');
 const answeredModal = reactive({ open: false, request: null, text: '' });
 
 const priorityScore = {
@@ -174,12 +198,40 @@ const activeRequests = computed(() =>
 
 const answeredRequests = computed(() => requests.value.filter((r) => r.status === 'answered'));
 const currentItem = computed(() => renderQueue.value[currentIndex.value] || null);
-const indicatorWindow = computed(() => {
-  const items = renderQueue.value.map((entry, index) => ({ ...entry, index }));
-  if (items.length <= 6) return items;
-  const start = Math.max(0, currentIndex.value - 2);
-  const end = Math.min(items.length, start + 5);
-  return items.slice(start, end);
+
+// Progress indicator with max 5 dots and overflow indicators
+const progressIndicator = computed(() => {
+  const total = renderQueue.value.length;
+  const maxDots = 5;
+  
+  if (total <= maxDots) {
+    return {
+      dots: renderQueue.value.map((entry, index) => ({ ...entry, index })),
+      hasLeftOverflow: false,
+      hasRightOverflow: false,
+    };
+  }
+  
+  // Calculate window around current index
+  let start = Math.max(0, currentIndex.value - 2);
+  let end = start + maxDots;
+  
+  // Adjust if we're near the end
+  if (end > total) {
+    end = total;
+    start = Math.max(0, end - maxDots);
+  }
+  
+  const dots = renderQueue.value.slice(start, end).map((entry, i) => ({
+    ...entry,
+    index: start + i,
+  }));
+  
+  return {
+    dots,
+    hasLeftOverflow: start > 0,
+    hasRightOverflow: end < total,
+  };
 });
 
 const infoStats = computed(() => ({
@@ -227,6 +279,7 @@ function loadMore() {
 
 function nextCard() {
   if (renderQueue.value.length <= 1) return;
+  slideDirection.value = 'card-slide-left';
   currentIndex.value = (currentIndex.value + 1) % renderQueue.value.length;
   const remaining = renderQueue.value.length - currentIndex.value;
   if (remaining <= 2) {
@@ -236,7 +289,27 @@ function nextCard() {
 
 function previousCard() {
   if (renderQueue.value.length <= 1) return;
+  slideDirection.value = 'card-slide-right';
   currentIndex.value = (currentIndex.value - 1 + renderQueue.value.length) % renderQueue.value.length;
+}
+
+// Navigation functions for the redesigned progress indicator
+function navigateNext() {
+  nextCard();
+}
+
+function navigatePrevious() {
+  previousCard();
+}
+
+function navigateToIndex(index) {
+  if (index === currentIndex.value) return;
+  slideDirection.value = index > currentIndex.value ? 'card-slide-left' : 'card-slide-right';
+  currentIndex.value = index;
+  const remaining = renderQueue.value.length - currentIndex.value;
+  if (remaining <= 2) {
+    loadMore();
+  }
 }
 
 function getLastPrayed(request) {
@@ -269,7 +342,16 @@ async function createRequest(payload) {
   };
   await saveRequest(record);
   requests.value = [record, ...requests.value];
-  resetFeed();
+  
+  // Insert the new card immediately after the current position (don't reset queue)
+  if (renderQueue.value.length > 0) {
+    const insertPosition = currentIndex.value + 1;
+    renderQueue.value.splice(insertPosition, 0, { request: record, cycle: cycleCount.value });
+  } else {
+    // If queue is empty, initialize it
+    renderQueue.value = [{ request: record, cycle: 0 }];
+    currentIndex.value = 0;
+  }
 }
 
 async function recordPrayer(request) {
@@ -277,6 +359,7 @@ async function recordPrayer(request) {
   const updated = { ...request, prayedAt: [...(request.prayedAt || []), now], updatedAt: now };
   await saveRequest(updated);
   replaceRequest(updated);
+  slideDirection.value = 'card-slide-left';
   nextCard();
 }
 
@@ -373,8 +456,10 @@ function handleTouchEnd(event) {
   touchStart.value = null;
   if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
   if (dx < 0) {
+    slideDirection.value = 'card-slide-left';
     nextCard();
   } else {
+    slideDirection.value = 'card-slide-right';
     previousCard();
   }
 }

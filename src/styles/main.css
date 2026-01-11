@@ -4,59 +4,79 @@
 @theme {
   /* Background colors */
   --color-bg: #0d0d10;
-  --color-card: #15151c;
-  --color-card-muted: #1d1d26;
+  --color-card: #18181f;
+  --color-card-muted: #1f1f28;
   
   /* Text colors */
   --color-text: #f8fafc;
   --color-muted: #9ca3af;
   
-  /* Accent and semantic colors */
-  --color-accent: #9d7bff;
-  --color-accent-secondary: #7c9dff;
+  /* Primary accent - Royal Blue */
+  --color-primary: oklch(0.5641 0.2402 273.08);
+  --color-primary-hover: oklch(0.50 0.22 273.08);
+  --color-primary-muted: oklch(0.5641 0.12 273.08);
+  
+  /* Semantic colors */
   --color-danger: #ef4444;
+  --color-danger-muted: rgba(239, 68, 68, 0.15);
   --color-success: #4ade80;
   
   /* Border */
-  --color-border: #23232c;
+  --color-border: #2a2a35;
+  --color-border-muted: #222229;
   
-  /* Priority colors - borders */
-  --color-priority-urgent-border: rgba(251, 113, 133, 0.4);
-  --color-priority-high-border: rgba(251, 191, 36, 0.4);
-  --color-priority-medium-border: rgba(56, 189, 248, 0.4);
-  --color-priority-low-border: rgba(52, 211, 153, 0.4);
+  /* Priority colors - Urgent (reddish-blue) */
+  --color-priority-urgent-border: oklch(0.65 0.18 320 / 0.5);
+  --color-priority-urgent-bg: oklch(0.65 0.18 320 / 0.12);
+  --color-priority-urgent-text: oklch(0.85 0.12 320);
   
-  /* Priority colors - backgrounds */
-  --color-priority-urgent-bg: rgba(239, 68, 68, 0.1);
-  --color-priority-high-bg: rgba(245, 158, 11, 0.1);
-  --color-priority-medium-bg: rgba(14, 165, 233, 0.1);
-  --color-priority-low-bg: rgba(16, 185, 129, 0.1);
+  /* Priority colors - High (strong blue - primary) */
+  --color-priority-high-border: oklch(0.5641 0.2402 273.08 / 0.5);
+  --color-priority-high-bg: oklch(0.5641 0.2402 273.08 / 0.12);
+  --color-priority-high-text: oklch(0.82 0.14 273.08);
   
-  /* Priority colors - text */
-  --color-priority-urgent-text: #fecdd3;
-  --color-priority-high-text: #fef3c7;
-  --color-priority-medium-text: #e0f2fe;
-  --color-priority-low-text: #d1fae5;
+  /* Priority colors - Medium (half saturation blue) */
+  --color-priority-medium-border: oklch(0.60 0.10 273.08 / 0.5);
+  --color-priority-medium-bg: oklch(0.60 0.10 273.08 / 0.12);
+  --color-priority-medium-text: oklch(0.80 0.08 273.08);
   
-  /* Answered/success button */
-  --color-answered-border: rgba(52, 211, 153, 0.4);
-  --color-answered-bg: rgba(16, 185, 129, 0.15);
-  --color-answered-text: #d1fae5;
+  /* Priority colors - Low (neutral) */
+  --color-priority-low-border: oklch(0.55 0.01 273.08 / 0.4);
+  --color-priority-low-bg: oklch(0.55 0.01 273.08 / 0.10);
+  --color-priority-low-text: oklch(0.75 0.01 273.08);
+  
+  /* Answered button - loud neutral (light gray bg, dark text in dark mode) */
+  --color-answered-bg: #d4d4dc;
+  --color-answered-text: #1a1a1f;
+  --color-answered-hover: #c4c4cc;
   
   /* Note styling */
-  --color-note-bg: #0f0e16;
-  --color-note-answer-border: rgba(253, 224, 71, 0.5);
-  --color-note-answer-bg: rgba(245, 158, 11, 0.1);
-  --color-note-answer-text: #fef9c3;
-  --color-note-answer-dot: #fcd34d;
+  --color-note-bg: #111115;
+  --color-note-answer-border: oklch(0.55 0.01 273 / 0.4);
+  --color-note-answer-bg: oklch(0.55 0.01 273 / 0.1);
+  --color-note-answer-text: #d4d4dc;
+  --color-note-answer-dot: #a0a0a8;
   --color-note-delete: #fda4af;
   
   /* Overlays */
   --color-header-bg: rgba(13, 13, 16, 0.92);
   --color-footer-bg: rgba(13, 13, 16, 0.82);
+  --color-overlay: rgba(0, 0, 0, 0.6);
   
-  /* Shadows */
-  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.35);
+  /* Shadows - elevation system */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.5);
+  --shadow-primary-glow: 0 0 0 3px oklch(0.5641 0.2402 273.08 / 0.25);
+  
+  /* Progress indicator */
+  --color-dot: #3a3a45;
+  --color-dot-active: #6b6b78;
+  --color-dot-overflow: #2a2a32;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 200ms ease-out;
 }
 
 /* Light theme overrides */
@@ -70,52 +90,68 @@
   --color-text: #0f172a;
   --color-muted: #64748b;
   
-  /* Accent and semantic colors */
-  --color-accent: #7c3aed;
-  --color-accent-secondary: #6366f1;
+  /* Primary accent - Royal Blue (slightly adjusted for light bg) */
+  --color-primary: oklch(0.50 0.22 273.08);
+  --color-primary-hover: oklch(0.45 0.20 273.08);
+  --color-primary-muted: oklch(0.50 0.11 273.08);
+  
+  /* Semantic colors */
   --color-danger: #dc2626;
+  --color-danger-muted: rgba(220, 38, 38, 0.1);
   --color-success: #16a34a;
   
   /* Border */
   --color-border: #e2e8f0;
+  --color-border-muted: #f1f5f9;
   
-  /* Priority colors - borders */
-  --color-priority-urgent-border: rgba(239, 68, 68, 0.5);
-  --color-priority-high-border: rgba(245, 158, 11, 0.5);
-  --color-priority-medium-border: rgba(14, 165, 233, 0.5);
-  --color-priority-low-border: rgba(16, 185, 129, 0.5);
+  /* Priority colors - Urgent (reddish-blue) */
+  --color-priority-urgent-border: oklch(0.55 0.18 320 / 0.4);
+  --color-priority-urgent-bg: oklch(0.55 0.18 320 / 0.08);
+  --color-priority-urgent-text: oklch(0.40 0.16 320);
   
-  /* Priority colors - backgrounds */
-  --color-priority-urgent-bg: rgba(239, 68, 68, 0.1);
-  --color-priority-high-bg: rgba(245, 158, 11, 0.1);
-  --color-priority-medium-bg: rgba(14, 165, 233, 0.1);
-  --color-priority-low-bg: rgba(16, 185, 129, 0.1);
+  /* Priority colors - High (strong blue - primary) */
+  --color-priority-high-border: oklch(0.50 0.22 273.08 / 0.4);
+  --color-priority-high-bg: oklch(0.50 0.22 273.08 / 0.08);
+  --color-priority-high-text: oklch(0.40 0.18 273.08);
   
-  /* Priority colors - text */
-  --color-priority-urgent-text: #991b1b;
-  --color-priority-high-text: #92400e;
-  --color-priority-medium-text: #0369a1;
-  --color-priority-low-text: #065f46;
+  /* Priority colors - Medium (half saturation blue) */
+  --color-priority-medium-border: oklch(0.55 0.10 273.08 / 0.4);
+  --color-priority-medium-bg: oklch(0.55 0.10 273.08 / 0.08);
+  --color-priority-medium-text: oklch(0.40 0.08 273.08);
   
-  /* Answered/success button */
-  --color-answered-border: rgba(16, 185, 129, 0.5);
-  --color-answered-bg: rgba(16, 185, 129, 0.1);
-  --color-answered-text: #065f46;
+  /* Priority colors - Low (neutral) */
+  --color-priority-low-border: oklch(0.60 0.01 273.08 / 0.3);
+  --color-priority-low-bg: oklch(0.60 0.01 273.08 / 0.06);
+  --color-priority-low-text: oklch(0.45 0.01 273.08);
+  
+  /* Answered button - loud neutral (dark gray bg, white text in light mode) */
+  --color-answered-bg: #374151;
+  --color-answered-text: #ffffff;
+  --color-answered-hover: #4b5563;
   
   /* Note styling */
   --color-note-bg: #f8fafc;
-  --color-note-answer-border: rgba(245, 158, 11, 0.5);
-  --color-note-answer-bg: rgba(245, 158, 11, 0.1);
-  --color-note-answer-text: #92400e;
-  --color-note-answer-dot: #f59e0b;
+  --color-note-answer-border: oklch(0.60 0.01 273 / 0.3);
+  --color-note-answer-bg: oklch(0.60 0.01 273 / 0.06);
+  --color-note-answer-text: #374151;
+  --color-note-answer-dot: #6b7280;
   --color-note-delete: #dc2626;
   
   /* Overlays */
   --color-header-bg: rgba(248, 250, 252, 0.92);
   --color-footer-bg: rgba(248, 250, 252, 0.82);
+  --color-overlay: rgba(0, 0, 0, 0.5);
   
-  /* Shadows */
-  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.1);
+  /* Shadows - elevation system (lighter) */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.12);
+  --shadow-primary-glow: 0 0 0 3px oklch(0.50 0.22 273.08 / 0.2);
+  
+  /* Progress indicator */
+  --color-dot: #d1d5db;
+  --color-dot-active: #6b7280;
+  --color-dot-overflow: #e5e7eb;
 }
 
 @layer base {
@@ -142,11 +178,61 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #2d2d36;
+    background: var(--color-border);
     border-radius: 999px;
   }
 
   ::-webkit-scrollbar-track {
     background: var(--color-bg);
   }
+}
+
+/* Modal transitions */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 200ms ease-out;
+}
+
+.modal-enter-active > div,
+.modal-leave-active > div {
+  transition: transform 200ms ease-out, opacity 200ms ease-out;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from > div,
+.modal-leave-to > div {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* Card slide transitions */
+.card-slide-left-enter-active,
+.card-slide-left-leave-active,
+.card-slide-right-enter-active,
+.card-slide-right-leave-active {
+  transition: transform 200ms ease-out, opacity 200ms ease-out;
+}
+
+.card-slide-left-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.card-slide-left-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.card-slide-right-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.card-slide-right-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
 }

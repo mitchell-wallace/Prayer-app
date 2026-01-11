@@ -5,22 +5,22 @@
         <div class="relative" ref="priorityRef">
           <button
             type="button"
-            class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
             @click="togglePriority"
           >
             <span>{{ priorityLabel }}</span>
-            <span class="text-xs">▾</span>
+            <IconChevronDown :size="14" stroke-width="2.5" />
           </button>
           <ul
             v-if="priorityOpen"
-            class="absolute bottom-full mb-2 w-36 rounded-xl border border-border bg-card p-1 shadow-2xl z-10"
+            class="absolute bottom-full mb-2 w-36 rounded-xl bg-card p-1 shadow-modal z-10"
           >
             <li v-for="option in priorityOptions" :key="option.value">
               <button
                 type="button"
                 :class="[
-                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-text transition hover:bg-card-muted',
-                  form.priority === option.value ? 'border border-accent/60 bg-card-muted' : '',
+                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-text transition-colors duration-150 hover:bg-card-muted',
+                  form.priority === option.value ? 'bg-primary/10 text-primary' : '',
                 ]"
                 @click="selectPriority(option.value)"
               >
@@ -33,24 +33,22 @@
         <div class="relative" ref="durationRef">
           <button
             type="button"
-            class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
             @click="toggleDuration"
           >
             <span>{{ durationLabel }}</span>
-            <span class="text-xs">▾</span>
+            <IconChevronDown :size="14" stroke-width="2.5" />
           </button>
           <ul
             v-if="durationOpen"
-            class="absolute bottom-full mb-2 w-40 rounded-xl border border-border bg-card p-1 shadow-2xl z-10"
+            class="absolute bottom-full mb-2 w-40 rounded-xl bg-card p-1 shadow-modal z-10"
           >
             <li v-for="option in durationOptions" :key="option.value">
               <button
                 type="button"
                 :class="[
-                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-text transition hover:bg-card-muted',
-                  form.durationPreset === option.value
-                    ? 'border border-accent/60 bg-card-muted'
-                    : '',
+                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-text transition-colors duration-150 hover:bg-card-muted',
+                  form.durationPreset === option.value ? 'bg-primary/10 text-primary' : '',
                 ]"
                 @click="selectDuration(option.value)"
               >
@@ -63,8 +61,8 @@
 
       <div
         :class="[
-          'grid grid-cols-[1fr_auto] items-start gap-2 rounded-2xl border border-border bg-card px-3 py-2 shadow-card transition',
-          showControls ? 'border-accent/60 shadow-lg' : '',
+          'grid grid-cols-[1fr_auto] items-start gap-2 rounded-2xl bg-card px-4 py-3 shadow-card transition-all duration-200',
+          showControls ? 'shadow-primary-glow' : '',
         ]"
       >
         <textarea
@@ -74,19 +72,19 @@
           required
           placeholder="Add a prayer request"
           :class="[
-            'w-full resize-none bg-transparent px-1 text-base text-text placeholder:text-muted focus:outline-none transition-all',
-            showControls ? 'py-2' : 'py-3',
+            'w-full resize-none bg-transparent text-base text-text placeholder:text-muted focus:outline-none transition-all duration-150',
+            showControls ? 'py-1' : 'py-2',
           ]"
           @focus="isFocused = true"
           @blur="handleBlur"
           @keydown.enter.exact.prevent="submit"
         ></textarea>
         <button
-          class="mt-1 h-11 w-11 rounded-xl border border-border bg-card-muted text-xl font-bold text-text transition hover:border-accent disabled:opacity-50"
+          class="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card disabled:opacity-50 disabled:hover:bg-primary disabled:hover:shadow-sm"
           type="submit"
           :disabled="!form.title.trim()"
         >
-          <span aria-hidden="true">＋</span>
+          <IconPlus :size="22" stroke-width="2.5" />
           <span class="sr-only">Add request</span>
         </button>
       </div>
@@ -96,6 +94,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { IconChevronDown, IconPlus } from '@tabler/icons-vue';
 import { settings } from '../settings.js';
 
 const emit = defineEmits(['save']);

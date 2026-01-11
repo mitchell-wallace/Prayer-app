@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@tabler/icons-vue": "^3.36.1",
     "idb-keyval": "^6.2.2",
     "sql.js": "^1.13.0",
     "vue": "^3.4.0"
