@@ -78,11 +78,38 @@
           >
             <div class="flex items-start justify-between gap-2 text-xs text-muted">
               <span>{{ formatTimestamp(note.createdAt) }}</span>
-              <div class="flex gap-2">
-                <button class="text-accent" type="button" @click="startNoteEdit(note)">
-                  {{ editingNote?.id === note.id ? 'Cancel' : 'Edit' }}
+              <div class="relative">
+                <button
+                  class="inline-flex h-6 w-6 items-center justify-center rounded text-muted hover:text-text hover:bg-card-muted transition"
+                  type="button"
+                  @click="toggleNoteMenu(note.id)"
+                  aria-label="Note options"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="5" r="2"/>
+                    <circle cx="12" cy="12" r="2"/>
+                    <circle cx="12" cy="19" r="2"/>
+                  </svg>
                 </button>
-                <button class="text-note-delete" type="button" @click="emit('delete-note', { request, note })">Delete</button>
+                <div
+                  v-if="noteMenuOpen === note.id"
+                  class="absolute right-0 top-full mt-1 w-28 rounded-lg border border-border bg-card p-1 shadow-xl z-10"
+                >
+                  <button
+                    class="w-full rounded px-3 py-2 text-left text-sm font-medium text-text hover:bg-card-muted transition"
+                    type="button"
+                    @click="startNoteEdit(note)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    class="w-full rounded px-3 py-2 text-left text-sm font-medium text-note-delete hover:bg-card-muted transition"
+                    type="button"
+                    @click="promptDeleteNote(note)"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
             <div v-if="editingNote?.id === note.id" class="mt-2 grid gap-2">
@@ -95,21 +122,30 @@
                 <span class="inline-flex h-2 w-2 rounded-full bg-note-answer-dot"></span>
                 Answered note
               </div>
-              <div class="flex justify-end gap-2">
+              <div class="flex justify-between gap-2">
                 <button
-                  class="rounded-lg border border-border bg-card-muted px-3 py-2 text-sm font-semibold"
+                  class="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm font-semibold text-danger"
                   type="button"
-                  @click="editingNote = null"
+                  @click="promptDeleteNote(note)"
                 >
-                  Dismiss
+                  Delete
                 </button>
-                <button
-                  class="rounded-lg bg-gradient-to-r from-accent to-accent-secondary px-3 py-2 text-sm font-semibold text-bg"
-                  type="button"
-                  @click="saveNoteEdit(note)"
-                >
-                  Save
-                </button>
+                <div class="flex gap-2">
+                  <button
+                    class="rounded-lg border border-border bg-card-muted px-3 py-2 text-sm font-semibold"
+                    type="button"
+                    @click="editingNote = null"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    class="rounded-lg bg-gradient-to-r from-accent to-accent-secondary px-3 py-2 text-sm font-semibold text-bg"
+                    type="button"
+                    @click="saveNoteEdit(note)"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             </div>
             <div v-else class="mt-2 flex items-start gap-2 text-sm leading-relaxed">
@@ -219,6 +255,40 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Delete note confirmation modal -->
+    <Teleport to="body">
+      <div
+        v-if="deleteConfirmNote"
+        class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
+        @click.self="cancelDeleteNote"
+      >
+        <div class="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-card">
+          <header class="mb-3">
+            <h4 class="m-0 text-base font-semibold">Delete note?</h4>
+          </header>
+          <p class="text-sm text-muted">
+            Are you sure you want to delete this note? This action cannot be undone.
+          </p>
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <button
+              class="w-full rounded-lg border border-border bg-card-muted px-3 py-2 text-sm font-semibold"
+              type="button"
+              @click="cancelDeleteNote"
+            >
+              Cancel
+            </button>
+            <button
+              class="w-full rounded-lg border border-danger bg-danger px-3 py-2 text-sm font-semibold text-white"
+              type="button"
+              @click="confirmDeleteNote"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>
 
@@ -244,6 +314,8 @@ const noteFormOpen = ref(false);
 const noteDraft = ref('');
 const editingNote = ref(null);
 const noteInputRef = ref(null);
+const noteMenuOpen = ref(null); // note id of open menu
+const deleteConfirmNote = ref(null); // note to confirm deletion
 
 const editForm = reactive({ ...props.request });
 
@@ -299,12 +371,33 @@ function startNoteEdit(note) {
     return;
   }
   editingNote.value = { ...note };
+  noteMenuOpen.value = null;
 }
 
 function saveNoteEdit(note) {
   if (!editingNote.value) return;
   emit('edit-note', { request: props.request, note: { ...editingNote.value } });
   editingNote.value = null;
+}
+
+function toggleNoteMenu(noteId) {
+  noteMenuOpen.value = noteMenuOpen.value === noteId ? null : noteId;
+}
+
+function promptDeleteNote(note) {
+  deleteConfirmNote.value = note;
+  noteMenuOpen.value = null;
+}
+
+function confirmDeleteNote() {
+  if (!deleteConfirmNote.value) return;
+  emit('delete-note', { request: props.request, note: deleteConfirmNote.value });
+  deleteConfirmNote.value = null;
+  editingNote.value = null;
+}
+
+function cancelDeleteNote() {
+  deleteConfirmNote.value = null;
 }
 
 function formatTimestamp(ts) {
