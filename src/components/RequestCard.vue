@@ -41,6 +41,7 @@
             required
             placeholder="Capture the latest update"
             class="w-full rounded-lg border border-border bg-note-bg p-2 text-sm text-text placeholder:text-muted focus:outline-none"
+            @keydown.enter.exact.prevent="submitNote"
           ></textarea>
           <div class="flex justify-end gap-2">
             <button
