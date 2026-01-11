@@ -6,24 +6,10 @@
       <div class="mx-auto max-w-3xl px-4 sm:px-6">
         <div class="flex h-12 items-center justify-between">
           <span class="text-sm font-semibold tracking-wide uppercase">prayer rhythm</span>
-          <div class="flex items-center gap-3 text-xs text-muted">
-            <span class="rounded-full border border-border bg-card-muted px-3 py-1">
-              Active {{ activeRequests.length }}
-            </span>
-            <span class="rounded-full border border-border bg-card-muted px-3 py-1">
-              Answered {{ answeredRequests.length }}
-            </span>
+          <div class="flex items-center gap-2">
+            <InfoModal :stats="infoStats" />
             <SettingsModal />
           </div>
-        </div>
-
-        <div class="flex items-center justify-between pb-3 text-xs text-muted">
-          <p class="text-[11px] uppercase tracking-[0.14em]">Active queue</p>
-          <span
-            class="rounded-full border border-border bg-card-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-text"
-          >
-            {{ renderQueue.length || 0 }} queued
-          </span>
         </div>
       </div>
     </header>
@@ -72,25 +58,22 @@
           ></button>
         </div>
 
-        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-xs text-muted">
+        <div class="grid grid-cols-2 items-center gap-2 text-xs text-muted">
           <button
             class="justify-self-start rounded-full border border-border bg-card-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-text disabled:opacity-60"
             type="button"
             :disabled="renderQueue.length <= 1"
             @click="previousCard"
           >
-            < Back
+            ← Back
           </button>
-          <span class="text-center text-[11px] uppercase tracking-[0.14em]">
-            Cycle {{ cycleCount + 1 }} · {{ renderQueue.length || 0 }} queued · {{ activeRequests.length }} active
-          </span>
           <button
             class="justify-self-end rounded-full border border-border bg-card-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-text disabled:opacity-60"
             type="button"
             :disabled="renderQueue.length <= 1"
             @click="nextCard"
           >
-            Next >
+            Next →
           </button>
         </div>
 
@@ -150,6 +133,7 @@
 <script setup>
 import { Teleport, computed, onMounted, reactive, ref } from 'vue';
 import AddRequestForm from './components/AddRequestForm.vue';
+import InfoModal from './components/InfoModal.vue';
 import RequestCard from './components/RequestCard.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import { bootstrapSeed, fetchAllRequests, saveRequest } from './db.js';
@@ -197,6 +181,14 @@ const indicatorWindow = computed(() => {
   const end = Math.min(items.length, start + 5);
   return items.slice(start, end);
 });
+
+const infoStats = computed(() => ({
+  active: activeRequests.value.length,
+  answered: answeredRequests.value.length,
+  queued: renderQueue.value.length,
+  cycle: cycleCount.value + 1,
+  currentRequest: currentItem.value?.request || null,
+}));
 
 onMounted(async () => {
   await bootstrapSeed();

@@ -11,7 +11,6 @@
       </button>
 
       <header class="flex flex-col gap-2 pr-12">
-        <p class="text-[11px] uppercase tracking-[0.14em] text-muted">{{ statusLabel }}</p>
         <h3 class="m-0 text-lg font-semibold leading-tight">{{ request.title }}</h3>
         <div class="flex flex-wrap gap-2 text-xs">
           <span
@@ -263,7 +262,6 @@ const expiryCopy = computed(() => daysLeft(props.request.expiresAt));
 const createdCopy = computed(() => formatDate(props.request.createdAt));
 const notesLabel = computed(() => `${props.request.notes?.length || 0} notes · added ${createdCopy.value}`);
 
-const statusLabel = computed(() => (props.request.status === 'answered' ? 'Answered' : 'Active'));
 
 const sortedNotes = computed(() => [...(props.request.notes || [])].sort((a, b) => b.createdAt - a.createdAt));
 
