@@ -14,33 +14,36 @@
       </div>
     </header>
 
-    <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-hidden px-4 pt-3 sm:px-6">
+    <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 px-4 pt-3 pb-2 sm:px-6">
       <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-muted">
         No active requests yet. Add one below.
       </p>
 
       <div v-if="loading" class="text-sm text-muted">Loading requests…</div>
 
-      <!-- Outer wrapper clips horizontal overflow for slide animation, padding allows shadows -->
+      <!-- Card container with padding for shadow overflow -->
       <div
         v-if="currentItem"
-        class="relative flex-1 min-h-0 overflow-x-clip overflow-y-visible -mx-4 px-4 -mt-2 pt-2 pb-4"
+        class="relative flex-1 min-h-0 -mx-2 px-2 -my-1 py-1"
         @touchstart.passive="handleTouchStart"
         @touchend.passive="handleTouchEnd"
       >
-        <Transition :name="slideDirection">
-          <RequestCard
-            :key="currentItem.request.id + '-' + currentIndex"
-            class="absolute inset-x-4 top-2 bottom-4"
-            :request="currentItem.request"
-            @pray="recordPrayer"
-            @mark-answered="openAnsweredModal"
-            @update-request="updateRequest"
-            @add-note="addNote"
-            @edit-note="editNote"
-            @delete-note="deleteNote"
-          />
-        </Transition>
+        <!-- Inner wrapper clips horizontal only for slide animation -->
+        <div class="relative h-full overflow-x-clip">
+          <Transition :name="slideDirection">
+            <RequestCard
+              :key="currentItem.request.id + '-' + currentIndex"
+              class="absolute inset-0"
+              :request="currentItem.request"
+              @pray="recordPrayer"
+              @mark-answered="openAnsweredModal"
+              @update-request="updateRequest"
+              @add-note="addNote"
+              @edit-note="editNote"
+              @delete-note="deleteNote"
+            />
+          </Transition>
+        </div>
       </div>
     </main>
 
@@ -81,15 +84,21 @@
               >
                 <IconRefresh :size="14" stroke-width="2.5" />
               </button>
-              <!-- Regular dot (shown when NOT a loop point, OR when it IS current) -->
+              <!-- Current dot: dark blue if loop point, dark gray otherwise -->
+              <button
+                v-else-if="item.index === currentIndex"
+                :class="[
+                  'h-2.5 w-2.5 rounded-full transition-all duration-150',
+                  item.isLoopPoint ? 'bg-primary/60' : 'bg-dot-active',
+                ]"
+                type="button"
+                @click="navigateToIndex(item.index)"
+                aria-label="Current card"
+              ></button>
+              <!-- Regular inactive dot -->
               <button
                 v-else
-                :class="[
-                  'rounded-full transition-all duration-150',
-                  item.index === currentIndex
-                    ? 'h-2.5 w-2.5 bg-dot-active'
-                    : 'h-2 w-2 bg-dot hover:bg-dot-active',
-                ]"
+                class="h-2 w-2 rounded-full bg-dot transition-all duration-150 hover:bg-dot-active"
                 type="button"
                 @click="navigateToIndex(item.index)"
                 aria-label="Jump to card"
