@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { settings } from '../settings.js';
 
 const emit = defineEmits(['save']);
@@ -117,6 +117,18 @@ const blank = () => ({
 });
 
 const form = reactive(blank());
+
+// Sync form defaults when settings change (only if form is clean/empty)
+watch(
+  () => [settings.defaultPriority, settings.defaultDuration],
+  ([newPriority, newDuration]) => {
+    // Only update if the title is empty (form not in use)
+    if (!form.title.trim()) {
+      form.priority = newPriority;
+      form.durationPreset = newDuration;
+    }
+  }
+);
 const isFocused = ref(false);
 const priorityOpen = ref(false);
 const durationOpen = ref(false);
