@@ -1,20 +1,128 @@
 @import "tailwindcss";
 
+/* Define the default (dark) theme */
+@theme {
+  /* Background colors */
+  --color-bg: #0d0d10;
+  --color-card: #15151c;
+  --color-card-muted: #1d1d26;
+  
+  /* Text colors */
+  --color-text: #f8fafc;
+  --color-muted: #9ca3af;
+  
+  /* Accent and semantic colors */
+  --color-accent: #9d7bff;
+  --color-accent-secondary: #7c9dff;
+  --color-danger: #ef4444;
+  --color-success: #4ade80;
+  
+  /* Border */
+  --color-border: #23232c;
+  
+  /* Priority colors - borders */
+  --color-priority-urgent-border: rgba(251, 113, 133, 0.4);
+  --color-priority-high-border: rgba(251, 191, 36, 0.4);
+  --color-priority-medium-border: rgba(56, 189, 248, 0.4);
+  --color-priority-low-border: rgba(52, 211, 153, 0.4);
+  
+  /* Priority colors - backgrounds */
+  --color-priority-urgent-bg: rgba(239, 68, 68, 0.1);
+  --color-priority-high-bg: rgba(245, 158, 11, 0.1);
+  --color-priority-medium-bg: rgba(14, 165, 233, 0.1);
+  --color-priority-low-bg: rgba(16, 185, 129, 0.1);
+  
+  /* Priority colors - text */
+  --color-priority-urgent-text: #fecdd3;
+  --color-priority-high-text: #fef3c7;
+  --color-priority-medium-text: #e0f2fe;
+  --color-priority-low-text: #d1fae5;
+  
+  /* Answered/success button */
+  --color-answered-border: rgba(52, 211, 153, 0.4);
+  --color-answered-bg: rgba(16, 185, 129, 0.15);
+  --color-answered-text: #d1fae5;
+  
+  /* Note styling */
+  --color-note-bg: #0f0e16;
+  --color-note-answer-border: rgba(253, 224, 71, 0.5);
+  --color-note-answer-bg: rgba(245, 158, 11, 0.1);
+  --color-note-answer-text: #fef9c3;
+  --color-note-answer-dot: #fcd34d;
+  --color-note-delete: #fda4af;
+  
+  /* Overlays */
+  --color-header-bg: rgba(13, 13, 16, 0.92);
+  --color-footer-bg: rgba(13, 13, 16, 0.82);
+  
+  /* Shadows */
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* Light theme overrides */
+[data-theme="light"] {
+  /* Background colors */
+  --color-bg: #f8fafc;
+  --color-card: #ffffff;
+  --color-card-muted: #f1f5f9;
+  
+  /* Text colors */
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  
+  /* Accent and semantic colors */
+  --color-accent: #7c3aed;
+  --color-accent-secondary: #6366f1;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+  
+  /* Border */
+  --color-border: #e2e8f0;
+  
+  /* Priority colors - borders */
+  --color-priority-urgent-border: rgba(239, 68, 68, 0.5);
+  --color-priority-high-border: rgba(245, 158, 11, 0.5);
+  --color-priority-medium-border: rgba(14, 165, 233, 0.5);
+  --color-priority-low-border: rgba(16, 185, 129, 0.5);
+  
+  /* Priority colors - backgrounds */
+  --color-priority-urgent-bg: rgba(239, 68, 68, 0.1);
+  --color-priority-high-bg: rgba(245, 158, 11, 0.1);
+  --color-priority-medium-bg: rgba(14, 165, 233, 0.1);
+  --color-priority-low-bg: rgba(16, 185, 129, 0.1);
+  
+  /* Priority colors - text */
+  --color-priority-urgent-text: #991b1b;
+  --color-priority-high-text: #92400e;
+  --color-priority-medium-text: #0369a1;
+  --color-priority-low-text: #065f46;
+  
+  /* Answered/success button */
+  --color-answered-border: rgba(16, 185, 129, 0.5);
+  --color-answered-bg: rgba(16, 185, 129, 0.1);
+  --color-answered-text: #065f46;
+  
+  /* Note styling */
+  --color-note-bg: #f8fafc;
+  --color-note-answer-border: rgba(245, 158, 11, 0.5);
+  --color-note-answer-bg: rgba(245, 158, 11, 0.1);
+  --color-note-answer-text: #92400e;
+  --color-note-answer-dot: #f59e0b;
+  --color-note-delete: #dc2626;
+  
+  /* Overlays */
+  --color-header-bg: rgba(248, 250, 252, 0.92);
+  --color-footer-bg: rgba(248, 250, 252, 0.82);
+  
+  /* Shadows */
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+
 @layer base {
   :root {
-    --bg: #0d0d10;
-    --card: #15151c;
-    --card-muted: #1d1d26;
-    --text: #f8fafc;
-    --muted: #9ca3af;
-    --accent: #9d7bff;
-    --danger: #ef4444;
-    --success: #4ade80;
-    --border: #23232c;
-    --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 
   * {
@@ -22,7 +130,7 @@
   }
 
   body {
-    @apply m-0 min-h-screen bg-[var(--bg)] text-[var(--text)];
+    @apply m-0 min-h-screen bg-bg text-text;
   }
 
   a {
@@ -39,6 +147,6 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--bg);
+    background: var(--color-bg);
   }
 }
