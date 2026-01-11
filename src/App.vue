@@ -58,7 +58,7 @@
             class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
             type="button"
             :disabled="renderQueue.length <= 1"
-            @click="navigatePrevious"
+            @click="previousCard"
             aria-label="Previous card"
           >
             <IconChevronLeft :size="18" stroke-width="2.5" />
@@ -119,7 +119,7 @@
             class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
             type="button"
             :disabled="renderQueue.length <= 1"
-            @click="navigateNext"
+            @click="nextCard"
             aria-label="Next card"
           >
             <IconChevronRight :size="18" stroke-width="2.5" />
@@ -345,15 +345,6 @@ function previousCard() {
   if (renderQueue.value.length <= 1) return;
   slideDirection.value = 'card-slide-right';
   currentIndex.value = (currentIndex.value - 1 + renderQueue.value.length) % renderQueue.value.length;
-}
-
-// Navigation functions for the redesigned progress indicator
-function navigateNext() {
-  nextCard();
-}
-
-function navigatePrevious() {
-  previousCard();
 }
 
 function navigateToIndex(index) {

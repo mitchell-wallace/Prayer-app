@@ -118,9 +118,14 @@ export async function saveRequest(record) {
 export async function deleteRequest(id) {
   const db = await initDb();
   const stmt = db.prepare('DELETE FROM requests WHERE id = ?');
-  stmt.run([id]);
-  stmt.free();
-  await persistDb(db);
+  try {
+    stmt.run([id]);
+    stmt.free();
+    await persistDb(db);
+  } catch (error) {
+    stmt.free();
+    throw new Error(`Failed to delete request ${id}: ${error.message}`);
+  }
 }
 
 async function countRequests() {

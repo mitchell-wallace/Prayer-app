@@ -2,22 +2,26 @@
   <section :class="['flex h-full min-h-0 flex-col', request.status === 'answered' ? 'opacity-90' : '']">
     <!-- Scroll container with horizontal padding for shadow overflow -->
     <div class="relative flex-1 min-h-0 overflow-auto pb-8 -mx-3 px-3">
-      <div class="absolute right-3 top-0">
+      <div class="absolute right-3 top-0" data-request-menu>
         <button
           class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted transition-colors duration-150 hover:text-text"
           type="button"
           @click="toggleRequestMenu"
           aria-label="Request options"
+          aria-haspopup="menu"
+          :aria-expanded="requestMenuOpen"
         >
           <IconDotsVertical :size="18" stroke-width="2" />
         </button>
         <div
           v-if="requestMenuOpen"
           class="absolute right-0 top-full mt-1 w-32 rounded-xl bg-card p-1 shadow-modal z-10"
+          role="menu"
         >
           <button
             class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-text transition-colors duration-150 hover:bg-card-muted"
             type="button"
+            role="menuitem"
             @click="openEditFromMenu"
           >
             Edit
@@ -25,6 +29,7 @@
           <button
             class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-card-muted"
             type="button"
+            role="menuitem"
             @click="promptDeleteRequest"
           >
             Delete
@@ -101,22 +106,26 @@
           >
             <div class="flex items-start justify-between gap-2 text-xs text-muted">
               <span>{{ formatTimestamp(note.createdAt) }}</span>
-              <div class="relative">
+              <div class="relative" data-note-menu>
                 <button
                   class="inline-flex h-6 w-6 items-center justify-center rounded-lg text-muted transition-all duration-150 hover:text-text hover:bg-card-muted"
                   type="button"
                   @click="toggleNoteMenu(note.id)"
                   aria-label="Note options"
+                  aria-haspopup="menu"
+                  :aria-expanded="noteMenuOpen === note.id"
                 >
                   <IconDotsVertical :size="16" stroke-width="2" />
                 </button>
                 <div
                   v-if="noteMenuOpen === note.id"
                   class="absolute right-0 top-full mt-1 w-28 rounded-xl bg-card p-1 shadow-modal z-10"
+                  role="menu"
                 >
                   <button
                     class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-text transition-colors duration-150 hover:bg-card-muted"
                     type="button"
+                    role="menuitem"
                     @click="startNoteEdit(note)"
                   >
                     Edit
@@ -124,6 +133,7 @@
                   <button
                     class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-note-delete transition-colors duration-150 hover:bg-card-muted"
                     type="button"
+                    role="menuitem"
                     @click="promptDeleteNote(note)"
                   >
                     Delete
@@ -352,7 +362,7 @@
 </template>
 
 <script setup>
-import { Teleport, Transition, computed, nextTick, reactive, ref, watch } from 'vue';
+import { Teleport, Transition, computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconDotsVertical, IconPlus, IconX } from '@tabler/icons-vue';
 import { daysLeft, timeAgo } from '../utils/time.js';
 
@@ -487,4 +497,30 @@ function formatTimestamp(ts) {
   const d = new Date(ts);
   return `${d.toLocaleDateString()} · ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 }
+
+// Close menus on outside click
+function handleClickOutside(event) {
+  // Close request menu if clicking outside
+  if (requestMenuOpen.value) {
+    const menuContainer = event.target.closest('[data-request-menu]');
+    if (!menuContainer) {
+      requestMenuOpen.value = false;
+    }
+  }
+  // Close note menu if clicking outside
+  if (noteMenuOpen.value) {
+    const menuContainer = event.target.closest('[data-note-menu]');
+    if (!menuContainer) {
+      noteMenuOpen.value = null;
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 </script>

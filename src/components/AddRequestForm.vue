@@ -7,6 +7,8 @@
             type="button"
             class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
             @click="togglePriority"
+            aria-haspopup="listbox"
+            :aria-expanded="priorityOpen"
           >
             <span>{{ priorityLabel }}</span>
             <IconChevronDown :size="14" stroke-width="2.5" />
@@ -14,8 +16,9 @@
           <ul
             v-if="priorityOpen"
             class="absolute bottom-full mb-2 w-36 rounded-xl bg-card p-1 shadow-modal z-10"
+            role="listbox"
           >
-            <li v-for="option in priorityOptions" :key="option.value">
+            <li v-for="option in priorityOptions" :key="option.value" role="option" :aria-selected="form.priority === option.value">
               <button
                 type="button"
                 :class="[
@@ -35,6 +38,8 @@
             type="button"
             class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
             @click="toggleDuration"
+            aria-haspopup="listbox"
+            :aria-expanded="durationOpen"
           >
             <span>{{ durationLabel }}</span>
             <IconChevronDown :size="14" stroke-width="2.5" />
@@ -42,8 +47,9 @@
           <ul
             v-if="durationOpen"
             class="absolute bottom-full mb-2 w-40 rounded-xl bg-card p-1 shadow-modal z-10"
+            role="listbox"
           >
-            <li v-for="option in durationOptions" :key="option.value">
+            <li v-for="option in durationOptions" :key="option.value" role="option" :aria-selected="form.durationPreset === option.value">
               <button
                 type="button"
                 :class="[

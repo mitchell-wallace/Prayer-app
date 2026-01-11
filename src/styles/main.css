@@ -73,10 +73,6 @@
   --color-dot: #3a3a45;
   --color-dot-active: #6b6b78;
   --color-dot-overflow: #2a2a32;
-  
-  /* Transitions */
-  --transition-fast: 150ms ease-out;
-  --transition-normal: 200ms ease-out;
 }
 
 /* Light theme overrides */
