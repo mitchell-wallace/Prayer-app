@@ -102,13 +102,6 @@ defineProps({
   stats: {
     type: Object,
     required: true,
-    default: () => ({
-      active: 0,
-      answered: 0,
-      queued: 0,
-      cycle: 1,
-      currentRequest: null,
-    }),
   },
 });
 

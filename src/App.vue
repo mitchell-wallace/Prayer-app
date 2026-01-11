@@ -197,7 +197,11 @@ initThemeWatcher();
 
 const requests = ref([]);
 const loading = ref(true);
+
 const pageSize = 6;
+const MAX_RENDER_QUEUE_SIZE = 36;
+const KEEP_BEHIND_COUNT = 10;
+
 const renderQueue = ref([]);
 const feedIndex = ref(0);
 const cycleCount = ref(0);
@@ -313,6 +317,26 @@ function resetFeed() {
   }
 }
 
+function pruneRenderQueue() {
+  const overflow = renderQueue.value.length - MAX_RENDER_QUEUE_SIZE;
+  if (overflow <= 0) return;
+
+  // Prefer dropping items from the front, but keep a small "behind" buffer
+  // so previous navigation still feels natural.
+  const removableFromFront = Math.max(0, currentIndex.value - KEEP_BEHIND_COUNT);
+  const dropFromFront = Math.min(overflow, removableFromFront);
+  if (dropFromFront > 0) {
+    renderQueue.value.splice(0, dropFromFront);
+    currentIndex.value -= dropFromFront;
+  }
+
+  const remainingOverflow = renderQueue.value.length - MAX_RENDER_QUEUE_SIZE;
+  if (remainingOverflow > 0) {
+    // If we still overflow (e.g. currentIndex is near the start), trim the tail.
+    renderQueue.value.splice(renderQueue.value.length - remainingOverflow, remainingOverflow);
+  }
+}
+
 function loadMore() {
   const pool = activeRequests.value;
   if (!pool.length) return;
@@ -329,6 +353,7 @@ function loadMore() {
     feedIndex.value = feedIndex.value % pool.length;
   }
   renderQueue.value = [...renderQueue.value, ...next];
+  pruneRenderQueue();
 }
 
 function nextCard() {
@@ -484,17 +509,48 @@ async function saveAnsweredNote() {
 }
 
 function removeRequestFromQueue(requestId, { autoAdvance = false } = {}) {
-  const instancesInQueue = renderQueue.value.filter((item) => item.request.id === requestId).length;
-  renderQueue.value = renderQueue.value.filter((item) => item.request.id !== requestId);
-  const adjustedIndex = Math.max(0, currentIndex.value - instancesInQueue);
-  if (renderQueue.value.length) {
-    currentIndex.value = Math.min(adjustedIndex, renderQueue.value.length - 1);
-    if (autoAdvance && renderQueue.value.length > 1) {
-      currentIndex.value = (currentIndex.value + 1) % renderQueue.value.length;
-    }
-  } else {
+  const oldQueue = renderQueue.value;
+  if (!oldQueue.length) {
     currentIndex.value = 0;
+    return;
   }
+
+  const removedIndices = [];
+  for (let i = 0; i < oldQueue.length; i += 1) {
+    if (oldQueue[i].request.id === requestId) removedIndices.push(i);
+  }
+  if (!removedIndices.length) return;
+
+  const wasCurrentRemoved = removedIndices.includes(currentIndex.value);
+  const removedBeforeCurrent = removedIndices.filter((idx) => idx < currentIndex.value).length;
+
+  const newQueue = oldQueue.filter((item) => item.request.id !== requestId);
+  renderQueue.value = newQueue;
+
+  if (!newQueue.length) {
+    currentIndex.value = 0;
+    return;
+  }
+
+  // Keep the same logical current item. If the current item was removed,
+  // the next item naturally shifts into the same index.
+  let nextIndex = currentIndex.value - removedBeforeCurrent;
+
+  // If we removed the last item and it was current, wrap to the start.
+  if (wasCurrentRemoved && nextIndex >= newQueue.length) {
+    nextIndex = 0;
+  }
+
+  nextIndex = Math.max(0, Math.min(nextIndex, newQueue.length - 1));
+
+  // Only auto-advance when the current item was removed. Advancing after removing
+  // a different item can feel like a jump.
+  if (autoAdvance && wasCurrentRemoved && newQueue.length > 1) {
+    // After removal, nextIndex already points at the next card in sequence.
+    // (The previous implementation incremented and could skip a card.)
+  }
+
+  currentIndex.value = nextIndex;
 }
 
 function handleTouchStart(event) {
