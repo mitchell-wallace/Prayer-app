@@ -88,22 +88,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, Teleport, Transition } from 'vue';
 import { IconInfoCircle, IconX } from '@tabler/icons-vue';
+import type { InfoStats } from '../types';
 
-function formatDate(ts) {
+function formatDate(ts: number): string {
   if (!ts) return '';
   const d = new Date(ts);
   return d.toLocaleDateString();
 }
 
-defineProps({
-  stats: {
-    type: Object,
-    required: true,
-  },
-});
+defineProps<{
+  stats: InfoStats;
+}>();
 
-const open = ref(false);
+const open = ref<boolean>(false);
 </script>

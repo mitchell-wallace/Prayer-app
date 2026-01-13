@@ -64,8 +64,8 @@ export async function fetchAllRequests() {
     ORDER BY createdAt DESC
   `);
   const rows = result[0]?.values ?? [];
-  return rows.map(
-    ([
+  return rows.map(([id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt]) =>
+    deserializeRequest({
       id,
       title,
       priority,
@@ -76,19 +76,7 @@ export async function fetchAllRequests() {
       prayedAt,
       notes,
       updatedAt,
-    ]) =>
-      deserializeRequest({
-        id,
-        title,
-        priority,
-        durationPreset,
-        createdAt,
-        expiresAt,
-        status,
-        prayedAt,
-        notes,
-        updatedAt,
-      })
+    })
   );
 }
 

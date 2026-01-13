@@ -181,7 +181,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Teleport, Transition, computed, onMounted, reactive, ref } from 'vue';
 import { IconChevronLeft, IconChevronRight, IconRefresh, IconX } from '@tabler/icons-vue';
 import AddRequestForm from './components/AddRequestForm.vue';
@@ -191,33 +191,45 @@ import SettingsModal from './components/SettingsModal.vue';
 import { bootstrapSeed, deleteRequest as dbDeleteRequest, fetchAllRequests, saveRequest } from './db.js';
 import { initThemeWatcher } from './settings.js';
 import { computeExpiry } from './utils/time.js';
+import type {
+  AnsweredModalState,
+  CreateRequestPayload,
+  InfoStats,
+  Note,
+  PrayerRequest,
+  Priority,
+  ProgressIndicator,
+  ProgressItem,
+  QueueItem,
+  TouchCoords,
+} from './types';
 
 // Initialize theme watcher
 initThemeWatcher();
 
-const requests = ref([]);
-const loading = ref(true);
+const requests = ref<PrayerRequest[]>([]);
+const loading = ref<boolean>(true);
 
 const pageSize = 6;
 const MAX_RENDER_QUEUE_SIZE = 36;
 const KEEP_BEHIND_COUNT = 10;
 
-const renderQueue = ref([]);
-const feedIndex = ref(0);
-const cycleCount = ref(0);
-const currentIndex = ref(0);
-const touchStart = ref(null);
-const slideDirection = ref('card-slide-left');
-const answeredModal = reactive({ open: false, request: null, text: '' });
+const renderQueue = ref<QueueItem[]>([]);
+const feedIndex = ref<number>(0);
+const cycleCount = ref<number>(0);
+const currentIndex = ref<number>(0);
+const touchStart = ref<TouchCoords | null>(null);
+const slideDirection = ref<string>('card-slide-left');
+const answeredModal = reactive<AnsweredModalState>({ open: false, request: null, text: '' });
 
-const priorityScore = {
+const priorityScore: Record<Priority, number> = {
   urgent: 4,
   high: 3,
   medium: 2,
   low: 1,
 };
 
-const activeRequests = computed(() =>
+const activeRequests = computed<PrayerRequest[]>(() =>
   requests.value
     .filter((r) => r.status === 'active')
     .sort((a, b) => {
@@ -229,8 +241,8 @@ const activeRequests = computed(() =>
     })
 );
 
-const answeredRequests = computed(() => requests.value.filter((r) => r.status === 'answered'));
-const currentItem = computed(() => renderQueue.value[currentIndex.value] || null);
+const answeredRequests = computed<PrayerRequest[]>(() => requests.value.filter((r) => r.status === 'answered'));
+const currentItem = computed<QueueItem | null>(() => renderQueue.value[currentIndex.value] || null);
 
 /**
  * Progress indicator with loop point visualization.
@@ -244,7 +256,7 @@ const currentItem = computed(() => renderQueue.value[currentIndex.value] || null
  * - Current position always shows as an active dot (even if it's a loop point)
  * - Overflow indicators (small dots) turn pale blue if they're adjacent to a loop point
  */
-const progressIndicator = computed(() => {
+const progressIndicator = computed<ProgressIndicator>(() => {
   const total = renderQueue.value.length;
   const poolSize = activeRequests.value.length; // Number of unique cards per cycle
   const maxVisible = 5;
@@ -252,7 +264,7 @@ const progressIndicator = computed(() => {
   // Helper: Check if an index is a loop point (start of a new cycle)
   // Loop points are at indices: 0, poolSize, 2*poolSize, etc.
   // Only valid if we have cards in the pool
-  const isLoopPoint = (index) => poolSize > 0 && index % poolSize === 0;
+  const isLoopPoint = (index: number): boolean => poolSize > 0 && index % poolSize === 0;
   
   // Calculate the visible window centered around current index
   let start = Math.max(0, currentIndex.value - 2);
@@ -265,7 +277,7 @@ const progressIndicator = computed(() => {
   }
   
   // Build the items array with loop point information
-  const items = [];
+  const items: ProgressItem[] = [];
   for (let i = start; i < end; i++) {
     items.push({
       ...renderQueue.value[i],
@@ -292,7 +304,7 @@ const progressIndicator = computed(() => {
   };
 });
 
-const infoStats = computed(() => ({
+const infoStats = computed<InfoStats>(() => ({
   active: activeRequests.value.length,
   answered: answeredRequests.value.length,
   queued: renderQueue.value.length,
@@ -307,7 +319,7 @@ onMounted(async () => {
   resetFeed();
 });
 
-function resetFeed() {
+function resetFeed(): void {
   renderQueue.value = [];
   feedIndex.value = 0;
   cycleCount.value = 0;
@@ -317,7 +329,7 @@ function resetFeed() {
   }
 }
 
-function pruneRenderQueue() {
+function pruneRenderQueue(): void {
   const overflow = renderQueue.value.length - MAX_RENDER_QUEUE_SIZE;
   if (overflow <= 0) return;
 
@@ -337,10 +349,10 @@ function pruneRenderQueue() {
   }
 }
 
-function loadMore() {
+function loadMore(): void {
   const pool = activeRequests.value;
   if (!pool.length) return;
-  const next = [];
+  const next: QueueItem[] = [];
   for (let i = 0; i < pageSize; i += 1) {
     const idx = (feedIndex.value + i) % pool.length;
     const cycle = Math.floor((feedIndex.value + i) / pool.length) + cycleCount.value;
@@ -356,7 +368,7 @@ function loadMore() {
   pruneRenderQueue();
 }
 
-function nextCard() {
+function nextCard(): void {
   if (renderQueue.value.length <= 1) return;
   slideDirection.value = 'card-slide-left';
   currentIndex.value = (currentIndex.value + 1) % renderQueue.value.length;
@@ -366,13 +378,13 @@ function nextCard() {
   }
 }
 
-function previousCard() {
+function previousCard(): void {
   if (renderQueue.value.length <= 1) return;
   slideDirection.value = 'card-slide-right';
   currentIndex.value = (currentIndex.value - 1 + renderQueue.value.length) % renderQueue.value.length;
 }
 
-function navigateToIndex(index) {
+function navigateToIndex(index: number): void {
   if (index === currentIndex.value) return;
   slideDirection.value = index > currentIndex.value ? 'card-slide-left' : 'card-slide-right';
   currentIndex.value = index;
@@ -382,11 +394,11 @@ function navigateToIndex(index) {
   }
 }
 
-function getLastPrayed(request) {
+function getLastPrayed(request: PrayerRequest): number | null {
   return request.prayedAt?.length ? Math.max(...request.prayedAt) : null;
 }
 
-function replaceRequest(updated) {
+function replaceRequest(updated: PrayerRequest): void {
   const idx = requests.value.findIndex((r) => r.id === updated.id);
   if (idx !== -1) {
     requests.value.splice(idx, 1, updated);
@@ -396,9 +408,9 @@ function replaceRequest(updated) {
   );
 }
 
-async function createRequest(payload) {
+async function createRequest(payload: CreateRequestPayload): Promise<void> {
   const now = Date.now();
-  const record = {
+  const record: PrayerRequest = {
     id: crypto.randomUUID(),
     title: payload.title,
     priority: payload.priority,
@@ -424,56 +436,56 @@ async function createRequest(payload) {
   }
 }
 
-async function recordPrayer(request) {
+async function recordPrayer(request: PrayerRequest): Promise<void> {
   const now = Date.now();
-  const updated = { ...request, prayedAt: [...(request.prayedAt || []), now], updatedAt: now };
+  const updated: PrayerRequest = { ...request, prayedAt: [...(request.prayedAt || []), now], updatedAt: now };
   await saveRequest(updated);
   replaceRequest(updated);
   slideDirection.value = 'card-slide-left';
   nextCard();
 }
 
-function openAnsweredModal(request) {
+function openAnsweredModal(request: PrayerRequest): void {
   answeredModal.open = true;
   answeredModal.request = request;
   answeredModal.text = '';
 }
 
-function closeAnsweredModal() {
+function closeAnsweredModal(): void {
   answeredModal.open = false;
   answeredModal.request = null;
   answeredModal.text = '';
 }
 
-async function updateRequest(request) {
+async function updateRequest(request: PrayerRequest): Promise<void> {
   const expiresAt = computeExpiry(request.createdAt, request.durationPreset);
-  const updated = { ...request, expiresAt, updatedAt: Date.now() };
+  const updated: PrayerRequest = { ...request, expiresAt, updatedAt: Date.now() };
   await saveRequest(updated);
   replaceRequest(updated);
 }
 
-async function addNote({ request, text }) {
-  const entry = { id: crypto.randomUUID(), text, createdAt: Date.now(), isAnswer: false };
-  const updated = { ...request, notes: [...(request.notes || []), entry], updatedAt: Date.now() };
+async function addNote({ request, text }: { request: PrayerRequest; text: string }): Promise<void> {
+  const entry: Note = { id: crypto.randomUUID(), text, createdAt: Date.now(), isAnswer: false };
+  const updated: PrayerRequest = { ...request, notes: [...(request.notes || []), entry], updatedAt: Date.now() };
   await saveRequest(updated);
   replaceRequest(updated);
 }
 
-async function editNote({ request, note }) {
+async function editNote({ request, note }: { request: PrayerRequest; note: Note }): Promise<void> {
   const updatedNotes = (request.notes || []).map((n) => (n.id === note.id ? { ...note } : n));
-  const updated = { ...request, notes: updatedNotes, updatedAt: Date.now() };
+  const updated: PrayerRequest = { ...request, notes: updatedNotes, updatedAt: Date.now() };
   await saveRequest(updated);
   replaceRequest(updated);
 }
 
-async function deleteNote({ request, note }) {
+async function deleteNote({ request, note }: { request: PrayerRequest; note: Note }): Promise<void> {
   const updatedNotes = (request.notes || []).filter((n) => n.id !== note.id);
-  const updated = { ...request, notes: updatedNotes, updatedAt: Date.now() };
+  const updated: PrayerRequest = { ...request, notes: updatedNotes, updatedAt: Date.now() };
   await saveRequest(updated);
   replaceRequest(updated);
 }
 
-async function deleteRequest(request) {
+async function deleteRequest(request: PrayerRequest): Promise<void> {
   await dbDeleteRequest(request.id);
   requests.value = requests.value.filter((r) => r.id !== request.id);
   removeRequestFromQueue(request.id, { autoAdvance: true });
@@ -482,15 +494,15 @@ async function deleteRequest(request) {
   }
 }
 
-async function saveAnsweredNote() {
+async function saveAnsweredNote(): Promise<void> {
   if (!answeredModal.request || !answeredModal.text.trim()) return;
-  const entry = {
+  const entry: Note = {
     id: crypto.randomUUID(),
     text: answeredModal.text.trim(),
     createdAt: Date.now(),
     isAnswer: true,
   };
-  const updated = {
+  const updated: PrayerRequest = {
     ...answeredModal.request,
     status: 'answered',
     notes: [...(answeredModal.request.notes || []), entry],
@@ -508,14 +520,14 @@ async function saveAnsweredNote() {
   }
 }
 
-function removeRequestFromQueue(requestId, { autoAdvance = false } = {}) {
+function removeRequestFromQueue(requestId: string, { autoAdvance = false }: { autoAdvance?: boolean } = {}): void {
   const oldQueue = renderQueue.value;
   if (!oldQueue.length) {
     currentIndex.value = 0;
     return;
   }
 
-  const removedIndices = [];
+  const removedIndices: number[] = [];
   for (let i = 0; i < oldQueue.length; i += 1) {
     if (oldQueue[i].request.id === requestId) removedIndices.push(i);
   }
@@ -553,12 +565,12 @@ function removeRequestFromQueue(requestId, { autoAdvance = false } = {}) {
   currentIndex.value = nextIndex;
 }
 
-function handleTouchStart(event) {
+function handleTouchStart(event: TouchEvent): void {
   const touch = event.changedTouches[0];
   touchStart.value = { x: touch.clientX, y: touch.clientY };
 }
 
-function handleTouchEnd(event) {
+function handleTouchEnd(event: TouchEvent): void {
   if (!touchStart.value) return;
   const touch = event.changedTouches[0];
   const dx = touch.clientX - touchStart.value.x;

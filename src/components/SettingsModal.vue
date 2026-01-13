@@ -105,27 +105,28 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, Teleport, Transition } from 'vue';
 import { IconSettings, IconX } from '@tabler/icons-vue';
 import { settings } from '../settings.js';
+import type { DurationPreset, Priority, SelectOption, Theme } from '../types';
 
-const open = ref(false);
+const open = ref<boolean>(false);
 
-const themeOptions = [
+const themeOptions: SelectOption<Theme>[] = [
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
   { value: 'system', label: 'System' },
 ];
 
-const priorityOptions = [
+const priorityOptions: SelectOption<Priority>[] = [
   { value: 'urgent', label: 'Urgent' },
   { value: 'high', label: 'High' },
   { value: 'medium', label: 'Medium' },
   { value: 'low', label: 'Low' },
 ];
 
-const durationOptions = [
+const durationOptions: SelectOption<DurationPreset>[] = [
   { value: '10d', label: '10d' },
   { value: '1m', label: '1mo' },
   { value: '3m', label: '3mo' },

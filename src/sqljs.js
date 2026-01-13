@@ -21,7 +21,7 @@ export async function getSqlModule() {
 
   if (typeof process !== 'undefined' && process.versions?.node) {
     if (!nodeWasmBinary) {
-      const fs = await import('fs/promises');
+      const fs = await import('node:fs/promises');
       nodeWasmBinary = await fs.readFile(resolveWasmPath());
     }
     options.wasmBinary = nodeWasmBinary;

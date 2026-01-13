@@ -361,35 +361,44 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Teleport, Transition, computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconDotsVertical, IconPlus, IconX } from '@tabler/icons-vue';
 import { daysLeft, timeAgo } from '../utils/time.js';
+import type { Note, PrayerRequest, Priority } from '../types';
 
-const props = defineProps({
-  request: { type: Object, required: true },
-});
+const props = defineProps<{
+  request: PrayerRequest;
+}>();
 
-const emit = defineEmits(['pray', 'mark-answered', 'update-request', 'delete-request', 'add-note', 'edit-note', 'delete-note']);
+const emit = defineEmits<{
+  pray: [request: PrayerRequest];
+  'mark-answered': [request: PrayerRequest];
+  'update-request': [request: PrayerRequest];
+  'delete-request': [request: PrayerRequest];
+  'add-note': [payload: { request: PrayerRequest; text: string }];
+  'edit-note': [payload: { request: PrayerRequest; note: Note }];
+  'delete-note': [payload: { request: PrayerRequest; note: Note }];
+}>();
 
-const priorityClasses = {
+const priorityClasses: Record<Priority, string> = {
   urgent: 'border-priority-urgent-border bg-priority-urgent-bg text-priority-urgent-text',
   high: 'border-priority-high-border bg-priority-high-bg text-priority-high-text',
   medium: 'border-priority-medium-border bg-priority-medium-bg text-priority-medium-text',
   low: 'border-priority-low-border bg-priority-low-bg text-priority-low-text',
 };
 
-const editing = ref(false);
-const noteFormOpen = ref(false);
-const noteDraft = ref('');
-const editingNote = ref(null);
-const noteInputRef = ref(null);
-const noteMenuOpen = ref(null); // note id of open menu
-const deleteConfirmNote = ref(null); // note to confirm deletion
-const requestMenuOpen = ref(false);
-const deleteConfirmRequest = ref(false);
+const editing = ref<boolean>(false);
+const noteFormOpen = ref<boolean>(false);
+const noteDraft = ref<string>('');
+const editingNote = ref<Note | null>(null);
+const noteInputRef = ref<HTMLTextAreaElement | null>(null);
+const noteMenuOpen = ref<string | null>(null); // note id of open menu
+const deleteConfirmNote = ref<Note | null>(null); // note to confirm deletion
+const requestMenuOpen = ref<boolean>(false);
+const deleteConfirmRequest = ref<boolean>(false);
 
-const editForm = reactive({ ...props.request });
+const editForm = reactive<PrayerRequest>({ ...props.request });
 
 watch(
   () => props.request,
@@ -398,67 +407,67 @@ watch(
   }
 );
 
-const lastPrayed = computed(() => {
+const lastPrayed = computed<string>(() => {
   const stamp = props.request.prayedAt?.length ? Math.max(...props.request.prayedAt) : null;
   return stamp ? timeAgo(stamp) : 'never';
 });
-const expiryCopy = computed(() => daysLeft(props.request.expiresAt));
+const expiryCopy = computed<string>(() => daysLeft(props.request.expiresAt));
 
 
-const sortedNotes = computed(() => [...(props.request.notes || [])].sort((a, b) => b.createdAt - a.createdAt));
+const sortedNotes = computed<Note[]>(() => [...(props.request.notes || [])].sort((a, b) => b.createdAt - a.createdAt));
 
-function toggleRequestMenu() {
+function toggleRequestMenu(): void {
   requestMenuOpen.value = !requestMenuOpen.value;
 }
 
-function openEditFromMenu() {
+function openEditFromMenu(): void {
   requestMenuOpen.value = false;
   editing.value = true;
   Object.assign(editForm, props.request);
 }
 
-function closeEditing() {
+function closeEditing(): void {
   editing.value = false;
 }
 
-function promptDeleteRequest() {
+function promptDeleteRequest(): void {
   requestMenuOpen.value = false;
   deleteConfirmRequest.value = true;
 }
 
-function confirmDeleteRequest() {
+function confirmDeleteRequest(): void {
   emit('delete-request', props.request);
   deleteConfirmRequest.value = false;
 }
 
-function cancelDeleteRequest() {
+function cancelDeleteRequest(): void {
   deleteConfirmRequest.value = false;
 }
 
-function saveEdit() {
+function saveEdit(): void {
   emit('update-request', { ...editForm });
   editing.value = false;
 }
 
-function submitNote() {
+function submitNote(): void {
   if (!noteDraft.value.trim()) return;
   emit('add-note', { request: props.request, text: noteDraft.value.trim() });
   noteDraft.value = '';
   noteFormOpen.value = false;
 }
 
-function cancelNote() {
+function cancelNote(): void {
   noteDraft.value = '';
   noteFormOpen.value = false;
 }
 
-async function openNoteForm() {
+async function openNoteForm(): Promise<void> {
   noteFormOpen.value = true;
   await nextTick();
   noteInputRef.value?.focus();
 }
 
-function startNoteEdit(note) {
+function startNoteEdit(note: Note): void {
   if (editingNote.value?.id === note.id) {
     editingNote.value = null;
     return;
@@ -467,49 +476,49 @@ function startNoteEdit(note) {
   noteMenuOpen.value = null;
 }
 
-function saveNoteEdit(note) {
+function saveNoteEdit(_note: Note): void {
   if (!editingNote.value) return;
   emit('edit-note', { request: props.request, note: { ...editingNote.value } });
   editingNote.value = null;
 }
 
-function toggleNoteMenu(noteId) {
+function toggleNoteMenu(noteId: string): void {
   noteMenuOpen.value = noteMenuOpen.value === noteId ? null : noteId;
 }
 
-function promptDeleteNote(note) {
+function promptDeleteNote(note: Note): void {
   deleteConfirmNote.value = note;
   noteMenuOpen.value = null;
 }
 
-function confirmDeleteNote() {
+function confirmDeleteNote(): void {
   if (!deleteConfirmNote.value) return;
   emit('delete-note', { request: props.request, note: deleteConfirmNote.value });
   deleteConfirmNote.value = null;
   editingNote.value = null;
 }
 
-function cancelDeleteNote() {
+function cancelDeleteNote(): void {
   deleteConfirmNote.value = null;
 }
 
-function formatTimestamp(ts) {
+function formatTimestamp(ts: number): string {
   const d = new Date(ts);
   return `${d.toLocaleDateString()} · ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 // Close menus on outside click
-function handleClickOutside(event) {
+function handleClickOutside(event: MouseEvent): void {
   // Close request menu if clicking outside
   if (requestMenuOpen.value) {
-    const menuContainer = event.target.closest('[data-request-menu]');
+    const menuContainer = (event.target as Element).closest('[data-request-menu]');
     if (!menuContainer) {
       requestMenuOpen.value = false;
     }
   }
   // Close note menu if clicking outside
   if (noteMenuOpen.value) {
-    const menuContainer = event.target.closest('[data-note-menu]');
+    const menuContainer = (event.target as Element).closest('[data-note-menu]');
     if (!menuContainer) {
       noteMenuOpen.value = null;
     }
