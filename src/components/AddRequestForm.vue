@@ -98,21 +98,24 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconChevronDown, IconPlus } from '@tabler/icons-vue';
 import { settings } from '../settings.js';
+import type { CreateRequestPayload, DurationPreset, Priority, SelectOption } from '../types';
 
-const emit = defineEmits(['save']);
+const emit = defineEmits<{
+  save: [payload: CreateRequestPayload];
+}>();
 
-const priorityOptions = [
+const priorityOptions: SelectOption<Priority>[] = [
   { value: 'urgent', label: 'Urgent' },
   { value: 'high', label: 'High' },
   { value: 'medium', label: 'Medium' },
   { value: 'low', label: 'Low' },
 ];
 
-const durationOptions = [
+const durationOptions: SelectOption<DurationPreset>[] = [
   { value: '10d', label: '10 days' },
   { value: '1m', label: '1 month' },
   { value: '3m', label: '3 months' },
@@ -120,13 +123,19 @@ const durationOptions = [
   { value: '1y', label: '1 year' },
 ];
 
-const blank = () => ({
+interface FormState {
+  title: string;
+  priority: Priority;
+  durationPreset: DurationPreset;
+}
+
+const blank = (): FormState => ({
   title: '',
-  priority: settings.defaultPriority,
-  durationPreset: settings.defaultDuration,
+  priority: settings.defaultPriority as Priority,
+  durationPreset: settings.defaultDuration as DurationPreset,
 });
 
-const form = reactive(blank());
+const form = reactive<FormState>(blank());
 
 // Sync form defaults when settings change (only if form is clean/empty)
 watch(
@@ -134,42 +143,35 @@ watch(
   ([newPriority, newDuration]) => {
     // Only update if the title is empty (form not in use)
     if (!form.title.trim()) {
-      form.priority = newPriority;
-      form.durationPreset = newDuration;
+      form.priority = newPriority as Priority;
+      form.durationPreset = newDuration as DurationPreset;
     }
   }
 );
-const isFocused = ref(false);
-const priorityOpen = ref(false);
-const durationOpen = ref(false);
-const priorityRef = ref(null);
-const durationRef = ref(null);
-const formContainerRef = ref(null);
-const inputRef = ref(null);
+const isFocused = ref<boolean>(false);
+const priorityOpen = ref<boolean>(false);
+const durationOpen = ref<boolean>(false);
+const priorityRef = ref<HTMLDivElement | null>(null);
+const durationRef = ref<HTMLDivElement | null>(null);
+const formContainerRef = ref<HTMLElement | null>(null);
+const inputRef = ref<HTMLTextAreaElement | null>(null);
 
-const priorityLabel = computed(() => {
+const priorityLabel = computed<string>(() => {
   return priorityOptions.find((o) => o.value === form.priority)?.label || 'Priority';
 });
-const durationLabel = computed(() => {
+const durationLabel = computed<string>(() => {
   return durationOptions.find((o) => o.value === form.durationPreset)?.label || 'Duration';
 });
-const showControls = computed(() => isFocused.value || priorityOpen.value || durationOpen.value);
+const showControls = computed<boolean>(() => isFocused.value || priorityOpen.value || durationOpen.value);
 
-function clearTitle() {
+function clearTitle(): void {
   form.title = '';
   // Reset priority/duration to defaults for next request
-  form.priority = settings.defaultPriority;
-  form.durationPreset = settings.defaultDuration;
+  form.priority = settings.defaultPriority as Priority;
+  form.durationPreset = settings.defaultDuration as DurationPreset;
 }
 
-function resetForm() {
-  Object.assign(form, blank());
-  isFocused.value = false;
-  priorityOpen.value = false;
-  durationOpen.value = false;
-}
-
-async function submit() {
+async function submit(): Promise<void> {
   if (!form.title.trim()) return;
   emit('save', { ...form, title: form.title.trim() });
   // Clear title but keep form active for adding more requests
@@ -178,27 +180,27 @@ async function submit() {
   inputRef.value?.focus();
 }
 
-function togglePriority() {
+function togglePriority(): void {
   priorityOpen.value = !priorityOpen.value;
   durationOpen.value = false;
 }
 
-function toggleDuration() {
+function toggleDuration(): void {
   durationOpen.value = !durationOpen.value;
   priorityOpen.value = false;
 }
 
-function selectPriority(value) {
+function selectPriority(value: Priority): void {
   form.priority = value;
   priorityOpen.value = false;
 }
 
-function selectDuration(value) {
+function selectDuration(value: DurationPreset): void {
   form.durationPreset = value;
   durationOpen.value = false;
 }
 
-function handleBlur() {
+function handleBlur(): void {
   setTimeout(() => {
     if (!priorityOpen.value && !durationOpen.value) {
       isFocused.value = false;
@@ -206,9 +208,9 @@ function handleBlur() {
   }, 80);
 }
 
-function handleClickOutside(event) {
+function handleClickOutside(event: MouseEvent): void {
   // If clicking outside the entire form container, close everything
-  if (formContainerRef.value && !formContainerRef.value.contains(event.target)) {
+  if (formContainerRef.value && !formContainerRef.value.contains(event.target as Node)) {
     priorityOpen.value = false;
     durationOpen.value = false;
     isFocused.value = false;
@@ -216,7 +218,7 @@ function handleClickOutside(event) {
   }
   // Otherwise just close dropdowns if clicking outside them
   const targets = [priorityRef.value, durationRef.value];
-  if (targets.some((node) => node?.contains(event.target))) return;
+  if (targets.some((node) => node?.contains(event.target as Node))) return;
   priorityOpen.value = false;
   durationOpen.value = false;
 }

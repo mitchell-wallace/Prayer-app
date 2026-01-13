@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
     "@tabler/icons-vue": "^3.36.1",
@@ -17,11 +18,14 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^25.0.8",
     "@vitejs/plugin-vue": "^5.0.0",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^27.4.0",
     "tailwindcss": "^4.0.0",
+    "typescript": "^5.9.3",
     "vite": "^5.0.0",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.16",
+    "vue-tsc": "^3.2.2"
   }
 }
