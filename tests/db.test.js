@@ -1,11 +1,5 @@
 import { afterEach, beforeEach, expect, test } from 'vitest';
-import {
-  bootstrapSeed,
-  clearDbCache,
-  fetchAllRequests,
-  resetDbForTests,
-  saveRequest,
-} from '../src/db.js';
+import { bootstrapSeed, clearDbCache, fetchAllRequests, resetDbForTests, saveRequest } from '../src/db.js';
 import { computeExpiry } from '../src/utils/time.js';
 
 beforeEach(async () => {
