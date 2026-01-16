@@ -2,6 +2,14 @@
 
 Goal: address the architecture findings in separate, reviewable commits while keeping the app functional at every step.
 
+Context: Architectural Findings (from QA review)
+- Core domain + persistence logic is embedded in the root UI component, making the view act as the application layer.
+- Storage is denormalized (JSON blobs) with no schema versioning or migrations, limiting future features.
+- There are multiple sources of truth (requests vs render queue), making state drift likely.
+- Settings are global mutable state without a clear service boundary.
+- No explicit domain types/validation; records are built ad hoc and passed directly to storage.
+- Tests are minimal and don't protect key user flows or feed lifecycle.
+
 Commit 1: Extract domain and application services from `src/App.vue`
 - Create a `src/domain/` module for request and note types plus validation helpers.
 - Introduce a `src/app/requestsService.js` (or similar) to encapsulate CRUD + feed actions.
@@ -27,10 +35,8 @@ Commit 5: Add request factories and data validation
 - Validate incoming records before persisting.
 - Update DB writes to go through the factory/validator.
 
-Commit 6: Add Playwright E2E tests for feed lifecycle and request actions
-- Add UI-driven tests for navigation, request creation, notes, settings, and stats.
-- Use data-testid attributes for stable selectors.
-- Wire tests into CI to prevent regressions during refactors.
+Notes
+- Keep the existing Playwright tests green while refactoring; update selectors only when UI changes require it.
 
 Notes
 - Each commit should keep the app runnable and pass tests.
