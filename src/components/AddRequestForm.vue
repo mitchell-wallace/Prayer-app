@@ -105,7 +105,7 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconChevronDown, IconPlus } from '@tabler/icons-vue';
-import { settings } from '../settings.js';
+import { settings } from '../app/settingsService.js';
 
 const emit = defineEmits(['save']);
 

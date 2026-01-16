@@ -48,7 +48,7 @@
                         ? 'bg-primary text-white shadow-card'
                         : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
                     ]"
-                    @click="settings.theme = option.value"
+                    @click="setTheme(option.value)"
                   >
                     {{ option.label }}
                   </button>
@@ -70,7 +70,7 @@
                         ? 'bg-primary text-white shadow-card'
                         : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
                     ]"
-                    @click="settings.defaultPriority = option.value"
+                    @click="setDefaultPriority(option.value)"
                   >
                     {{ option.label }}
                   </button>
@@ -92,7 +92,7 @@
                         ? 'bg-primary text-white shadow-card'
                         : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
                     ]"
-                    @click="settings.defaultDuration = option.value"
+                    @click="setDefaultDuration(option.value)"
                   >
                     {{ option.label }}
                   </button>
@@ -113,7 +113,7 @@
 <script setup>
 import { ref, Teleport, Transition } from 'vue';
 import { IconSettings, IconX } from '@tabler/icons-vue';
-import { settings } from '../settings.js';
+import { settings, setDefaultDuration, setDefaultPriority, setTheme } from '../app/settingsService.js';
 
 const open = ref(false);
 
@@ -138,3 +138,4 @@ const durationOptions = [
   { value: '1y', label: '1yr' },
 ];
 </script>
+

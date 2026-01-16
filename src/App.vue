@@ -192,7 +192,7 @@ import InfoModal from './components/InfoModal.vue';
 import RequestCard from './components/RequestCard.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import { useRequestsStore } from './stores/requestsStore.js';
-import { initThemeWatcher } from './settings.js';
+import { initThemeWatcher } from './app/settingsService.js';
 
 // Initialize theme watcher
 initThemeWatcher();
