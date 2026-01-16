@@ -191,9 +191,19 @@ import AddRequestForm from './components/AddRequestForm.vue';
 import InfoModal from './components/InfoModal.vue';
 import RequestCard from './components/RequestCard.vue';
 import SettingsModal from './components/SettingsModal.vue';
-import { bootstrapSeed, deleteRequest as dbDeleteRequest, fetchAllRequests, saveRequest } from './db.js';
+import {
+  addNote as serviceAddNote,
+  createRequest as serviceCreateRequest,
+  deleteNote as serviceDeleteNote,
+  deleteRequest as serviceDeleteRequest,
+  editNote as serviceEditNote,
+  initRequests,
+  markAnswered as serviceMarkAnswered,
+  recordPrayer as serviceRecordPrayer,
+  updateRequest as serviceUpdateRequest,
+} from './app/requestsService.js';
 import { initThemeWatcher } from './settings.js';
-import { computeExpiry } from './utils/time.js';
+import { priorityScore } from './domain/requests.js';
 
 // Initialize theme watcher
 initThemeWatcher();
@@ -212,13 +222,6 @@ const currentIndex = ref(0);
 const touchStart = ref(null);
 const slideDirection = ref('card-slide-left');
 const answeredModal = reactive({ open: false, request: null, text: '' });
-
-const priorityScore = {
-  urgent: 4,
-  high: 3,
-  medium: 2,
-  low: 1,
-};
 
 const activeRequests = computed(() =>
   requests.value
@@ -304,8 +307,7 @@ const infoStats = computed(() => ({
 }));
 
 onMounted(async () => {
-  await bootstrapSeed();
-  requests.value = await fetchAllRequests();
+  requests.value = await initRequests();
   loading.value = false;
   resetFeed();
 });
@@ -400,20 +402,7 @@ function replaceRequest(updated) {
 }
 
 async function createRequest(payload) {
-  const now = Date.now();
-  const record = {
-    id: crypto.randomUUID(),
-    title: payload.title,
-    priority: payload.priority,
-    durationPreset: payload.durationPreset,
-    createdAt: now,
-    expiresAt: computeExpiry(now, payload.durationPreset),
-    status: 'active',
-    prayedAt: [],
-    notes: [],
-    updatedAt: now,
-  };
-  await saveRequest(record);
+  const record = await serviceCreateRequest(payload);
   requests.value = [record, ...requests.value];
   
   // Insert the new card immediately after the current position (don't reset queue)
@@ -428,9 +417,7 @@ async function createRequest(payload) {
 }
 
 async function recordPrayer(request) {
-  const now = Date.now();
-  const updated = { ...request, prayedAt: [...(request.prayedAt || []), now], updatedAt: now };
-  await saveRequest(updated);
+  const updated = await serviceRecordPrayer(request);
   replaceRequest(updated);
   slideDirection.value = 'card-slide-left';
   nextCard();
@@ -449,35 +436,27 @@ function closeAnsweredModal() {
 }
 
 async function updateRequest(request) {
-  const expiresAt = computeExpiry(request.createdAt, request.durationPreset);
-  const updated = { ...request, expiresAt, updatedAt: Date.now() };
-  await saveRequest(updated);
+  const updated = await serviceUpdateRequest(request);
   replaceRequest(updated);
 }
 
 async function addNote({ request, text }) {
-  const entry = { id: crypto.randomUUID(), text, createdAt: Date.now(), isAnswer: false };
-  const updated = { ...request, notes: [...(request.notes || []), entry], updatedAt: Date.now() };
-  await saveRequest(updated);
+  const updated = await serviceAddNote({ request, text });
   replaceRequest(updated);
 }
 
 async function editNote({ request, note }) {
-  const updatedNotes = (request.notes || []).map((n) => (n.id === note.id ? { ...note } : n));
-  const updated = { ...request, notes: updatedNotes, updatedAt: Date.now() };
-  await saveRequest(updated);
+  const updated = await serviceEditNote({ request, note });
   replaceRequest(updated);
 }
 
 async function deleteNote({ request, note }) {
-  const updatedNotes = (request.notes || []).filter((n) => n.id !== note.id);
-  const updated = { ...request, notes: updatedNotes, updatedAt: Date.now() };
-  await saveRequest(updated);
+  const updated = await serviceDeleteNote({ request, note });
   replaceRequest(updated);
 }
 
 async function deleteRequest(request) {
-  await dbDeleteRequest(request.id);
+  await serviceDeleteRequest(request.id);
   requests.value = requests.value.filter((r) => r.id !== request.id);
   removeRequestFromQueue(request.id, { autoAdvance: true });
   if (renderQueue.value.length === 0) {
@@ -487,19 +466,10 @@ async function deleteRequest(request) {
 
 async function saveAnsweredNote() {
   if (!answeredModal.request || !answeredModal.text.trim()) return;
-  const entry = {
-    id: crypto.randomUUID(),
+  const updated = await serviceMarkAnswered({
+    request: answeredModal.request,
     text: answeredModal.text.trim(),
-    createdAt: Date.now(),
-    isAnswer: true,
-  };
-  const updated = {
-    ...answeredModal.request,
-    status: 'answered',
-    notes: [...(answeredModal.request.notes || []), entry],
-    updatedAt: Date.now(),
-  };
-  await saveRequest(updated);
+  });
   replaceRequest(updated);
   removeRequestFromQueue(updated.id, { autoAdvance: true });
   closeAnsweredModal();
