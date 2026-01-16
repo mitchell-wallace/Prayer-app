@@ -60,7 +60,7 @@
             type="button"
             data-testid="prev-button"
             :disabled="renderQueue.length <= 1"
-            @click="previousCard"
+            @click="goPreviousCard"
             aria-label="Previous card"
           >
             <IconChevronLeft :size="18" stroke-width="2.5" />
@@ -82,7 +82,7 @@
                 v-if="item.isLoopPoint && item.index !== currentIndex"
                 class="inline-flex h-5 w-5 items-center justify-center text-primary/70 transition-all duration-150 hover:text-primary"
                 type="button"
-                @click="navigateToIndex(item.index)"
+                @click="jumpToIndex(item.index)"
                 aria-label="Jump to cycle start"
               >
                 <IconRefresh :size="14" stroke-width="2.5" />
@@ -95,7 +95,7 @@
                   item.isLoopPoint ? 'bg-primary/60' : 'bg-dot-active',
                 ]"
                 type="button"
-                @click="navigateToIndex(item.index)"
+                @click="jumpToIndex(item.index)"
                 aria-label="Current card"
               ></button>
               <!-- Regular inactive dot -->
@@ -103,7 +103,7 @@
                 v-else
                 class="h-2 w-2 rounded-full bg-dot transition-all duration-150 hover:bg-dot-active"
                 type="button"
-                @click="navigateToIndex(item.index)"
+                @click="jumpToIndex(item.index)"
                 aria-label="Jump to card"
               ></button>
             </template>
@@ -122,7 +122,7 @@
             type="button"
             data-testid="next-button"
             :disabled="renderQueue.length <= 1"
-            @click="nextCard"
+            @click="goNextCard"
             aria-label="Next card"
           >
             <IconChevronRight :size="18" stroke-width="2.5" />
@@ -185,58 +185,34 @@
 </template>
 
 <script setup>
-import { Teleport, Transition, computed, onMounted, reactive, ref } from 'vue';
+import { Teleport, Transition, onMounted, reactive, ref } from 'vue';
 import { IconChevronLeft, IconChevronRight, IconRefresh, IconX } from '@tabler/icons-vue';
 import AddRequestForm from './components/AddRequestForm.vue';
 import InfoModal from './components/InfoModal.vue';
 import RequestCard from './components/RequestCard.vue';
 import SettingsModal from './components/SettingsModal.vue';
-import {
-  addNote as serviceAddNote,
-  createRequest as serviceCreateRequest,
-  deleteNote as serviceDeleteNote,
-  deleteRequest as serviceDeleteRequest,
-  editNote as serviceEditNote,
-  initRequests,
-  markAnswered as serviceMarkAnswered,
-  recordPrayer as serviceRecordPrayer,
-  updateRequest as serviceUpdateRequest,
-} from './app/requestsService.js';
+import { useRequestsStore } from './stores/requestsStore.js';
 import { initThemeWatcher } from './settings.js';
-import { priorityScore } from './domain/requests.js';
 
 // Initialize theme watcher
 initThemeWatcher();
 
-const requests = ref([]);
-const loading = ref(true);
+const store = useRequestsStore();
+const {
+  loading,
+  activeRequests,
+  renderQueue,
+  currentIndex,
+  currentItem,
+  progressIndicator,
+  infoStats,
+  init,
+  navigateToIndex,
+} = store;
 
-const pageSize = 6;
-const MAX_RENDER_QUEUE_SIZE = 36;
-const KEEP_BEHIND_COUNT = 10;
-
-const renderQueue = ref([]);
-const feedIndex = ref(0);
-const cycleCount = ref(0);
-const currentIndex = ref(0);
 const touchStart = ref(null);
 const slideDirection = ref('card-slide-left');
 const answeredModal = reactive({ open: false, request: null, text: '' });
-
-const activeRequests = computed(() =>
-  requests.value
-    .filter((r) => r.status === 'active')
-    .sort((a, b) => {
-      const priorityDelta = (priorityScore[b.priority] || 0) - (priorityScore[a.priority] || 0);
-      if (priorityDelta !== 0) return priorityDelta;
-      const lastA = getLastPrayed(a) ?? 0;
-      const lastB = getLastPrayed(b) ?? 0;
-      return lastA - lastB;
-    })
-);
-
-const answeredRequests = computed(() => requests.value.filter((r) => r.status === 'answered'));
-const currentItem = computed(() => renderQueue.value[currentIndex.value] || null);
 
 /**
  * Progress indicator with loop point visualization.
@@ -250,177 +226,18 @@ const currentItem = computed(() => renderQueue.value[currentIndex.value] || null
  * - Current position always shows as an active dot (even if it's a loop point)
  * - Overflow indicators (small dots) turn pale blue if they're adjacent to a loop point
  */
-const progressIndicator = computed(() => {
-  const total = renderQueue.value.length;
-  const poolSize = activeRequests.value.length; // Number of unique cards per cycle
-  const maxVisible = 5;
-  
-  // Helper: Check if an index is a loop point (start of a new cycle)
-  // Loop points are at indices: 0, poolSize, 2*poolSize, etc.
-  // Only valid if we have cards in the pool
-  const isLoopPoint = (index) => poolSize > 0 && index % poolSize === 0;
-  
-  // Calculate the visible window centered around current index
-  let start = Math.max(0, currentIndex.value - 2);
-  let end = start + maxVisible;
-  
-  // Adjust window if we're near the end of the queue
-  if (end > total) {
-    end = total;
-    start = Math.max(0, end - maxVisible);
-  }
-  
-  // Build the items array with loop point information
-  const items = [];
-  for (let i = start; i < end; i++) {
-    items.push({
-      ...renderQueue.value[i],
-      index: i,
-      isLoopPoint: isLoopPoint(i),
-    });
-  }
-  
-  // Determine overflow states and whether they're adjacent to loop points
-  const hasLeftOverflow = start > 0;
-  const hasRightOverflow = end < total;
-  
-  // Check if the position just outside the visible window is a loop point
-  // If so, we show a pale blue indicator instead of the regular gray one
-  const leftOverflowIsLoopAdjacent = hasLeftOverflow && isLoopPoint(start - 1);
-  const rightOverflowIsLoopAdjacent = hasRightOverflow && isLoopPoint(end);
-  
-  return {
-    items,
-    hasLeftOverflow,
-    hasRightOverflow,
-    leftOverflowIsLoopAdjacent,
-    rightOverflowIsLoopAdjacent,
-  };
-});
-
-const infoStats = computed(() => ({
-  active: activeRequests.value.length,
-  answered: answeredRequests.value.length,
-  queued: renderQueue.value.length,
-  cycle: cycleCount.value + 1,
-  currentRequest: currentItem.value?.request || null,
-}));
-
 onMounted(async () => {
-  requests.value = await initRequests();
-  loading.value = false;
-  resetFeed();
+  await init();
 });
-
-function resetFeed() {
-  renderQueue.value = [];
-  feedIndex.value = 0;
-  cycleCount.value = 0;
-  currentIndex.value = 0;
-  if (activeRequests.value.length) {
-    loadMore();
-  }
-}
-
-function pruneRenderQueue() {
-  const overflow = renderQueue.value.length - MAX_RENDER_QUEUE_SIZE;
-  if (overflow <= 0) return;
-
-  // Prefer dropping items from the front, but keep a small "behind" buffer
-  // so previous navigation still feels natural.
-  const removableFromFront = Math.max(0, currentIndex.value - KEEP_BEHIND_COUNT);
-  const dropFromFront = Math.min(overflow, removableFromFront);
-  if (dropFromFront > 0) {
-    renderQueue.value.splice(0, dropFromFront);
-    currentIndex.value -= dropFromFront;
-  }
-
-  const remainingOverflow = renderQueue.value.length - MAX_RENDER_QUEUE_SIZE;
-  if (remainingOverflow > 0) {
-    // If we still overflow (e.g. currentIndex is near the start), trim the tail.
-    renderQueue.value.splice(renderQueue.value.length - remainingOverflow, remainingOverflow);
-  }
-}
-
-function loadMore() {
-  const pool = activeRequests.value;
-  if (!pool.length) return;
-  const next = [];
-  for (let i = 0; i < pageSize; i += 1) {
-    const idx = (feedIndex.value + i) % pool.length;
-    const cycle = Math.floor((feedIndex.value + i) / pool.length) + cycleCount.value;
-    next.push({ request: pool[idx], cycle });
-  }
-  feedIndex.value += pageSize;
-  if (feedIndex.value >= pool.length) {
-    const completed = Math.floor(feedIndex.value / pool.length);
-    cycleCount.value += completed;
-    feedIndex.value = feedIndex.value % pool.length;
-  }
-  renderQueue.value = [...renderQueue.value, ...next];
-  pruneRenderQueue();
-}
-
-function nextCard() {
-  if (renderQueue.value.length <= 1) return;
-  slideDirection.value = 'card-slide-left';
-  currentIndex.value = (currentIndex.value + 1) % renderQueue.value.length;
-  const remaining = renderQueue.value.length - currentIndex.value;
-  if (remaining <= 2) {
-    loadMore();
-  }
-}
-
-function previousCard() {
-  if (renderQueue.value.length <= 1) return;
-  slideDirection.value = 'card-slide-right';
-  currentIndex.value = (currentIndex.value - 1 + renderQueue.value.length) % renderQueue.value.length;
-}
-
-function navigateToIndex(index) {
-  if (index === currentIndex.value) return;
-  slideDirection.value = index > currentIndex.value ? 'card-slide-left' : 'card-slide-right';
-  currentIndex.value = index;
-  const remaining = renderQueue.value.length - currentIndex.value;
-  if (remaining <= 2) {
-    loadMore();
-  }
-}
-
-function getLastPrayed(request) {
-  return request.prayedAt?.length ? Math.max(...request.prayedAt) : null;
-}
-
-function replaceRequest(updated) {
-  const idx = requests.value.findIndex((r) => r.id === updated.id);
-  if (idx !== -1) {
-    requests.value.splice(idx, 1, updated);
-  }
-  renderQueue.value = renderQueue.value.map((item) =>
-    item.request.id === updated.id ? { ...item, request: updated } : item
-  );
-}
 
 async function createRequest(payload) {
-  const record = await serviceCreateRequest(payload);
-  requests.value = [record, ...requests.value];
-  
-  // Insert the new card immediately after the current position (don't reset queue)
-  if (renderQueue.value.length > 0) {
-    const insertPosition = currentIndex.value + 1;
-    renderQueue.value.splice(insertPosition, 0, { request: record, cycle: cycleCount.value });
-  } else {
-    // If queue is empty, initialize it
-    renderQueue.value = [{ request: record, cycle: 0 }];
-    currentIndex.value = 0;
-  }
+  await store.createRequest(payload);
 }
 
 async function recordPrayer(request) {
-  const updated = await serviceRecordPrayer(request);
-  replaceRequest(updated);
+  await store.recordPrayer(request);
   slideDirection.value = 'card-slide-left';
-  nextCard();
+  goNextCard();
 }
 
 function openAnsweredModal(request) {
@@ -436,94 +253,50 @@ function closeAnsweredModal() {
 }
 
 async function updateRequest(request) {
-  const updated = await serviceUpdateRequest(request);
-  replaceRequest(updated);
+  await store.updateRequest(request);
 }
 
 async function addNote({ request, text }) {
-  const updated = await serviceAddNote({ request, text });
-  replaceRequest(updated);
+  await store.addNote({ request, text });
 }
 
 async function editNote({ request, note }) {
-  const updated = await serviceEditNote({ request, note });
-  replaceRequest(updated);
+  await store.editNote({ request, note });
 }
 
 async function deleteNote({ request, note }) {
-  const updated = await serviceDeleteNote({ request, note });
-  replaceRequest(updated);
+  await store.deleteNote({ request, note });
 }
 
 async function deleteRequest(request) {
-  await serviceDeleteRequest(request.id);
-  requests.value = requests.value.filter((r) => r.id !== request.id);
-  removeRequestFromQueue(request.id, { autoAdvance: true });
-  if (renderQueue.value.length === 0) {
-    resetFeed();
-  }
+  await store.deleteRequest(request);
 }
 
 async function saveAnsweredNote() {
   if (!answeredModal.request || !answeredModal.text.trim()) return;
-  const updated = await serviceMarkAnswered({
+  await store.markAnswered({
     request: answeredModal.request,
     text: answeredModal.text.trim(),
   });
-  replaceRequest(updated);
-  removeRequestFromQueue(updated.id, { autoAdvance: true });
   closeAnsweredModal();
-  if (renderQueue.value.length === 0) {
-    resetFeed();
-  } else {
-    const remaining = renderQueue.value.length - currentIndex.value;
-    if (remaining <= 2) loadMore();
-  }
 }
 
-function removeRequestFromQueue(requestId, { autoAdvance = false } = {}) {
-  const oldQueue = renderQueue.value;
-  if (!oldQueue.length) {
-    currentIndex.value = 0;
-    return;
-  }
+function goNextCard() {
+  if (renderQueue.value.length <= 1) return;
+  slideDirection.value = 'card-slide-left';
+  store.nextCard();
+}
 
-  const removedIndices = [];
-  for (let i = 0; i < oldQueue.length; i += 1) {
-    if (oldQueue[i].request.id === requestId) removedIndices.push(i);
-  }
-  if (!removedIndices.length) return;
+function goPreviousCard() {
+  if (renderQueue.value.length <= 1) return;
+  slideDirection.value = 'card-slide-right';
+  store.previousCard();
+}
 
-  const wasCurrentRemoved = removedIndices.includes(currentIndex.value);
-  const removedBeforeCurrent = removedIndices.filter((idx) => idx < currentIndex.value).length;
-
-  const newQueue = oldQueue.filter((item) => item.request.id !== requestId);
-  renderQueue.value = newQueue;
-
-  if (!newQueue.length) {
-    currentIndex.value = 0;
-    return;
-  }
-
-  // Keep the same logical current item. If the current item was removed,
-  // the next item naturally shifts into the same index.
-  let nextIndex = currentIndex.value - removedBeforeCurrent;
-
-  // If we removed the last item and it was current, wrap to the start.
-  if (wasCurrentRemoved && nextIndex >= newQueue.length) {
-    nextIndex = 0;
-  }
-
-  nextIndex = Math.max(0, Math.min(nextIndex, newQueue.length - 1));
-
-  // Only auto-advance when the current item was removed. Advancing after removing
-  // a different item can feel like a jump.
-  if (autoAdvance && wasCurrentRemoved && newQueue.length > 1) {
-    // After removal, nextIndex already points at the next card in sequence.
-    // (The previous implementation incremented and could skip a card.)
-  }
-
-  currentIndex.value = nextIndex;
+function jumpToIndex(index) {
+  if (index === currentIndex.value) return;
+  slideDirection.value = index > currentIndex.value ? 'card-slide-left' : 'card-slide-right';
+  navigateToIndex(index);
 }
 
 function handleTouchStart(event) {
@@ -539,11 +312,9 @@ function handleTouchEnd(event) {
   touchStart.value = null;
   if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
   if (dx < 0) {
-    slideDirection.value = 'card-slide-left';
-    nextCard();
+    goNextCard();
   } else {
-    slideDirection.value = 'card-slide-right';
-    previousCard();
+    goPreviousCard();
   }
 }
 </script>
