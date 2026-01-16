@@ -34,6 +34,7 @@
             <RequestCard
               :key="currentItem.request.id + '-' + currentIndex"
               class="absolute inset-0"
+              data-testid="request-card"
               :request="currentItem.request"
               @pray="recordPrayer"
               @mark-answered="openAnsweredModal"
@@ -57,6 +58,7 @@
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
             type="button"
+            data-testid="prev-button"
             :disabled="renderQueue.length <= 1"
             @click="previousCard"
             aria-label="Previous card"
@@ -118,6 +120,7 @@
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
             type="button"
+            data-testid="next-button"
             :disabled="renderQueue.length <= 1"
             @click="nextCard"
             aria-label="Next card"

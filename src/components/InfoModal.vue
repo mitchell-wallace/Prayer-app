@@ -3,6 +3,7 @@
     <!-- Info button trigger -->
     <button
       type="button"
+      data-testid="info-button"
       class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
       aria-label="View stats"
       @click="open = true"
@@ -15,6 +16,7 @@
       <Transition name="modal">
         <div
           v-if="open"
+          data-testid="info-modal"
           class="fixed inset-0 z-50 grid place-items-center bg-overlay p-4"
           @click.self="open = false"
         >
@@ -51,11 +53,15 @@
                 <h3 class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Requests</h3>
                 <div class="grid grid-cols-2 gap-3">
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-primary">{{ stats.active }}</p>
+                    <p class="text-2xl font-bold text-primary" data-testid="stat-active">
+                      {{ stats.active }}
+                    </p>
                     <p class="text-xs text-muted">Active</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-muted">{{ stats.answered }}</p>
+                    <p class="text-2xl font-bold text-muted" data-testid="stat-answered">
+                      {{ stats.answered }}
+                    </p>
                     <p class="text-xs text-muted">Answered</p>
                   </div>
                 </div>

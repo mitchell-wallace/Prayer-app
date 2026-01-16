@@ -1,10 +1,11 @@
 <template>
-  <section ref="formContainerRef">
-    <form class="grid gap-2" @submit.prevent="submit">
-      <div v-if="showControls" class="flex justify-start gap-2">
+  <section ref="formContainerRef" data-testid="add-request-section">
+    <form class="grid gap-2" data-testid="add-request-form" @submit.prevent="submit">
+      <div v-if="showControls" class="flex justify-start gap-2" data-testid="request-controls">
         <div class="relative" ref="priorityRef">
           <button
             type="button"
+            data-testid="priority-toggle"
             class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
             @click="togglePriority"
             aria-haspopup="listbox"
@@ -36,6 +37,7 @@
         <div class="relative" ref="durationRef">
           <button
             type="button"
+            data-testid="duration-toggle"
             class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
             @click="toggleDuration"
             aria-haspopup="listbox"
@@ -73,6 +75,7 @@
       >
         <textarea
           ref="inputRef"
+          data-testid="request-input"
           v-model="form.title"
           :rows="showControls ? 3 : 1"
           required
@@ -88,6 +91,7 @@
         <button
           class="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card disabled:opacity-50 disabled:hover:bg-primary disabled:hover:shadow-sm"
           type="submit"
+          data-testid="request-submit"
           :disabled="!form.title.trim()"
         >
           <IconPlus :size="22" stroke-width="2.5" />
