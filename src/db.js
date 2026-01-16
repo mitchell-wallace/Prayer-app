@@ -5,6 +5,8 @@ import { computeExpiry } from './utils/time.js';
 const STORAGE_KEY = 'prayer-sql-db';
 let dbInstance = null;
 
+const SCHEMA_VERSION = 2;
+
 async function loadDbBytes() {
   const buffer = await get(STORAGE_KEY);
   return buffer ? new Uint8Array(buffer) : undefined;
@@ -15,7 +17,35 @@ async function persistDb(db) {
   await set(STORAGE_KEY, bytes.buffer);
 }
 
-function ensureSchema(db) {
+function tableExists(db, name) {
+  const result = db.exec(
+    `SELECT name FROM sqlite_master WHERE type='table' AND name='${name}'`
+  );
+  return Boolean(result[0]?.values?.length);
+}
+
+function tableHasColumn(db, table, column) {
+  if (!tableExists(db, table)) return false;
+  const result = db.exec(`PRAGMA table_info(${table})`);
+  const rows = result[0]?.values ?? [];
+  return rows.some((row) => row[1] === column);
+}
+
+function getSchemaVersion(db) {
+  if (!tableExists(db, 'schema_version')) {
+    return 1;
+  }
+  const result = db.exec('SELECT version FROM schema_version');
+  return Number(result[0]?.values?.[0]?.[0] ?? 1);
+}
+
+function setSchemaVersion(db, version) {
+  db.exec('CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)');
+  db.exec('DELETE FROM schema_version');
+  db.exec(`INSERT INTO schema_version (version) VALUES (${version})`);
+}
+
+function createSchemaV2(db) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS requests (
       id TEXT PRIMARY KEY,
@@ -25,11 +55,132 @@ function ensureSchema(db) {
       createdAt INTEGER NOT NULL,
       expiresAt INTEGER NOT NULL,
       status TEXT NOT NULL,
-      prayedAt TEXT NOT NULL,
-      notes TEXT NOT NULL,
       updatedAt INTEGER NOT NULL
     );
   `);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS notes (
+      id TEXT PRIMARY KEY,
+      requestId TEXT NOT NULL,
+      text TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      isAnswer INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+  `);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS prayer_events (
+      id TEXT PRIMARY KEY,
+      requestId TEXT NOT NULL,
+      prayedAt INTEGER NOT NULL
+    );
+  `);
+}
+
+function migrateV1ToV2(db) {
+  db.run('BEGIN');
+  try {
+    db.exec('ALTER TABLE requests RENAME TO requests_v1');
+    createSchemaV2(db);
+
+    const result = db.exec(`
+      SELECT id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt
+      FROM requests_v1
+    `);
+    const rows = result[0]?.values ?? [];
+
+    const insertRequest = db.prepare(`
+      INSERT INTO requests (
+        id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const insertNote = db.prepare(`
+      INSERT INTO notes (
+        id, requestId, text, createdAt, isAnswer, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const insertPrayer = db.prepare(`
+      INSERT INTO prayer_events (
+        id, requestId, prayedAt
+      ) VALUES (?, ?, ?)
+    `);
+
+    for (const row of rows) {
+      const [
+        id,
+        title,
+        priority,
+        durationPreset,
+        createdAt,
+        expiresAt,
+        status,
+        prayedAt,
+        notes,
+        updatedAt,
+      ] = row;
+
+      insertRequest.run([
+        id,
+        title,
+        priority,
+        durationPreset,
+        createdAt,
+        expiresAt,
+        status,
+        updatedAt,
+      ]);
+
+      const prayedList = JSON.parse(prayedAt || '[]');
+      for (const prayedTimestamp of prayedList) {
+        insertPrayer.run([crypto.randomUUID(), id, prayedTimestamp]);
+      }
+
+      const noteList = JSON.parse(notes || '[]');
+      for (const note of noteList) {
+        insertNote.run([
+          note.id || crypto.randomUUID(),
+          id,
+          note.text || '',
+          note.createdAt || createdAt,
+          note.isAnswer ? 1 : 0,
+          note.updatedAt || note.createdAt || updatedAt,
+        ]);
+      }
+    }
+
+    insertRequest.free();
+    insertNote.free();
+    insertPrayer.free();
+    db.exec('DROP TABLE requests_v1');
+    setSchemaVersion(db, SCHEMA_VERSION);
+    db.run('COMMIT');
+  } catch (error) {
+    db.run('ROLLBACK');
+    throw error;
+  }
+}
+
+function ensureSchema(db) {
+  const hasRequests = tableExists(db, 'requests');
+  if (!hasRequests) {
+    createSchemaV2(db);
+    setSchemaVersion(db, SCHEMA_VERSION);
+    return;
+  }
+
+  const version = getSchemaVersion(db);
+  if (version < SCHEMA_VERSION) {
+    const needsMigration =
+      tableHasColumn(db, 'requests', 'prayedAt') || tableHasColumn(db, 'requests', 'notes');
+    if (needsMigration) {
+      migrateV1ToV2(db);
+    } else {
+      createSchemaV2(db);
+      setSchemaVersion(db, SCHEMA_VERSION);
+    }
+  } else {
+    createSchemaV2(db);
+  }
 }
 
 export async function initDb() {
@@ -50,8 +201,8 @@ function deserializeRequest(row) {
     createdAt: row.createdAt,
     expiresAt: row.expiresAt,
     status: row.status,
-    prayedAt: JSON.parse(row.prayedAt || '[]'),
-    notes: JSON.parse(row.notes || '[]'),
+    prayedAt: row.prayedAt || [],
+    notes: row.notes || [],
     updatedAt: row.updatedAt,
   };
 }
@@ -59,12 +210,12 @@ function deserializeRequest(row) {
 export async function fetchAllRequests() {
   const db = await initDb();
   const result = db.exec(`
-    SELECT id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt
+    SELECT id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
     FROM requests
     ORDER BY createdAt DESC
   `);
   const rows = result[0]?.values ?? [];
-  return rows.map(
+  const baseRequests = rows.map(
     ([
       id,
       title,
@@ -73,8 +224,6 @@ export async function fetchAllRequests() {
       createdAt,
       expiresAt,
       status,
-      prayedAt,
-      notes,
       updatedAt,
     ]) =>
       deserializeRequest({
@@ -85,45 +234,117 @@ export async function fetchAllRequests() {
         createdAt,
         expiresAt,
         status,
-        prayedAt,
-        notes,
         updatedAt,
       })
   );
+
+  const notesResult = db.exec(`
+    SELECT id, requestId, text, createdAt, isAnswer, updatedAt
+    FROM notes
+    ORDER BY createdAt DESC
+  `);
+  const notesRows = notesResult[0]?.values ?? [];
+  const notesByRequest = new Map();
+  for (const [id, requestId, text, createdAt, isAnswer, updatedAt] of notesRows) {
+    const list = notesByRequest.get(requestId) || [];
+    list.push({
+      id,
+      text,
+      createdAt,
+      isAnswer: Boolean(isAnswer),
+      updatedAt,
+    });
+    notesByRequest.set(requestId, list);
+  }
+
+  const prayersResult = db.exec(`
+    SELECT requestId, prayedAt
+    FROM prayer_events
+  `);
+  const prayersRows = prayersResult[0]?.values ?? [];
+  const prayersByRequest = new Map();
+  for (const [requestId, prayedAt] of prayersRows) {
+    const list = prayersByRequest.get(requestId) || [];
+    list.push(prayedAt);
+    prayersByRequest.set(requestId, list);
+  }
+
+  return baseRequests.map((request) => ({
+    ...request,
+    notes: notesByRequest.get(request.id) || [],
+    prayedAt: prayersByRequest.get(request.id) || [],
+  }));
 }
 
 export async function saveRequest(record) {
   const db = await initDb();
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO requests (
-      id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  stmt.run([
-    record.id,
-    record.title,
-    record.priority,
-    record.durationPreset,
-    record.createdAt,
-    record.expiresAt,
-    record.status,
-    JSON.stringify(record.prayedAt || []),
-    JSON.stringify(record.notes || []),
-    record.updatedAt,
-  ]);
-  stmt.free();
-  await persistDb(db);
+  db.run('BEGIN');
+  try {
+    const stmt = db.prepare(`
+      INSERT OR REPLACE INTO requests (
+        id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run([
+      record.id,
+      record.title,
+      record.priority,
+      record.durationPreset,
+      record.createdAt,
+      record.expiresAt,
+      record.status,
+      record.updatedAt,
+    ]);
+    stmt.free();
+
+    db.exec(`DELETE FROM notes WHERE requestId = '${record.id}'`);
+    db.exec(`DELETE FROM prayer_events WHERE requestId = '${record.id}'`);
+
+    const noteStmt = db.prepare(`
+      INSERT INTO notes (
+        id, requestId, text, createdAt, isAnswer, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    for (const note of record.notes || []) {
+      noteStmt.run([
+        note.id || crypto.randomUUID(),
+        record.id,
+        note.text || '',
+        note.createdAt || record.updatedAt,
+        note.isAnswer ? 1 : 0,
+        note.updatedAt || note.createdAt || record.updatedAt,
+      ]);
+    }
+    noteStmt.free();
+
+    const prayerStmt = db.prepare(`
+      INSERT INTO prayer_events (
+        id, requestId, prayedAt
+      ) VALUES (?, ?, ?)
+    `);
+    for (const prayedAt of record.prayedAt || []) {
+      prayerStmt.run([crypto.randomUUID(), record.id, prayedAt]);
+    }
+    prayerStmt.free();
+
+    db.run('COMMIT');
+    await persistDb(db);
+  } catch (error) {
+    db.run('ROLLBACK');
+    throw error;
+  }
 }
 
 export async function deleteRequest(id) {
   const db = await initDb();
-  const stmt = db.prepare('DELETE FROM requests WHERE id = ?');
   try {
+    db.exec(`DELETE FROM notes WHERE requestId = '${id}'`);
+    db.exec(`DELETE FROM prayer_events WHERE requestId = '${id}'`);
+    const stmt = db.prepare('DELETE FROM requests WHERE id = ?');
     stmt.run([id]);
     stmt.free();
     await persistDb(db);
   } catch (error) {
-    stmt.free();
     throw new Error(`Failed to delete request ${id}: ${error.message}`);
   }
 }
@@ -146,36 +367,55 @@ export async function bootstrapSeed() {
   try {
     const insert = db.prepare(`
       INSERT INTO requests (
-        id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
+    const insertNote = db.prepare(`
+      INSERT INTO notes (
+        id, requestId, text, createdAt, isAnswer, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const insertPrayer = db.prepare(`
+      INSERT INTO prayer_events (
+        id, requestId, prayedAt
+      ) VALUES (?, ?, ?)
+    `);
+
+    const outreachId = crypto.randomUUID();
     insert.run([
-      crypto.randomUUID(),
+      outreachId,
       'Community outreach',
       'high',
       '3m',
       outreachCreated,
       computeExpiry(outreachCreated, '3m'),
       'active',
-      JSON.stringify([now - 1000 * 60 * 60 * 2]),
-      JSON.stringify([
-        { id: crypto.randomUUID(), text: 'Met with two new neighbors.', createdAt: now - 1000 * 60 * 60 * 12 },
-      ]),
       now - 1000 * 60 * 60 * 2,
     ]);
-    insert.run([
+    insertPrayer.run([crypto.randomUUID(), outreachId, now - 1000 * 60 * 60 * 2]);
+    insertNote.run([
       crypto.randomUUID(),
+      outreachId,
+      'Met with two new neighbors.',
+      now - 1000 * 60 * 60 * 12,
+      0,
+      now - 1000 * 60 * 60 * 12,
+    ]);
+
+    const familyId = crypto.randomUUID();
+    insert.run([
+      familyId,
       'Family health',
       'urgent',
       '10d',
       familyCreated,
       computeExpiry(familyCreated, '10d'),
       'active',
-      JSON.stringify([]),
-      JSON.stringify([]),
       now - 1000 * 60 * 60 * 24,
     ]);
     insert.free();
+    insertNote.free();
+    insertPrayer.free();
     db.run('COMMIT');
     await persistDb(db);
   } catch (error) {
