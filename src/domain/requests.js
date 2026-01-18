@@ -38,8 +38,11 @@ export function validateCreatePayload(payload) {
     throw new Error('durationPreset must be one of: 10d, 1m, 3m, 6m, 1y');
   }
 
+  const details = normalizeText(payload?.details);
+
   return {
     title,
+    details: details || null,
     priority: payload.priority,
     durationPreset: payload.durationPreset,
   };
@@ -97,6 +100,7 @@ export function createRequestRecord(payload, { now = Date.now() } = {}) {
   return {
     id: crypto.randomUUID(),
     title: normalized.title,
+    details: normalized.details,
     priority: normalized.priority,
     durationPreset: normalized.durationPreset,
     createdAt: now,

@@ -15,11 +15,19 @@
     </header>
 
     <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-x-clip px-4 pt-3 pb-2 sm:px-6">
-      <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-muted">
-        No active requests yet. Add one below.
-      </p>
+      <div v-if="!activeRequests.length && !loading" class="flex flex-1 items-center justify-center">
+        <div class="text-center px-4">
+          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-card-muted shadow-sm">
+            <IconHandStop :size="32" class="text-muted" stroke-width="1.5" />
+          </div>
+          <h3 class="mb-2 text-base font-semibold text-text">No prayer requests yet</h3>
+          <p class="text-sm text-muted max-w-xs mx-auto">
+            Add your first prayer request below to start your prayer rhythm.
+          </p>
+        </div>
+      </div>
 
-      <div v-if="loading" class="text-sm text-muted">Loading requests…</div>
+      <div v-if="loading" class="flex flex-1 items-center justify-center text-sm text-muted">Loading requests…</div>
 
       <!-- Card container with padding for shadow overflow -->
       <div
@@ -186,7 +194,7 @@
 
 <script setup lang="ts">
 import { Teleport, Transition, onMounted, reactive, ref } from 'vue';
-import { IconChevronLeft, IconChevronRight, IconRefresh, IconX } from '@tabler/icons-vue';
+import { IconChevronLeft, IconChevronRight, IconHandStop, IconRefresh, IconX } from '@tabler/icons-vue';
 import AddRequestForm from './components/AddRequestForm.vue';
 import InfoModal from './components/InfoModal.vue';
 import RequestCard from './components/RequestCard.vue';

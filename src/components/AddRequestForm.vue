@@ -1,7 +1,7 @@
 <template>
   <section ref="formContainerRef" data-testid="add-request-section">
     <form class="grid gap-2" data-testid="add-request-form" @submit.prevent="submit">
-      <div v-if="showControls" class="flex justify-start gap-2" data-testid="request-controls">
+      <div v-if="showControls" class="flex flex-wrap justify-start gap-2" data-testid="request-controls">
         <div class="relative" ref="priorityRef">
           <button
             type="button"
@@ -65,38 +65,62 @@
             </li>
           </ul>
         </div>
+
+        <button
+          v-if="!detailsOpen"
+          type="button"
+          data-testid="details-toggle"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+          @click="openDetails"
+        >
+          <IconPlus :size="14" stroke-width="2.5" />
+          <span>Details</span>
+        </button>
       </div>
 
       <div
         :class="[
-          'grid grid-cols-[1fr_auto] items-start gap-2 rounded-2xl bg-card px-4 py-3 shadow-card transition-all duration-200',
+          'grid gap-2 rounded-2xl bg-card px-4 py-3 shadow-card transition-all duration-200',
           showControls ? 'shadow-primary-glow' : '',
         ]"
       >
-        <textarea
-          ref="inputRef"
-          data-testid="request-input"
-          v-model="form.title"
-          :rows="showControls ? 3 : 1"
-          required
-          placeholder="Add a prayer request"
-          :class="[
-            'w-full resize-none bg-transparent text-base text-text placeholder:text-muted focus:outline-none transition-all duration-150',
-            showControls ? 'py-1' : 'py-2',
-          ]"
-          @focus="isFocused = true"
-          @blur="handleBlur"
-          @keydown.enter.exact.prevent="submit"
-        ></textarea>
-        <button
-          class="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card disabled:opacity-50 disabled:hover:bg-primary disabled:hover:shadow-sm"
-          type="submit"
-          data-testid="request-submit"
-          :disabled="!form.title.trim()"
-        >
-          <IconPlus :size="22" stroke-width="2.5" />
-          <span class="sr-only">Add request</span>
-        </button>
+        <div class="grid grid-cols-[1fr_auto] items-start gap-2">
+          <textarea
+            ref="inputRef"
+            data-testid="request-input"
+            v-model="form.title"
+            :rows="showControls ? 2 : 1"
+            required
+            placeholder="Add a prayer request"
+            :class="[
+              'w-full resize-none bg-transparent text-base text-text placeholder:text-muted focus:outline-none transition-all duration-150',
+              showControls ? 'py-1' : 'py-2',
+            ]"
+            @focus="isFocused = true"
+            @blur="handleBlur"
+            @keydown.enter.exact.prevent="submit"
+          ></textarea>
+          <button
+            class="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card disabled:opacity-50 disabled:hover:bg-primary disabled:hover:shadow-sm"
+            type="submit"
+            data-testid="request-submit"
+            :disabled="!form.title.trim()"
+          >
+            <IconPlus :size="22" stroke-width="2.5" />
+            <span class="sr-only">Add request</span>
+          </button>
+        </div>
+        <div v-if="detailsOpen" class="grid gap-1">
+          <textarea
+            ref="detailsInputRef"
+            data-testid="request-details-input"
+            v-model="form.details"
+            rows="2"
+            placeholder="Add more context or background (optional)"
+            class="w-full resize-none rounded-xl bg-card-muted p-3 text-sm text-text placeholder:text-muted focus:outline-none focus:shadow-primary-glow transition-all duration-150"
+            @blur="handleBlur"
+          ></textarea>
+        </div>
       </div>
     </form>
   </section>
@@ -129,12 +153,14 @@ const durationOptions: SelectOption<DurationPreset>[] = [
 
 interface FormState {
   title: string;
+  details: string;
   priority: Priority;
   durationPreset: DurationPreset;
 }
 
 const blank = (): FormState => ({
   title: '',
+  details: '',
   priority: settings.defaultPriority as Priority,
   durationPreset: settings.defaultDuration as DurationPreset,
 });
@@ -155,10 +181,12 @@ watch(
 const isFocused = ref<boolean>(false);
 const priorityOpen = ref<boolean>(false);
 const durationOpen = ref<boolean>(false);
+const detailsOpen = ref<boolean>(false);
 const priorityRef = ref<HTMLDivElement | null>(null);
 const durationRef = ref<HTMLDivElement | null>(null);
 const formContainerRef = ref<HTMLElement | null>(null);
 const inputRef = ref<HTMLTextAreaElement | null>(null);
+const detailsInputRef = ref<HTMLTextAreaElement | null>(null);
 
 const priorityLabel = computed<string>(() => {
   return priorityOptions.find((o) => o.value === form.priority)?.label || 'Priority';
@@ -166,20 +194,30 @@ const priorityLabel = computed<string>(() => {
 const durationLabel = computed<string>(() => {
   return durationOptions.find((o) => o.value === form.durationPreset)?.label || 'Duration';
 });
-const showControls = computed<boolean>(() => isFocused.value || priorityOpen.value || durationOpen.value);
+const showControls = computed<boolean>(() => isFocused.value || priorityOpen.value || durationOpen.value || detailsOpen.value);
 
-function clearTitle(): void {
+function clearForm(): void {
   form.title = '';
+  form.details = '';
   // Reset priority/duration to defaults for next request
   form.priority = settings.defaultPriority as Priority;
   form.durationPreset = settings.defaultDuration as DurationPreset;
+  detailsOpen.value = false;
 }
 
 async function submit(): Promise<void> {
   if (!form.title.trim()) return;
-  emit('save', { ...form, title: form.title.trim() });
-  // Clear title but keep form active for adding more requests
-  clearTitle();
+  const payload: CreateRequestPayload = {
+    title: form.title.trim(),
+    priority: form.priority,
+    durationPreset: form.durationPreset,
+  };
+  if (form.details.trim()) {
+    payload.details = form.details.trim();
+  }
+  emit('save', payload);
+  // Clear form but keep it active for adding more requests
+  clearForm();
   await nextTick();
   inputRef.value?.focus();
 }
@@ -204,9 +242,15 @@ function selectDuration(value: DurationPreset): void {
   durationOpen.value = false;
 }
 
+async function openDetails(): Promise<void> {
+  detailsOpen.value = true;
+  await nextTick();
+  detailsInputRef.value?.focus();
+}
+
 function handleBlur(): void {
   setTimeout(() => {
-    if (!priorityOpen.value && !durationOpen.value) {
+    if (!priorityOpen.value && !durationOpen.value && !detailsOpen.value) {
       isFocused.value = false;
     }
   }, 80);

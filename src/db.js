@@ -5,7 +5,7 @@ import { computeExpiry } from './utils/time.js';
 const STORAGE_KEY = 'prayer-sql-db';
 let dbInstance = null;
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 async function loadDbBytes() {
   const buffer = await get(STORAGE_KEY);
@@ -48,6 +48,7 @@ function createSchemaV2(db) {
     CREATE TABLE IF NOT EXISTS requests (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
+      details TEXT,
       priority TEXT NOT NULL,
       durationPreset TEXT NOT NULL,
       createdAt INTEGER NOT NULL,
@@ -89,8 +90,8 @@ function migrateV1ToV2(db) {
 
     const insertRequest = db.prepare(`
       INSERT INTO requests (
-        id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        id, title, details, priority, durationPreset, createdAt, expiresAt, status, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const insertNote = db.prepare(`
       INSERT INTO notes (
@@ -106,7 +107,7 @@ function migrateV1ToV2(db) {
     for (const row of rows) {
       const [id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt] = row;
 
-      insertRequest.run([id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt]);
+      insertRequest.run([id, title, null, priority, durationPreset, createdAt, expiresAt, status, updatedAt]);
 
       const prayedList = JSON.parse(prayedAt || '[]');
       for (const prayedTimestamp of prayedList) {
@@ -140,6 +141,14 @@ function migrateV1ToV2(db) {
   }
 }
 
+function migrateV2ToV3(db) {
+  // Add details column if it doesn't exist
+  if (!tableHasColumn(db, 'requests', 'details')) {
+    db.exec('ALTER TABLE requests ADD COLUMN details TEXT');
+  }
+  setSchemaVersion(db, SCHEMA_VERSION);
+}
+
 function ensureSchema(db) {
   const hasRequests = tableExists(db, 'requests');
   if (!hasRequests) {
@@ -149,7 +158,7 @@ function ensureSchema(db) {
   }
 
   const version = getSchemaVersion(db);
-  if (version < SCHEMA_VERSION) {
+  if (version < 2) {
     const needsMigration = tableHasColumn(db, 'requests', 'prayedAt') || tableHasColumn(db, 'requests', 'notes');
     if (needsMigration) {
       migrateV1ToV2(db);
@@ -157,8 +166,9 @@ function ensureSchema(db) {
       createSchemaV2(db);
       setSchemaVersion(db, SCHEMA_VERSION);
     }
-  } else {
-    createSchemaV2(db);
+  }
+  if (version < 3) {
+    migrateV2ToV3(db);
   }
 }
 
@@ -175,6 +185,7 @@ function deserializeRequest(row) {
   return {
     id: row.id,
     title: row.title,
+    details: row.details || null,
     priority: row.priority,
     durationPreset: row.durationPreset,
     createdAt: row.createdAt,
@@ -189,15 +200,16 @@ function deserializeRequest(row) {
 export async function fetchAllRequests() {
   const db = await initDb();
   const result = db.exec(`
-    SELECT id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
+    SELECT id, title, details, priority, durationPreset, createdAt, expiresAt, status, updatedAt
     FROM requests
     ORDER BY createdAt DESC
   `);
   const rows = result[0]?.values ?? [];
-  const baseRequests = rows.map(([id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt]) =>
+  const baseRequests = rows.map(([id, title, details, priority, durationPreset, createdAt, expiresAt, status, updatedAt]) =>
     deserializeRequest({
       id,
       title,
+      details,
       priority,
       durationPreset,
       createdAt,
@@ -251,12 +263,13 @@ export async function saveRequest(record) {
   try {
     const stmt = db.prepare(`
       INSERT OR REPLACE INTO requests (
-        id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        id, title, details, priority, durationPreset, createdAt, expiresAt, status, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     stmt.run([
       record.id,
       record.title,
+      record.details || null,
       record.priority,
       record.durationPreset,
       record.createdAt,
@@ -344,8 +357,8 @@ export async function bootstrapSeed() {
   try {
     const insert = db.prepare(`
       INSERT INTO requests (
-        id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        id, title, details, priority, durationPreset, createdAt, expiresAt, status, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const insertNote = db.prepare(`
       INSERT INTO notes (
@@ -362,6 +375,7 @@ export async function bootstrapSeed() {
     insert.run([
       outreachId,
       'Community outreach',
+      'Praying for opportunities to connect with and serve our local community.',
       'high',
       '3m',
       outreachCreated,
@@ -383,6 +397,7 @@ export async function bootstrapSeed() {
     insert.run([
       familyId,
       'Family health',
+      null,
       'urgent',
       '10d',
       familyCreated,
