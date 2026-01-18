@@ -22,6 +22,7 @@ export interface Note {
 export interface PrayerRequest {
   id: string;
   title: string;
+  details?: string | null;
   priority: Priority;
   durationPreset: DurationPreset;
   createdAt: number;

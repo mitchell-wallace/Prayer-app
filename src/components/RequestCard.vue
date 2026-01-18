@@ -1,9 +1,9 @@
 <template>
   <section
-    :class="['flex h-full min-h-0 flex-col', request.status === 'answered' ? 'opacity-90' : '']"
+    :class="['flex h-full min-h-0 flex-col rounded-2xl bg-card p-4 shadow-card', request.status === 'answered' ? 'opacity-90' : '']"
   >
     <!-- Scroll container with horizontal padding for shadow overflow -->
-    <div class="relative flex-1 min-h-0 overflow-auto pb-8 -mx-3 px-3">
+    <div class="relative flex-1 min-h-0 overflow-auto pb-4">
       <div class="absolute right-3 top-0" data-request-menu>
         <button
           class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted transition-colors duration-150 hover:text-text"
@@ -59,6 +59,13 @@
             Last {{ lastPrayed }}
           </span>
         </div>
+        <p
+          v-if="request.details"
+          class="m-0 mt-1 text-sm text-muted leading-relaxed"
+          data-testid="request-details"
+        >
+          {{ request.details }}
+        </p>
       </header>
 
       <div class="mt-4 grid gap-3 rounded-2xl bg-card-muted p-4 shadow-sm">
@@ -188,11 +195,11 @@
             <div v-else class="mt-2 flex items-start gap-2 text-sm leading-relaxed">
               <span
                 v-if="note.isAnswer"
-                class="mt-[3px] inline-flex items-center rounded-lg border border-note-answer-border bg-note-answer-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-note-answer-text"
+                class="mt-[3px] flex-shrink-0 inline-flex items-center rounded-lg border border-note-answer-border bg-note-answer-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-note-answer-text"
               >
                 Answered
               </span>
-              <p class="m-0 whitespace-pre-line">{{ note.isAnswer ? `Answered · ${note.text}` : note.text }}</p>
+              <p class="m-0 whitespace-pre-line">{{ note.text }}</p>
             </div>
           </li>
         </ol>
@@ -246,6 +253,15 @@
                   required
                   class="w-full rounded-xl bg-card-muted px-4 py-3 text-text shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
                 />
+              </label>
+              <label class="grid gap-1.5 text-sm font-semibold">
+                <span class="text-muted">Details (optional)</span>
+                <textarea
+                  v-model="editForm.details"
+                  rows="2"
+                  placeholder="Add more context or background..."
+                  class="w-full rounded-xl bg-card-muted px-4 py-3 text-text placeholder:text-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow resize-none"
+                ></textarea>
               </label>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label class="grid gap-1.5 text-sm font-semibold">
