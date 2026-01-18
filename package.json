@@ -12,7 +12,8 @@
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
-    "validate": "npm run type-check && npm run lint:fix && npm run format"
+    "validate": "npm run type-check && npm run lint:fix && npm run format",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tabler/icons-vue": "^3.36.1",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
+    "@playwright/test": "^1.54.2",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^25.0.8",
     "@vitejs/plugin-vue": "^5.0.0",

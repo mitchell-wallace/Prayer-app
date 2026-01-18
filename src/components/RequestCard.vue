@@ -1,5 +1,7 @@
 <template>
-  <section :class="['flex h-full min-h-0 flex-col', request.status === 'answered' ? 'opacity-90' : '']">
+  <section
+    :class="['flex h-full min-h-0 flex-col', request.status === 'answered' ? 'opacity-90' : '']"
+  >
     <!-- Scroll container with horizontal padding for shadow overflow -->
     <div class="relative flex-1 min-h-0 overflow-auto pb-8 -mx-3 px-3">
       <div class="absolute right-3 top-0" data-request-menu>
@@ -38,7 +40,9 @@
       </div>
 
       <header class="flex flex-col gap-2 pr-12">
-        <h3 class="m-0 text-lg font-semibold leading-tight">{{ request.title }}</h3>
+        <h3 class="m-0 text-lg font-semibold leading-tight" data-testid="request-title">
+          {{ request.title }}
+        </h3>
         <div class="flex flex-wrap gap-2 text-xs">
           <span
             :class="[
@@ -60,9 +64,10 @@
       <div class="mt-4 grid gap-3 rounded-2xl bg-card-muted p-4 shadow-sm">
         <p class="text-xs font-medium uppercase tracking-wide text-muted">Notes</p>
 
-        <div v-if="noteFormOpen" class="grid gap-2">
+        <div v-if="noteFormOpen" class="grid gap-2" data-testid="note-form">
           <textarea
             ref="noteInputRef"
+            data-testid="note-input"
             v-model="noteDraft"
             rows="2"
             required
@@ -81,6 +86,7 @@
             <button
               class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card"
               type="button"
+              data-testid="note-submit"
               @click="submitNote"
             >
               Add note
@@ -89,6 +95,7 @@
         </div>
         <button
           v-else
+          data-testid="note-open"
           class="inline-flex items-center gap-1 justify-self-start text-sm font-semibold text-primary transition-opacity duration-150 hover:opacity-80"
           type="button"
           @click="openNoteForm"
@@ -98,11 +105,12 @@
         </button>
 
         <p v-if="!sortedNotes.length" class="m-0 text-sm text-muted">No notes</p>
-        <ol v-else class="grid gap-3 text-sm" role="list">
+        <ol v-else class="grid gap-3 text-sm" role="list" data-testid="notes-list">
           <li
             v-for="note in sortedNotes"
             :key="note.id"
             class="rounded-xl bg-note-bg p-3 shadow-sm"
+            data-testid="note-item"
           >
             <div class="flex items-start justify-between gap-2 text-xs text-muted">
               <span>{{ formatTimestamp(note.createdAt) }}</span>
@@ -204,6 +212,7 @@
         <button
           class="h-12 rounded-xl bg-primary px-4 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card"
           type="button"
+          data-testid="pray-button"
           @click="emit('pray', request)"
         >
           Prayed

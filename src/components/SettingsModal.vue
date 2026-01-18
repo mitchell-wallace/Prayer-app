@@ -3,6 +3,7 @@
     <!-- Cog button trigger -->
     <button
       type="button"
+      data-testid="settings-button"
       class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
       aria-label="Open settings"
       @click="open = true"
@@ -15,6 +16,7 @@
       <Transition name="modal">
         <div
           v-if="open"
+          data-testid="settings-modal"
           class="fixed inset-0 z-50 grid place-items-center bg-overlay p-4"
           @click.self="open = false"
         >
@@ -39,13 +41,14 @@
                     v-for="option in themeOptions"
                     :key="option.value"
                     type="button"
+                    :data-testid="`settings-theme-${option.value}`"
                     :class="[
                       'rounded-xl px-3 py-2.5 text-sm font-semibold shadow-sm transition-all duration-150',
                       settings.theme === option.value
                         ? 'bg-primary text-white shadow-card'
                         : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
                     ]"
-                    @click="settings.theme = option.value"
+                    @click="setTheme(option.value)"
                   >
                     {{ option.label }}
                   </button>
@@ -60,13 +63,14 @@
                     v-for="option in priorityOptions"
                     :key="option.value"
                     type="button"
+                    :data-testid="`settings-priority-${option.value}`"
                     :class="[
                       'rounded-xl px-3 py-2.5 text-xs font-semibold shadow-sm transition-all duration-150',
                       settings.defaultPriority === option.value
                         ? 'bg-primary text-white shadow-card'
                         : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
                     ]"
-                    @click="settings.defaultPriority = option.value"
+                    @click="setDefaultPriority(option.value)"
                   >
                     {{ option.label }}
                   </button>
@@ -81,13 +85,14 @@
                     v-for="option in durationOptions"
                     :key="option.value"
                     type="button"
+                    :data-testid="`settings-duration-${option.value}`"
                     :class="[
                       'rounded-xl px-2 py-2.5 text-xs font-semibold shadow-sm transition-all duration-150',
                       settings.defaultDuration === option.value
                         ? 'bg-primary text-white shadow-card'
                         : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
                     ]"
-                    @click="settings.defaultDuration = option.value"
+                    @click="setDefaultDuration(option.value)"
                   >
                     {{ option.label }}
                   </button>
@@ -108,7 +113,7 @@
 <script setup lang="ts">
 import { ref, Teleport, Transition } from 'vue';
 import { IconSettings, IconX } from '@tabler/icons-vue';
-import { settings } from '../settings.js';
+import { settings, setDefaultDuration, setDefaultPriority, setTheme } from '../app/settingsService.js';
 import type { DurationPreset, Priority, SelectOption, Theme } from '../types';
 
 const open = ref<boolean>(false);
@@ -134,3 +139,4 @@ const durationOptions: SelectOption<DurationPreset>[] = [
   { value: '1y', label: '1yr' },
 ];
 </script>
+
