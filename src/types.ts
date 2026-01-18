@@ -36,6 +36,7 @@ export interface PrayerRequest {
 /** Payload for creating a new prayer request */
 export interface CreateRequestPayload {
   title: string;
+  details?: string;
   priority: Priority;
   durationPreset: DurationPreset;
 }
