@@ -135,17 +135,19 @@ function migrateV1ToV2(db) {
         insertPrayer.run([crypto.randomUUID(), id, prayedTimestamp]);
       }
 
-      const noteList = JSON.parse(notes || '[]');
-      for (const note of noteList) {
-        insertNote.run([
-          note.id || crypto.randomUUID(),
-          id,
-          note.text || '',
-          note.createdAt || createdAt,
-          note.isAnswer ? 1 : 0,
-          note.updatedAt || note.createdAt || updatedAt,
-        ]);
-      }
+    const noteList = JSON.parse(notes || '[]');
+    for (const note of noteList) {
+      const normalizedText = typeof note.text === 'string' ? note.text.trim() : '';
+      if (!normalizedText) continue;
+      insertNote.run([
+        note.id || crypto.randomUUID(),
+        id,
+        normalizedText,
+        note.createdAt || createdAt,
+        note.isAnswer ? 1 : 0,
+        note.updatedAt || note.createdAt || updatedAt,
+      ]);
+    }
     }
 
     insertRequest.free();
@@ -297,8 +299,12 @@ export async function saveRequest(record) {
     ]);
     stmt.free();
 
-    db.exec(`DELETE FROM notes WHERE requestId = '${record.id}'`);
-    db.exec(`DELETE FROM prayer_events WHERE requestId = '${record.id}'`);
+    const deleteNotes = db.prepare('DELETE FROM notes WHERE requestId = ?');
+    const deletePrayers = db.prepare('DELETE FROM prayer_events WHERE requestId = ?');
+    deleteNotes.run([record.id]);
+    deletePrayers.run([record.id]);
+    deleteNotes.free();
+    deletePrayers.free();
 
     const noteStmt = db.prepare(`
       INSERT INTO notes (
@@ -338,8 +344,12 @@ export async function saveRequest(record) {
 export async function deleteRequest(id) {
   const db = await initDb();
   try {
-    db.exec(`DELETE FROM notes WHERE requestId = '${id}'`);
-    db.exec(`DELETE FROM prayer_events WHERE requestId = '${id}'`);
+    const deleteNotes = db.prepare('DELETE FROM notes WHERE requestId = ?');
+    const deletePrayers = db.prepare('DELETE FROM prayer_events WHERE requestId = ?');
+    deleteNotes.run([id]);
+    deletePrayers.run([id]);
+    deleteNotes.free();
+    deletePrayers.free();
     const stmt = db.prepare('DELETE FROM requests WHERE id = ?');
     stmt.run([id]);
     stmt.free();
