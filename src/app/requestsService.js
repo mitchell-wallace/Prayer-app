@@ -1,9 +1,4 @@
-import {
-  bootstrapSeed,
-  deleteRequest as dbDeleteRequest,
-  fetchAllRequests,
-  saveRequest,
-} from '../db.js';
+import { bootstrapSeed, deleteRequest as dbDeleteRequest, fetchAllRequests, saveRequest } from '../db.js';
 import {
   applyAddNote,
   applyAnswered,

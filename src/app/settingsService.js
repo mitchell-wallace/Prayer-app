@@ -1,4 +1,8 @@
-import { settings, initThemeWatcher as initThemeWatcherInternal, resetSettings as resetSettingsInternal } from '../settings.js';
+import {
+  settings,
+  initThemeWatcher as initThemeWatcherInternal,
+  resetSettings as resetSettingsInternal,
+} from '../settings.js';
 
 const allowedThemes = new Set(['light', 'dark', 'system']);
 const allowedPriorities = new Set(['urgent', 'high', 'medium', 'low']);

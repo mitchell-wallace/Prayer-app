@@ -18,9 +18,7 @@ async function persistDb(db) {
 }
 
 function tableExists(db, name) {
-  const result = db.exec(
-    `SELECT name FROM sqlite_master WHERE type='table' AND name='${name}'`
-  );
+  const result = db.exec(`SELECT name FROM sqlite_master WHERE type='table' AND name='${name}'`);
   return Boolean(result[0]?.values?.length);
 }
 
@@ -106,29 +104,9 @@ function migrateV1ToV2(db) {
     `);
 
     for (const row of rows) {
-      const [
-        id,
-        title,
-        priority,
-        durationPreset,
-        createdAt,
-        expiresAt,
-        status,
-        prayedAt,
-        notes,
-        updatedAt,
-      ] = row;
+      const [id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt] = row;
 
-      insertRequest.run([
-        id,
-        title,
-        priority,
-        durationPreset,
-        createdAt,
-        expiresAt,
-        status,
-        updatedAt,
-      ]);
+      insertRequest.run([id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt]);
 
       const prayedList = JSON.parse(prayedAt || '[]');
       for (const prayedTimestamp of prayedList) {
@@ -172,8 +150,7 @@ function ensureSchema(db) {
 
   const version = getSchemaVersion(db);
   if (version < SCHEMA_VERSION) {
-    const needsMigration =
-      tableHasColumn(db, 'requests', 'prayedAt') || tableHasColumn(db, 'requests', 'notes');
+    const needsMigration = tableHasColumn(db, 'requests', 'prayedAt') || tableHasColumn(db, 'requests', 'notes');
     if (needsMigration) {
       migrateV1ToV2(db);
     } else {
@@ -217,8 +194,8 @@ export async function fetchAllRequests() {
     ORDER BY createdAt DESC
   `);
   const rows = result[0]?.values ?? [];
-  const baseRequests = rows.map(
-    ([
+  const baseRequests = rows.map(([id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt]) =>
+    deserializeRequest({
       id,
       title,
       priority,
@@ -227,17 +204,7 @@ export async function fetchAllRequests() {
       expiresAt,
       status,
       updatedAt,
-    ]) =>
-      deserializeRequest({
-        id,
-        title,
-        priority,
-        durationPreset,
-        createdAt,
-        expiresAt,
-        status,
-        updatedAt,
-      })
+    })
   );
 
   const notesResult = db.exec(`
