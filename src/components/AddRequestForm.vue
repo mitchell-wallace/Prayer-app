@@ -6,7 +6,7 @@
           <button
             type="button"
             data-testid="priority-toggle"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-base-200 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-card"
             @click="togglePriority"
             @mousedown.prevent
             @touchstart.prevent
@@ -18,15 +18,15 @@
           </button>
           <ul
             v-if="priorityOpen"
-            class="absolute bottom-full mb-2 w-36 rounded-xl bg-card p-1 shadow-modal z-10"
+            class="absolute bottom-full mb-2 w-36 rounded-xl bg-base-200 p-1 shadow-modal z-10"
             role="listbox"
           >
             <li v-for="option in priorityOptions" :key="option.value" role="option" :aria-selected="form.priority === option.value">
               <button
                 type="button"
                 :class="[
-                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-text transition-colors duration-150 hover:bg-card-muted',
-                  form.priority === option.value ? 'bg-primary/10 text-primary' : '',
+                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-base-content transition-colors duration-150 hover:bg-base-300',
+                  form.priority === option.value ? 'bg-primary-200/10 text-primary-200' : '',
                 ]"
                 @click="selectPriority(option.value)"
                 @mousedown.prevent
@@ -42,7 +42,7 @@
           <button
             type="button"
             data-testid="duration-toggle"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-base-200 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-card"
             @click="toggleDuration"
             @mousedown.prevent
             @touchstart.prevent
@@ -54,15 +54,15 @@
           </button>
           <ul
             v-if="durationOpen"
-            class="absolute bottom-full mb-2 w-40 rounded-xl bg-card p-1 shadow-modal z-10"
+            class="absolute bottom-full mb-2 w-40 rounded-xl bg-base-200 p-1 shadow-modal z-10"
             role="listbox"
           >
             <li v-for="option in durationOptions" :key="option.value" role="option" :aria-selected="form.durationPreset === option.value">
               <button
                 type="button"
                 :class="[
-                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-text transition-colors duration-150 hover:bg-card-muted',
-                  form.durationPreset === option.value ? 'bg-primary/10 text-primary' : '',
+                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-base-content transition-colors duration-150 hover:bg-base-300',
+                  form.durationPreset === option.value ? 'bg-primary-200/10 text-primary-200' : '',
                 ]"
                 @click="selectDuration(option.value)"
                 @mousedown.prevent
@@ -77,7 +77,7 @@
 
       <div
         :class="[
-          'grid grid-cols-[1fr_auto] items-start gap-2 rounded-2xl bg-card px-4 py-3 shadow-card transition-all duration-200',
+          'grid grid-cols-[1fr_auto] items-start gap-2 rounded-2xl bg-base-200 px-4 py-3 shadow-card transition-all duration-200',
           showControls ? 'shadow-primary-glow' : '',
         ]"
       >
@@ -89,7 +89,7 @@
           required
           placeholder="Add a prayer request"
           :class="[
-            'w-full resize-none bg-transparent text-base text-text placeholder:text-muted focus:outline-none transition-all duration-150',
+            'w-full resize-none bg-transparent text-base text-base-content placeholder:text-base-content-muted focus:outline-none transition-all duration-150',
             showControls ? 'py-1' : 'py-2',
           ]"
           @focus="isFocused = true"
@@ -97,7 +97,7 @@
           @keydown.enter.exact.prevent="submit"
         ></textarea>
         <button
-          class="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card disabled:opacity-50 disabled:hover:bg-primary disabled:hover:shadow-sm"
+          class="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-200 text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card disabled:opacity-50 disabled:hover:bg-primary-200 disabled:hover:shadow-sm"
           type="submit"
           data-testid="request-submit"
           :disabled="!form.title.trim()"

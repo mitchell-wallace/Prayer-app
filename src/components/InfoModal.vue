@@ -4,7 +4,7 @@
     <button
       type="button"
       data-testid="info-button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
       aria-label="View stats"
       @click="open = true"
     >
@@ -17,14 +17,14 @@
         <div
           v-if="open"
           data-testid="info-modal"
-          class="fixed inset-0 z-50 grid place-items-center bg-overlay p-4"
+          class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="open = false"
         >
-          <div class="w-full max-w-sm rounded-2xl bg-card p-5 shadow-modal">
+          <div class="w-full max-w-sm rounded-2xl bg-base-200 p-5 shadow-modal">
             <header class="mb-4 flex items-center justify-between">
               <h2 class="m-0 text-base font-semibold">Stats</h2>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                 type="button"
                 @click="open = false"
               >
@@ -34,55 +34,55 @@
 
             <div class="grid gap-3">
               <!-- Current session -->
-              <div class="rounded-xl bg-card-muted p-4 shadow-sm">
-                <h3 class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Current session</h3>
+              <div class="rounded-xl bg-base-300 p-4 shadow-sm">
+                <h3 class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content-muted">Current session</h3>
                 <div class="grid grid-cols-2 gap-3">
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-text">{{ stats.cycle }}</p>
-                    <p class="text-xs text-muted">Cycle</p>
+                    <p class="text-2xl font-bold text-base-content">{{ stats.cycle }}</p>
+                    <p class="text-xs text-base-content-muted">Cycle</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-text">{{ stats.queued }}</p>
-                    <p class="text-xs text-muted">Queued</p>
+                    <p class="text-2xl font-bold text-base-content">{{ stats.queued }}</p>
+                    <p class="text-xs text-base-content-muted">Queued</p>
                   </div>
                 </div>
               </div>
 
               <!-- Request counts -->
-              <div class="rounded-xl bg-card-muted p-4 shadow-sm">
-                <h3 class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Requests</h3>
+              <div class="rounded-xl bg-base-300 p-4 shadow-sm">
+                <h3 class="mb-3 text-xs font-semibold uppercase tracking-wide text-base-content-muted">Requests</h3>
                 <div class="grid grid-cols-2 gap-3">
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-primary" data-testid="stat-active">
+                    <p class="text-2xl font-bold text-primary-200" data-testid="stat-active">
                       {{ stats.active }}
                     </p>
-                    <p class="text-xs text-muted">Active</p>
+                    <p class="text-xs text-base-content-muted">Active</p>
                   </div>
                   <div class="text-center">
-                    <p class="text-2xl font-bold text-muted" data-testid="stat-answered">
+                    <p class="text-2xl font-bold text-base-content-muted" data-testid="stat-answered">
                       {{ stats.answered }}
                     </p>
-                    <p class="text-xs text-muted">Answered</p>
+                    <p class="text-xs text-base-content-muted">Answered</p>
                   </div>
                 </div>
               </div>
 
               <!-- Current card info -->
-              <div v-if="stats.currentRequest" class="rounded-xl bg-card-muted p-4 shadow-sm">
-                <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Current card</h3>
-                <p class="text-sm font-medium text-text truncate">{{ stats.currentRequest.title }}</p>
+              <div v-if="stats.currentRequest" class="rounded-xl bg-base-300 p-4 shadow-sm">
+                <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content-muted">Current card</h3>
+                <p class="text-sm font-medium text-base-content truncate">{{ stats.currentRequest.title }}</p>
                 <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                  <span class="rounded-lg bg-card px-2 py-0.5 capitalize text-muted shadow-sm">
+                  <span class="rounded-lg bg-base-200 px-2 py-0.5 capitalize text-base-content-muted shadow-sm">
                     {{ stats.currentRequest.status }}
                   </span>
-                  <span class="rounded-lg bg-card px-2 py-0.5 capitalize text-muted shadow-sm">
+                  <span class="rounded-lg bg-base-200 px-2 py-0.5 capitalize text-base-content-muted shadow-sm">
                     {{ stats.currentRequest.priority }}
                   </span>
-                  <span class="rounded-lg bg-card px-2 py-0.5 text-muted shadow-sm">
+                  <span class="rounded-lg bg-base-200 px-2 py-0.5 text-base-content-muted shadow-sm">
                     {{ stats.currentRequest.notes?.length || 0 }} notes
                   </span>
                 </div>
-                <p class="mt-2 text-xs text-muted">
+                <p class="mt-2 text-xs text-base-content-muted">
                   Added {{ formatDate(stats.currentRequest.createdAt) }}
                 </p>
               </div>

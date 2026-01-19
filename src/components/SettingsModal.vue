@@ -4,7 +4,7 @@
     <button
       type="button"
       data-testid="settings-button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
       aria-label="Open settings"
       @click="open = true"
     >
@@ -17,14 +17,14 @@
         <div
           v-if="open"
           data-testid="settings-modal"
-          class="fixed inset-0 z-50 grid place-items-center bg-overlay p-4"
+          class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="open = false"
         >
-          <div class="w-full max-w-md rounded-2xl bg-card p-5 shadow-modal">
+          <div class="w-full max-w-md rounded-2xl bg-base-200 p-5 shadow-modal">
             <header class="mb-4 flex items-center justify-between">
               <h2 class="m-0 text-base font-semibold">Settings</h2>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                 type="button"
                 @click="open = false"
               >
@@ -35,7 +35,7 @@
             <div class="grid gap-5">
               <!-- Theme setting -->
               <div class="grid gap-2">
-                <label class="text-sm font-medium text-text">Theme</label>
+                <label class="text-sm font-medium text-base-content">Theme</label>
                 <div class="grid grid-cols-3 gap-2">
                   <button
                     v-for="option in themeOptions"
@@ -45,8 +45,8 @@
                     :class="[
                       'rounded-xl px-3 py-2.5 text-sm font-semibold shadow-sm transition-all duration-150',
                       settings.theme === option.value
-                        ? 'bg-primary text-white shadow-card'
-                        : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
+                        ? 'bg-primary-200 text-white shadow-card'
+                        : 'bg-base-300 text-base-content-muted hover:text-base-content hover:shadow-card',
                     ]"
                     @click="setTheme(option.value)"
                   >
@@ -57,7 +57,7 @@
 
               <!-- Default Priority -->
               <div class="grid gap-2">
-                <label class="text-sm font-medium text-text">Default priority</label>
+                <label class="text-sm font-medium text-base-content">Default priority</label>
                 <div class="grid grid-cols-4 gap-2">
                   <button
                     v-for="option in priorityOptions"
@@ -67,8 +67,8 @@
                     :class="[
                       'rounded-xl px-3 py-2.5 text-xs font-semibold shadow-sm transition-all duration-150',
                       settings.defaultPriority === option.value
-                        ? 'bg-primary text-white shadow-card'
-                        : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
+                        ? 'bg-primary-200 text-white shadow-card'
+                        : 'bg-base-300 text-base-content-muted hover:text-base-content hover:shadow-card',
                     ]"
                     @click="setDefaultPriority(option.value)"
                   >
@@ -79,7 +79,7 @@
 
               <!-- Default Duration -->
               <div class="grid gap-2">
-                <label class="text-sm font-medium text-text">Default duration</label>
+                <label class="text-sm font-medium text-base-content">Default duration</label>
                 <div class="grid grid-cols-5 gap-2">
                   <button
                     v-for="option in durationOptions"
@@ -89,8 +89,8 @@
                     :class="[
                       'rounded-xl px-2 py-2.5 text-xs font-semibold shadow-sm transition-all duration-150',
                       settings.defaultDuration === option.value
-                        ? 'bg-primary text-white shadow-card'
-                        : 'bg-card-muted text-muted hover:text-text hover:shadow-card',
+                        ? 'bg-primary-200 text-white shadow-card'
+                        : 'bg-base-300 text-base-content-muted hover:text-base-content hover:shadow-card',
                     ]"
                     @click="setDefaultDuration(option.value)"
                   >
@@ -100,7 +100,7 @@
               </div>
             </div>
 
-            <p class="mt-5 text-center text-xs text-muted">
+            <p class="mt-5 text-center text-xs text-base-content-muted">
               Settings are saved automatically
             </p>
           </div>

@@ -6,7 +6,7 @@
     <div class="relative flex-1 min-h-0 overflow-auto pb-8 -mx-3 px-3">
       <div class="absolute right-3 top-0" data-request-menu>
         <button
-          class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted transition-colors duration-150 hover:text-text"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content-muted transition-colors duration-150 hover:text-base-content"
           type="button"
           @click="toggleRequestMenu"
           aria-label="Request options"
@@ -17,11 +17,11 @@
         </button>
         <div
           v-if="requestMenuOpen"
-          class="absolute right-0 top-full mt-1 w-32 rounded-xl bg-card p-1 shadow-modal z-10"
+          class="absolute right-0 top-full mt-1 w-32 rounded-xl bg-base-200 p-1 shadow-modal z-10"
           role="menu"
         >
           <button
-            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-text transition-colors duration-150 hover:bg-card-muted"
+            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-base-content transition-colors duration-150 hover:bg-base-300"
             type="button"
             role="menuitem"
             @click="openEditFromMenu"
@@ -29,7 +29,7 @@
             Edit
           </button>
           <button
-            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-card-muted"
+            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-base-300"
             type="button"
             role="menuitem"
             @click="promptDeleteRequest"
@@ -47,22 +47,22 @@
           <span
             :class="[
               'rounded-xl border px-3 py-1 font-semibold capitalize',
-              priorityClasses[request.priority] || 'border-border bg-card-muted text-text',
+              priorityClasses[request.priority] || 'border-base-300 bg-base-300 text-base-content',
             ]"
           >
             {{ request.priority }}
           </span>
-          <span class="rounded-xl border border-border-muted bg-card-muted px-3 py-1 font-semibold text-muted">
+          <span class="rounded-xl border border-base-300 bg-base-300 px-3 py-1 font-semibold text-base-content-muted">
             {{ expiryCopy }}
           </span>
-          <span class="rounded-xl border border-border-muted bg-card-muted px-3 py-1 font-semibold text-muted">
+          <span class="rounded-xl border border-base-300 bg-base-300 px-3 py-1 font-semibold text-base-content-muted">
             Last {{ lastPrayed }}
           </span>
         </div>
       </header>
 
       <div class="mt-6 grid gap-3">
-        <p class="text-xs font-medium uppercase tracking-wide text-muted">Notes</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-base-content-muted">Notes</p>
 
         <div v-if="noteFormOpen" class="grid gap-2" data-testid="note-form">
           <textarea
@@ -72,19 +72,19 @@
             rows="2"
             required
             placeholder="Capture the latest update"
-            class="w-full rounded-xl bg-note-bg p-3 text-sm text-text placeholder:text-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+            class="w-full rounded-xl bg-base-100 dark:bg-base-300 p-3 text-sm text-base-content placeholder:text-base-content-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
             @keydown.enter.exact.prevent="submitNote"
           ></textarea>
           <div class="flex justify-end gap-2">
             <button
-              class="rounded-xl bg-card px-4 py-2 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+              class="rounded-xl bg-base-200 px-4 py-2 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
               type="button"
               @click="cancelNote"
             >
               Cancel
             </button>
             <button
-              class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card"
+              class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card"
               type="button"
               data-testid="note-submit"
               @click="submitNote"
@@ -96,7 +96,7 @@
         <button
           v-else
           data-testid="note-open"
-          class="inline-flex items-center gap-1 justify-self-start text-sm font-semibold text-primary transition-opacity duration-150 hover:opacity-80"
+          class="inline-flex items-center gap-1 justify-self-start text-sm font-semibold text-primary-200 transition-opacity duration-150 hover:opacity-80"
           type="button"
           @click="openNoteForm"
         >
@@ -104,19 +104,19 @@
           Add note
         </button>
 
-        <p v-if="!sortedNotes.length" class="m-0 text-sm text-muted">No notes</p>
+        <p v-if="!sortedNotes.length" class="m-0 text-sm text-base-content-muted">No notes</p>
         <ol v-else class="grid gap-4 text-sm" role="list" data-testid="notes-list">
           <li
             v-for="note in sortedNotes"
             :key="note.id"
-            class="rounded-xl bg-note-bg p-3 shadow-sm"
+            class="rounded-xl bg-base-100 dark:bg-base-300 p-3 shadow-sm"
             data-testid="note-item"
           >
-            <div class="flex items-start justify-between gap-2 text-xs text-muted">
+            <div class="flex items-start justify-between gap-2 text-xs text-base-content-muted">
               <span>{{ formatTimestamp(note.createdAt) }}</span>
               <div class="relative" data-note-menu>
                 <button
-                  class="inline-flex h-6 w-6 items-center justify-center rounded-lg text-muted transition-all duration-150 hover:text-text hover:bg-card-muted"
+                  class="inline-flex h-6 w-6 items-center justify-center rounded-lg text-base-content-muted transition-all duration-150 hover:text-base-content hover:bg-base-300"
                   type="button"
                   @click="toggleNoteMenu(note.id)"
                   aria-label="Note options"
@@ -127,11 +127,11 @@
                 </button>
                 <div
                   v-if="noteMenuOpen === note.id"
-                  class="absolute right-0 top-full mt-1 w-28 rounded-xl bg-card p-1 shadow-modal z-10"
+                  class="absolute right-0 top-full mt-1 w-28 rounded-xl bg-base-200 p-1 shadow-modal z-10"
                   role="menu"
                 >
                   <button
-                    class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-text transition-colors duration-150 hover:bg-card-muted"
+                    class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-base-content transition-colors duration-150 hover:bg-base-300"
                     type="button"
                     role="menuitem"
                     @click="startNoteEdit(note)"
@@ -139,7 +139,7 @@
                     Edit
                   </button>
                   <button
-                    class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-note-delete transition-colors duration-150 hover:bg-card-muted"
+                    class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-base-300"
                     type="button"
                     role="menuitem"
                     @click="promptDeleteNote(note)"
@@ -153,15 +153,15 @@
               <textarea
                 v-model="editingNote.text"
                 rows="2"
-                class="w-full rounded-xl bg-note-bg p-3 text-sm text-text shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+                class="w-full rounded-xl bg-base-100 dark:bg-base-300 p-3 text-sm text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
               ></textarea>
-              <div v-if="editingNote.isAnswer" class="flex items-center gap-2 text-[11px] uppercase tracking-wide text-note-answer-text">
-                <span class="inline-flex h-2 w-2 rounded-full bg-note-answer-dot"></span>
+              <div v-if="editingNote.isAnswer" class="flex items-center gap-2 text-[11px] uppercase tracking-wide text-base-content-muted">
+                <span class="inline-flex h-2 w-2 rounded-full bg-neutral-200"></span>
                 Answered note
               </div>
               <div class="flex justify-between gap-2">
                 <button
-                  class="rounded-xl bg-danger-muted px-4 py-2 text-sm font-semibold text-danger transition-opacity duration-150 hover:opacity-80"
+                  class="rounded-xl bg-danger/15 px-4 py-2 text-sm font-semibold text-danger transition-opacity duration-150 hover:opacity-80"
                   type="button"
                   @click="promptDeleteNote(note)"
                 >
@@ -169,14 +169,14 @@
                 </button>
                 <div class="flex gap-2">
                   <button
-                    class="rounded-xl bg-card px-4 py-2 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                    class="rounded-xl bg-base-200 px-4 py-2 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                     type="button"
                     @click="editingNote = null"
                   >
                     Cancel
                   </button>
                   <button
-                    class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card"
+                    class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card"
                     type="button"
                     @click="saveNoteEdit(note)"
                   >
@@ -188,7 +188,7 @@
             <div v-else class="mt-2 flex items-start gap-2 text-sm leading-relaxed">
               <span
                 v-if="note.isAnswer"
-                class="mt-[3px] inline-flex items-center rounded-lg border border-note-answer-border bg-note-answer-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-note-answer-text"
+                class="mt-[3px] inline-flex items-center rounded-lg border border-base-300 bg-base-300/50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-base-content-muted"
               >
                 Answered
               </span>
@@ -202,7 +202,7 @@
     <div class="flex-none pt-3">
       <div class="grid grid-cols-2 gap-3">
         <button
-          class="h-12 rounded-xl bg-answered-bg px-4 text-sm font-bold uppercase tracking-wide text-answered-text shadow-sm transition-all duration-150 hover:bg-answered-hover disabled:opacity-50 disabled:hover:bg-answered-bg"
+          class="h-12 rounded-xl bg-neutral-100 px-4 text-sm font-bold uppercase tracking-wide text-neutral-content shadow-sm transition-all duration-150 hover:bg-neutral-200 disabled:opacity-50 disabled:hover:bg-neutral-100"
           type="button"
           :disabled="request.status === 'answered'"
           @click="emit('mark-answered', request)"
@@ -210,7 +210,7 @@
           Answered
         </button>
         <button
-          class="h-12 rounded-xl bg-primary px-4 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card"
+          class="h-12 rounded-xl bg-primary-200 px-4 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card"
           type="button"
           data-testid="pray-button"
           @click="emit('pray', request)"
@@ -224,14 +224,14 @@
       <Transition name="modal">
         <div
           v-if="editing"
-          class="fixed inset-0 z-40 grid place-items-center bg-overlay p-4"
+          class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
           @click.self="closeEditing"
         >
-          <div class="w-full max-w-lg rounded-2xl bg-card p-5 shadow-modal">
+          <div class="w-full max-w-lg rounded-2xl bg-base-200 p-5 shadow-modal">
             <header class="mb-4 flex items-center justify-between">
               <h4 class="m-0 text-base font-semibold">Edit request</h4>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                 type="button"
                 @click="closeEditing"
               >
@@ -240,19 +240,19 @@
             </header>
             <div class="grid gap-4">
               <label class="grid gap-1.5 text-sm font-semibold">
-                <span class="text-muted">Title</span>
+                <span class="text-base-content-muted">Title</span>
                 <input
                   v-model="editForm.title"
                   required
-                  class="w-full rounded-xl bg-card-muted px-4 py-3 text-text shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+                  class="w-full rounded-xl bg-base-300 px-4 py-3 text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
                 />
               </label>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label class="grid gap-1.5 text-sm font-semibold">
-                  <span class="text-muted">Priority</span>
+                  <span class="text-base-content-muted">Priority</span>
                   <select
                     v-model="editForm.priority"
-                    class="w-full rounded-xl bg-card-muted px-4 py-3 text-text shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+                    class="w-full rounded-xl bg-base-300 px-4 py-3 text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
                   >
                     <option value="urgent">Urgent</option>
                     <option value="high">High</option>
@@ -261,10 +261,10 @@
                   </select>
                 </label>
                 <label class="grid gap-1.5 text-sm font-semibold">
-                  <span class="text-muted">Duration</span>
+                  <span class="text-base-content-muted">Duration</span>
                   <select
                     v-model="editForm.durationPreset"
-                    class="w-full rounded-xl bg-card-muted px-4 py-3 text-text shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+                    class="w-full rounded-xl bg-base-300 px-4 py-3 text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
                   >
                     <option value="10d">10 days</option>
                     <option value="1m">1 month</option>
@@ -277,7 +277,7 @@
             </div>
             <div class="mt-5 flex justify-end gap-2">
               <button
-                class="rounded-xl bg-card-muted px-4 py-2.5 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                class="rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                 type="button"
                 @click="closeEditing"
               >
@@ -301,19 +301,19 @@
       <Transition name="modal">
         <div
           v-if="deleteConfirmNote"
-          class="fixed inset-0 z-50 grid place-items-center bg-overlay p-4"
+          class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="cancelDeleteNote"
         >
-          <div class="w-full max-w-sm rounded-2xl bg-card p-5 shadow-modal">
+          <div class="w-full max-w-sm rounded-2xl bg-base-200 p-5 shadow-modal">
             <header class="mb-3">
               <h4 class="m-0 text-base font-semibold">Delete note?</h4>
             </header>
-            <p class="text-sm text-muted">
+            <p class="text-sm text-base-content-muted">
               Are you sure you want to delete this note? This action cannot be undone.
             </p>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-card-muted px-4 py-2.5 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                 type="button"
                 @click="cancelDeleteNote"
               >
@@ -337,19 +337,19 @@
       <Transition name="modal">
         <div
           v-if="deleteConfirmRequest"
-          class="fixed inset-0 z-50 grid place-items-center bg-overlay p-4"
+          class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="cancelDeleteRequest"
         >
-          <div class="w-full max-w-sm rounded-2xl bg-card p-5 shadow-modal">
+          <div class="w-full max-w-sm rounded-2xl bg-base-200 p-5 shadow-modal">
             <header class="mb-3">
               <h4 class="m-0 text-base font-semibold">Delete prayer request?</h4>
             </header>
-            <p class="text-sm text-muted">
+            <p class="text-sm text-base-content-muted">
               Are you sure you want to delete this prayer request and all its notes? This action cannot be undone.
             </p>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-card-muted px-4 py-2.5 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                 type="button"
                 @click="cancelDeleteRequest"
               >
@@ -391,10 +391,10 @@ const emit = defineEmits<{
 }>();
 
 const priorityClasses: Record<Priority, string> = {
-  urgent: 'border-priority-urgent-border bg-priority-urgent-bg text-priority-urgent-text',
-  high: 'border-priority-high-border bg-priority-high-bg text-priority-high-text',
-  medium: 'border-priority-medium-border bg-priority-medium-bg text-priority-medium-text',
-  low: 'border-priority-low-border bg-priority-low-bg text-priority-low-text',
+  urgent: 'border-accent-200/50 bg-accent-200/12 text-accent-300',
+  high: 'border-primary-200/50 bg-primary-200/12 text-primary-300',
+  medium: 'border-primary-muted/50 bg-primary-muted/12 text-primary-muted',
+  low: 'border-base-300 bg-base-300/50 text-base-content-muted',
 };
 
 const editing = ref<boolean>(false);

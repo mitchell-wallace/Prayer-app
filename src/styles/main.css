@@ -1,160 +1,114 @@
 @import "tailwindcss";
 
-/* Define the default (dark) theme */
+/* DaisyUI-inspired color system using OKLCH
+   Token naming: 100=darkest, 300=lightest (consistent across modes)
+   Default theme is dark mode */
 @theme {
-  /* Background colors */
-  --color-bg: #0d0d10;
-  --color-card: #18181f;
-  --color-card-muted: #1f1f28;
+  /* Base surfaces (100=darkest) */
+  --color-base-100: oklch(0.15 0.01 273); /* page background */
+  --color-base-200: oklch(0.20 0.01 273); /* cards */
+  --color-base-300: oklch(0.24 0.01 273); /* muted areas/inputs */
   
-  /* Text colors */
-  --color-text: #f8fafc;
-  --color-muted: #9ca3af;
+  /* Text */
+  --color-base-content: oklch(0.97 0.005 250);
+  --color-base-content-muted: oklch(0.70 0.01 250);
   
-  /* Primary accent - Royal Blue */
-  --color-primary: oklch(0.5641 0.2402 273.08);
-  --color-primary-hover: oklch(0.50 0.22 273.08);
-  --color-primary-muted: oklch(0.5641 0.12 273.08);
+  /* Primary (royal blue, hue 273) */
+  --color-primary-100: oklch(0.45 0.20 273);
+  --color-primary-200: oklch(0.5641 0.2402 273);
+  --color-primary-300: oklch(0.60 0.18 273);
+  --color-primary-content: oklch(1.0 0 0);
   
-  /* Semantic colors */
-  --color-danger: #ef4444;
-  --color-danger-muted: rgba(239, 68, 68, 0.15);
-  --color-success: #4ade80;
+  /* Accent (reddish-blue, hue 320, for urgent) */
+  --color-accent-100: oklch(0.45 0.16 320);
+  --color-accent-200: oklch(0.65 0.18 320);
+  --color-accent-300: oklch(0.70 0.14 320);
+  --color-accent-content: oklch(1.0 0 0);
   
-  /* Border */
-  --color-border: #2a2a35;
-  --color-border-muted: #222229;
+  /* Neutral (inverts between modes - stands out) */
+  --color-neutral-100: oklch(0.85 0.01 250); /* light gray in dark mode */
+  --color-neutral-200: oklch(0.80 0.01 250);
+  --color-neutral-300: oklch(0.75 0.01 250);
+  --color-neutral-content: oklch(0.18 0.02 250); /* dark text on light bg */
   
-  /* Priority colors - Urgent (reddish-blue) */
-  --color-priority-urgent-border: oklch(0.65 0.18 320 / 0.5);
-  --color-priority-urgent-bg: oklch(0.65 0.18 320 / 0.12);
-  --color-priority-urgent-text: oklch(0.85 0.12 320);
+  /* Danger/Success */
+  --color-danger: oklch(0.60 0.22 25);
+  --color-success: oklch(0.70 0.18 145);
   
-  /* Priority colors - High (strong blue - primary) */
-  --color-priority-high-border: oklch(0.5641 0.2402 273.08 / 0.5);
-  --color-priority-high-bg: oklch(0.5641 0.2402 273.08 / 0.12);
-  --color-priority-high-text: oklch(0.82 0.14 273.08);
+  /* Medium priority (primary with lower saturation, ~50%) */
+  --color-primary-muted: oklch(0.60 0.12 273);
   
-  /* Priority colors - Medium (half saturation blue) */
-  --color-priority-medium-border: oklch(0.60 0.10 273.08 / 0.5);
-  --color-priority-medium-bg: oklch(0.60 0.10 273.08 / 0.12);
-  --color-priority-medium-text: oklch(0.80 0.08 273.08);
+  /* Progress dots (neutral with opacity) */
+  --color-dot: oklch(0.80 0.01 250 / 0.30);
+  --color-dot-active: oklch(0.80 0.01 250 / 0.60);
+  --color-dot-overflow: oklch(0.80 0.01 250 / 0.20);
   
-  /* Priority colors - Low (neutral) */
-  --color-priority-low-border: oklch(0.55 0.01 273.08 / 0.4);
-  --color-priority-low-bg: oklch(0.55 0.01 273.08 / 0.10);
-  --color-priority-low-text: oklch(0.75 0.01 273.08);
-  
-  /* Answered button - loud neutral (light gray bg, dark text in dark mode) */
-  --color-answered-bg: #d4d4dc;
-  --color-answered-text: #1a1a1f;
-  --color-answered-hover: #c4c4cc;
-  
-  /* Note styling */
-  --color-note-bg: #111115;
-  --color-note-answer-border: oklch(0.55 0.01 273 / 0.4);
-  --color-note-answer-bg: oklch(0.55 0.01 273 / 0.1);
-  --color-note-answer-text: #d4d4dc;
-  --color-note-answer-dot: #a0a0a8;
-  --color-note-delete: #fda4af;
-  
-  /* Overlays */
-  --color-header-bg: rgba(13, 13, 16, 0.92);
-  --color-footer-bg: rgba(13, 13, 16, 0.82);
+  /* Overlay (black with opacity only) */
   --color-overlay: rgba(0, 0, 0, 0.6);
   
-  /* Shadows - elevation system */
+  /* Shadows (black with opacity only) */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.5);
-  --shadow-primary-glow: 0 0 0 3px oklch(0.5641 0.2402 273.08 / 0.25);
-  
-  /* Progress indicator */
-  --color-dot: #3a3a45;
-  --color-dot-active: #6b6b78;
-  --color-dot-overflow: #2a2a32;
+  --shadow-primary-glow: 0 0 0 3px oklch(0.5641 0.2402 273 / 0.25);
 }
 
 /* Light theme overrides */
 [data-theme="light"] {
-  /* Background colors */
-  --color-bg: #f8fafc;
-  --color-card: #ffffff;
-  --color-card-muted: #f1f5f9;
+  /* Base surfaces (100=darkest) */
+  --color-base-100: oklch(0.97 0.005 250); /* page background */
+  --color-base-200: oklch(1.0 0 0); /* cards - white */
+  --color-base-300: oklch(0.96 0.005 250); /* muted areas/inputs */
   
-  /* Text colors */
-  --color-text: #0f172a;
-  --color-muted: #64748b;
+  /* Text */
+  --color-base-content: oklch(0.15 0.03 260);
+  --color-base-content-muted: oklch(0.50 0.03 250);
   
-  /* Primary accent - Royal Blue (slightly adjusted for light bg) */
-  --color-primary: oklch(0.50 0.22 273.08);
-  --color-primary-hover: oklch(0.45 0.20 273.08);
-  --color-primary-muted: oklch(0.50 0.11 273.08);
+  /* Primary (royal blue, hue 273) */
+  --color-primary-100: oklch(0.45 0.20 273);
+  --color-primary-200: oklch(0.50 0.22 273);
+  --color-primary-300: oklch(0.60 0.18 273);
+  --color-primary-content: oklch(1.0 0 0);
   
-  /* Semantic colors */
-  --color-danger: #dc2626;
-  --color-danger-muted: rgba(220, 38, 38, 0.1);
-  --color-success: #16a34a;
+  /* Accent (reddish-blue, hue 320, for urgent) */
+  --color-accent-100: oklch(0.45 0.16 320);
+  --color-accent-200: oklch(0.55 0.18 320);
+  --color-accent-300: oklch(0.70 0.14 320);
+  --color-accent-content: oklch(1.0 0 0);
   
-  /* Border */
-  --color-border: #e2e8f0;
-  --color-border-muted: #f1f5f9;
+  /* Neutral (inverts between modes - stands out) */
+  --color-neutral-100: oklch(0.35 0.02 250); /* dark gray in light mode */
+  --color-neutral-200: oklch(0.40 0.02 250);
+  --color-neutral-300: oklch(0.45 0.02 250);
+  --color-neutral-content: oklch(0.97 0.005 250); /* light text on dark bg */
   
-  /* Priority colors - Urgent (reddish-blue) */
-  --color-priority-urgent-border: oklch(0.55 0.18 320 / 0.4);
-  --color-priority-urgent-bg: oklch(0.55 0.18 320 / 0.08);
-  --color-priority-urgent-text: oklch(0.40 0.16 320);
+  /* Danger/Success */
+  --color-danger: oklch(0.55 0.22 25);
+  --color-success: oklch(0.55 0.18 145);
   
-  /* Priority colors - High (strong blue - primary) */
-  --color-priority-high-border: oklch(0.50 0.22 273.08 / 0.4);
-  --color-priority-high-bg: oklch(0.50 0.22 273.08 / 0.08);
-  --color-priority-high-text: oklch(0.40 0.18 273.08);
+  /* Medium priority (primary with lower saturation, ~50%) */
+  --color-primary-muted: oklch(0.55 0.11 273);
   
-  /* Priority colors - Medium (half saturation blue) */
-  --color-priority-medium-border: oklch(0.55 0.10 273.08 / 0.4);
-  --color-priority-medium-bg: oklch(0.55 0.10 273.08 / 0.08);
-  --color-priority-medium-text: oklch(0.40 0.08 273.08);
+  /* Progress dots (neutral with opacity) */
+  --color-dot: oklch(0.40 0.02 250 / 0.40);
+  --color-dot-active: oklch(0.40 0.02 250 / 0.60);
+  --color-dot-overflow: oklch(0.40 0.02 250 / 0.20);
   
-  /* Priority colors - Low (neutral) */
-  --color-priority-low-border: oklch(0.60 0.01 273.08 / 0.3);
-  --color-priority-low-bg: oklch(0.60 0.01 273.08 / 0.06);
-  --color-priority-low-text: oklch(0.45 0.01 273.08);
-  
-  /* Answered button - loud neutral (dark gray bg, white text in light mode) */
-  --color-answered-bg: #374151;
-  --color-answered-text: #ffffff;
-  --color-answered-hover: #4b5563;
-  
-  /* Note styling */
-  --color-note-bg: #f8fafc;
-  --color-note-answer-border: oklch(0.60 0.01 273 / 0.3);
-  --color-note-answer-bg: oklch(0.60 0.01 273 / 0.06);
-  --color-note-answer-text: #374151;
-  --color-note-answer-dot: #6b7280;
-  --color-note-delete: #dc2626;
-  
-  /* Overlays */
-  --color-header-bg: rgba(248, 250, 252, 0.92);
-  --color-footer-bg: rgba(248, 250, 252, 0.82);
+  /* Overlay (black with opacity only) */
   --color-overlay: rgba(0, 0, 0, 0.5);
   
-  /* Shadows - elevation system (lighter) */
+  /* Shadows (black with opacity only) */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.08);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.12);
-  --shadow-primary-glow: 0 0 0 3px oklch(0.50 0.22 273.08 / 0.2);
-  
-  /* Progress indicator */
-  --color-dot: #d1d5db;
-  --color-dot-active: #6b7280;
-  --color-dot-overflow: #e5e7eb;
+  --shadow-primary-glow: 0 0 0 3px oklch(0.50 0.22 273 / 0.2);
 }
 
 @layer base {
   :root {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--color-bg);
-    color: var(--color-text);
+    background: var(--color-base-100);
+    color: var(--color-base-content);
   }
 
   * {
@@ -162,7 +116,7 @@
   }
 
   body {
-    @apply m-0 min-h-screen bg-bg text-text;
+    @apply m-0 min-h-screen bg-base-100 text-base-content;
   }
 
   a {
@@ -174,12 +128,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--color-border);
+    background: var(--color-base-300);
     border-radius: 999px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--color-bg);
+    background: var(--color-base-100);
   }
 }
 

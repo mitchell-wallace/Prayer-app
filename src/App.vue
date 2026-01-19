@@ -1,11 +1,11 @@
 <template>
-  <div class="flex h-[100dvh] flex-col overflow-hidden bg-bg text-text">
+  <div class="flex h-[100dvh] flex-col overflow-hidden bg-base-100 text-base-content">
     <header
-      class="z-30 w-full flex-none bg-header-bg backdrop-blur"
+      class="z-30 w-full flex-none bg-base-100/92 backdrop-blur"
     >
       <div class="mx-auto max-w-3xl px-4 sm:px-6">
         <div class="flex h-12 items-center justify-between">
-          <span class="text-sm font-semibold tracking-wide uppercase text-muted">Prayer Rhythm</span>
+          <span class="text-sm font-semibold tracking-wide uppercase text-base-content-muted">Prayer Rhythm</span>
           <div class="flex items-center gap-2">
             <InfoModal :stats="infoStats" />
             <SettingsModal />
@@ -15,11 +15,11 @@
     </header>
 
     <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-x-clip px-4 pt-3 pb-2 sm:px-6">
-      <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-muted">
+      <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-base-content-muted">
         No active requests yet. Add one below.
       </p>
 
-      <div v-if="loading" class="text-sm text-muted">Loading requests…</div>
+      <div v-if="loading" class="text-sm text-base-content-muted">Loading requests…</div>
 
       <!-- Card container with padding for shadow overflow -->
       <div
@@ -50,13 +50,13 @@
     </main>
 
     <footer
-      class="flex-none bg-gradient-to-b from-transparent via-footer-bg to-bg pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+      class="flex-none bg-gradient-to-b from-transparent via-base-100/82 to-base-100 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
     >
       <div class="mx-auto grid max-w-3xl gap-3 px-4 sm:px-6">
         <!-- Unified navigation with progress dots -->
         <div v-if="renderQueue.length > 1" class="flex items-center justify-center gap-3">
           <button
-            class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
             type="button"
             data-testid="prev-button"
             :disabled="renderQueue.length <= 1"
@@ -72,7 +72,7 @@
               v-if="progressIndicator.hasLeftOverflow"
               :class="[
                 'h-1.5 w-1.5 rounded-full transition-colors duration-150',
-                progressIndicator.leftOverflowIsLoopAdjacent ? 'bg-primary/40' : 'bg-dot-overflow',
+                progressIndicator.leftOverflowIsLoopAdjacent ? 'bg-primary-200/40' : 'bg-neutral-200/20',
               ]"
             ></span>
             <!-- Main dots / loop icons -->
@@ -80,7 +80,7 @@
               <!-- Loop icon (shown when this position is a loop point and NOT current) -->
               <button
                 v-if="item.isLoopPoint && item.index !== currentIndex"
-                class="inline-flex h-5 w-5 items-center justify-center text-primary/70 transition-all duration-150 hover:text-primary"
+                class="inline-flex h-5 w-5 items-center justify-center text-primary-200/70 transition-all duration-150 hover:text-primary-200"
                 type="button"
                 @click="jumpToIndex(item.index)"
                 aria-label="Jump to cycle start"
@@ -92,7 +92,7 @@
                 v-else-if="item.index === currentIndex"
                 :class="[
                   'h-2.5 w-2.5 rounded-full transition-all duration-150',
-                  item.isLoopPoint ? 'bg-primary/60' : 'bg-dot-active',
+                  item.isLoopPoint ? 'bg-primary-200/60' : 'bg-neutral-200/60',
                 ]"
                 type="button"
                 @click="jumpToIndex(item.index)"
@@ -101,7 +101,7 @@
               <!-- Regular inactive dot -->
               <button
                 v-else
-                class="h-2 w-2 rounded-full bg-dot transition-all duration-150 hover:bg-dot-active"
+                class="h-2 w-2 rounded-full bg-neutral-200/30 transition-all duration-150 hover:bg-neutral-200/60"
                 type="button"
                 @click="jumpToIndex(item.index)"
                 aria-label="Jump to card"
@@ -112,13 +112,13 @@
               v-if="progressIndicator.hasRightOverflow"
               :class="[
                 'h-1.5 w-1.5 rounded-full transition-colors duration-150',
-                progressIndicator.rightOverflowIsLoopAdjacent ? 'bg-primary/40' : 'bg-dot-overflow',
+                progressIndicator.rightOverflowIsLoopAdjacent ? 'bg-primary-200/40' : 'bg-neutral-200/20',
               ]"
             ></span>
           </div>
 
           <button
-            class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
             type="button"
             data-testid="next-button"
             :disabled="renderQueue.length <= 1"
@@ -137,14 +137,14 @@
       <Transition name="modal">
         <div
           v-if="answeredModal.open"
-          class="fixed inset-0 z-40 grid place-items-center bg-overlay p-4"
+          class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
           @click.self="closeAnsweredModal"
         >
-          <div class="w-full max-w-md rounded-2xl bg-card p-5 shadow-modal">
+          <div class="w-full max-w-md rounded-2xl bg-base-200 p-5 shadow-modal">
             <header class="mb-4 flex items-center justify-between">
               <h4 class="m-0 text-base font-semibold">Answered prayer</h4>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-card-muted text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                 type="button"
                 @click="closeAnsweredModal"
               >
@@ -152,24 +152,24 @@
               </button>
             </header>
             <div class="grid gap-3">
-              <p class="text-sm text-muted">How did God answer your prayer?</p>
+              <p class="text-sm text-base-content-muted">How did God answer your prayer?</p>
               <textarea
                 v-model="answeredModal.text"
                 rows="3"
                 placeholder="Describe how your prayer was answered..."
-                class="w-full rounded-xl bg-card-muted p-4 text-sm text-text placeholder:text-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+                class="w-full rounded-xl bg-base-300 p-4 text-sm text-base-content placeholder:text-base-content-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
               ></textarea>
             </div>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-card-muted px-4 py-2.5 text-sm font-semibold text-muted shadow-sm transition-all duration-150 hover:text-text hover:shadow-card"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
                 type="button"
                 @click="closeAnsweredModal"
               >
                 Cancel
               </button>
               <button
-                class="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card disabled:opacity-50"
+                class="w-full rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card disabled:opacity-50"
                 type="button"
                 :disabled="!answeredModal.text.trim()"
                 @click="saveAnsweredNote"
