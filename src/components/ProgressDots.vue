@@ -124,11 +124,12 @@ function handleDotStripClick(event: MouseEvent): void {
   const x = event.clientX - rect.left;
   const slotWidth = rect.width / props.progressDots.length;
   const clickedSlot = Math.floor(x / slotWidth);
-  if (clickedSlot <= currentSlot.value) {
+  if (clickedSlot < currentSlot.value) {
     if (!props.canGoPrevious) return;
     emit('prev');
     return;
   }
+  if (clickedSlot === currentSlot.value) return;
   if (!props.canGoNext) return;
   emit('next');
 }

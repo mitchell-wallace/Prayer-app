@@ -88,7 +88,7 @@
             'w-full resize-none bg-transparent text-base text-base-content placeholder:text-base-content/70 focus:outline-none transition-all duration-150',
             showControls ? 'py-1' : 'py-2',
           ]"
-          @focus="isFocused = true"
+          @focus="handleFocus"
           @blur="handleBlur"
           @keydown.enter.exact.prevent="submit"
         ></textarea>
@@ -156,7 +156,9 @@ watch(
     }
   }
 );
-const isFocused = ref<boolean>(false);
+const isExpanded = ref<boolean>(false);
+const isInputFocused = ref<boolean>(false);
+const restoreFocus = ref<boolean>(false);
 const priorityOpen = ref<boolean>(false);
 const durationOpen = ref<boolean>(false);
 const priorityRef = ref<HTMLDivElement | null>(null);
@@ -170,7 +172,9 @@ const priorityLabel = computed<string>(() => {
 const durationLabel = computed<string>(() => {
   return durationOptions.find((o) => o.value === form.durationPreset)?.label || 'Duration';
 });
-const showControls = computed<boolean>(() => isFocused.value || priorityOpen.value || durationOpen.value || !!form.title.trim());
+const showControls = computed<boolean>(
+  () => isExpanded.value || priorityOpen.value || durationOpen.value || !!form.title.trim()
+);
 
 function clearTitle(): void {
   form.title = '';
@@ -188,49 +192,67 @@ async function submit(): Promise<void> {
   inputRef.value?.focus();
 }
 
+function handleFocus(): void {
+  isInputFocused.value = true;
+  isExpanded.value = true;
+}
+
+function handleBlur(): void {
+  isInputFocused.value = false;
+}
+
 function togglePriority(): void {
   priorityOpen.value = !priorityOpen.value;
   durationOpen.value = false;
+  isExpanded.value = true;
+  restoreFocus.value = isInputFocused.value;
 }
 
 function toggleDuration(): void {
   durationOpen.value = !durationOpen.value;
   priorityOpen.value = false;
+  isExpanded.value = true;
+  restoreFocus.value = isInputFocused.value;
 }
 
 function selectPriority(value: Priority): void {
   form.priority = value;
   priorityOpen.value = false;
-  inputRef.value?.focus();
+  if (restoreFocus.value) {
+    inputRef.value?.focus();
+  }
+  restoreFocus.value = false;
 }
 
 function selectDuration(value: DurationPreset): void {
   form.durationPreset = value;
   durationOpen.value = false;
-  inputRef.value?.focus();
-}
-
-function handleBlur(): void {
-  setTimeout(() => {
-    if (!priorityOpen.value && !durationOpen.value) {
-      isFocused.value = false;
-    }
-  }, 80);
+  if (restoreFocus.value) {
+    inputRef.value?.focus();
+  }
+  restoreFocus.value = false;
 }
 
 function handleClickOutside(event: MouseEvent): void {
+  const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
   // If clicking outside the entire form container, close everything
-  if (formContainerRef.value && !formContainerRef.value.contains(event.target as Node)) {
+  const clickedInsideForm =
+    !!formContainerRef.value &&
+    (path.includes(formContainerRef.value) || formContainerRef.value.contains(event.target as Node));
+  if (!clickedInsideForm) {
     priorityOpen.value = false;
     durationOpen.value = false;
-    isFocused.value = false;
+    isExpanded.value = false;
+    isInputFocused.value = false;
+    restoreFocus.value = false;
     return;
   }
   // Otherwise just close dropdowns if clicking outside them
   const targets = [priorityRef.value, durationRef.value];
-  if (targets.some((node) => node?.contains(event.target as Node))) return;
+  if (targets.some((node) => node && (path.includes(node) || node.contains(event.target as Node)))) return;
   priorityOpen.value = false;
   durationOpen.value = false;
+  restoreFocus.value = false;
 }
 
 onMounted(() => {
