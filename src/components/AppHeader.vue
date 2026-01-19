@@ -1,5 +1,5 @@
 <template>
-  <header class="z-30 w-full flex-none bg-base-100/92 backdrop-blur">
+  <header class="z-30 w-full flex-none bg-base-200/92 backdrop-blur dark:bg-base-100/92">
     <div class="mx-auto max-w-3xl px-4 sm:px-6">
       <div class="flex h-12 items-center justify-between">
         <span class="text-sm font-semibold tracking-wide uppercase text-base-content-muted">

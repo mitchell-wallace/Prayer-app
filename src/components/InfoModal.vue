@@ -20,7 +20,7 @@
           class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="open = false"
         >
-          <div class="w-full max-w-sm rounded-2xl bg-base-200 p-5 shadow-modal">
+          <div class="w-full max-w-sm rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
             <header class="mb-4 flex items-center justify-between">
               <h2 class="m-0 text-base font-semibold">Stats</h2>
               <button
@@ -72,13 +72,13 @@
                 <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content-muted">Current card</h3>
                 <p class="text-sm font-medium text-base-content truncate">{{ stats.currentRequest.title }}</p>
                 <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                  <span class="rounded-lg bg-base-200 px-2 py-0.5 capitalize text-base-content-muted shadow-sm">
+                  <span class="rounded-lg bg-base-100 px-2 py-0.5 capitalize text-base-content-muted shadow-sm dark:bg-base-200">
                     {{ stats.currentRequest.status }}
                   </span>
-                  <span class="rounded-lg bg-base-200 px-2 py-0.5 capitalize text-base-content-muted shadow-sm">
+                  <span class="rounded-lg bg-base-100 px-2 py-0.5 capitalize text-base-content-muted shadow-sm dark:bg-base-200">
                     {{ stats.currentRequest.priority }}
                   </span>
-                  <span class="rounded-lg bg-base-200 px-2 py-0.5 text-base-content-muted shadow-sm">
+                  <span class="rounded-lg bg-base-100 px-2 py-0.5 text-base-content-muted shadow-sm dark:bg-base-200">
                     {{ stats.currentRequest.notes?.length || 0 }} notes
                   </span>
                 </div>

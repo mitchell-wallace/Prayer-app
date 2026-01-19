@@ -7,9 +7,9 @@
 /* Light theme overrides */
 [data-theme="light"] {
   /* Base surfaces (100=darkest) */
-  --color-base-100: oklch(0.97 0.005 250); /* page background */
-  --color-base-200: oklch(1.0 0 0); /* cards - white */
-  --color-base-300: oklch(0.96 0.005 250); /* muted areas/inputs */
+  --color-base-100: oklch(0.94 0.005 250); /* chips */
+  --color-base-200: oklch(0.97 0.005 250); /* page background */
+  --color-base-300: oklch(1.0 0 0); /* cards/inputs - white */
   
   /* Text */
   --color-base-content: oklch(0.15 0.03 260);
@@ -57,9 +57,9 @@
 
 @theme {
   /* Base surfaces (100=darkest) */
-  --color-base-100: oklch(0.15 0.01 273); /* page background */
-  --color-base-200: oklch(0.20 0.01 273); /* cards */
-  --color-base-300: oklch(0.24 0.01 273); /* muted areas/inputs */
+  --color-base-100: oklch(0.27 0.01 273); /* page background */
+  --color-base-200: oklch(0.32 0.01 273); /* cards */
+  --color-base-300: oklch(0.36 0.01 273); /* muted areas/inputs */
   
   /* Text */
   --color-base-content: oklch(0.97 0.005 250);
@@ -110,8 +110,12 @@
 @layer base {
   :root {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--color-base-100);
+    background: var(--color-base-200);
     color: var(--color-base-content);
+  }
+
+  [data-theme="dark"] {
+    background: var(--color-base-100);
   }
 
   * {
@@ -119,7 +123,12 @@
   }
 
   body {
-    @apply m-0 min-h-screen bg-base-100 text-base-content;
+    @apply m-0 min-h-screen text-base-content;
+    background: var(--color-base-200);
+  }
+
+  [data-theme="dark"] body {
+    background: var(--color-base-100);
   }
 
   a {

@@ -20,7 +20,7 @@
           class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="open = false"
         >
-          <div class="w-full max-w-md rounded-2xl bg-base-200 p-5 shadow-modal">
+          <div class="w-full max-w-md rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
             <header class="mb-4 flex items-center justify-between">
               <h2 class="m-0 text-base font-semibold">Settings</h2>
               <button
@@ -139,4 +139,3 @@ const durationOptions: SelectOption<DurationPreset>[] = [
   { value: '1y', label: '1yr' },
 ];
 </script>
-

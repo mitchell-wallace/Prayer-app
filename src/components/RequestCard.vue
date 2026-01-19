@@ -17,7 +17,7 @@
         </button>
         <div
           v-if="requestMenuOpen"
-          class="absolute right-0 top-full mt-1 w-32 rounded-xl bg-base-200 p-1 shadow-modal z-10"
+          class="absolute right-0 top-full mt-1 w-32 rounded-xl bg-base-300 p-1 shadow-modal z-10 dark:bg-base-200"
           role="menu"
         >
           <button
@@ -52,10 +52,14 @@
           >
             {{ request.priority }}
           </span>
-          <span class="rounded-xl border border-base-300 bg-base-300 px-3 py-1 font-semibold text-base-content-muted">
+          <span
+            class="rounded-xl border border-base-100 bg-base-100 px-3 py-1 font-semibold text-base-content-muted dark:border-base-300 dark:bg-base-300"
+          >
             {{ expiryCopy }}
           </span>
-          <span class="rounded-xl border border-base-300 bg-base-300 px-3 py-1 font-semibold text-base-content-muted">
+          <span
+            class="rounded-xl border border-base-100 bg-base-100 px-3 py-1 font-semibold text-base-content-muted dark:border-base-300 dark:bg-base-300"
+          >
             Last {{ lastPrayed }}
           </span>
         </div>
@@ -72,12 +76,12 @@
             rows="2"
             required
             placeholder="Capture the latest update"
-            class="w-full rounded-xl bg-base-100 dark:bg-base-300 p-3 text-sm text-base-content placeholder:text-base-content-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+            class="w-full rounded-xl bg-base-300 p-3 text-sm text-base-content placeholder:text-base-content-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
             @keydown.enter.exact.prevent="submitNote"
           ></textarea>
           <div class="flex justify-end gap-2">
             <button
-              class="rounded-xl bg-base-200 px-4 py-2 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+              class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card dark:bg-base-200"
               type="button"
               @click="cancelNote"
             >
@@ -109,7 +113,7 @@
           <li
             v-for="note in sortedNotes"
             :key="note.id"
-            class="rounded-xl bg-base-100 dark:bg-base-300 p-3 shadow-sm"
+            class="rounded-xl bg-base-300 p-3 shadow-sm"
             data-testid="note-item"
           >
             <div class="flex items-start justify-between gap-2 text-xs text-base-content-muted">
@@ -127,7 +131,7 @@
                 </button>
                 <div
                   v-if="noteMenuOpen === note.id"
-                  class="absolute right-0 top-full mt-1 w-28 rounded-xl bg-base-200 p-1 shadow-modal z-10"
+                  class="absolute right-0 top-full mt-1 w-28 rounded-xl bg-base-300 p-1 shadow-modal z-10 dark:bg-base-200"
                   role="menu"
                 >
                   <button
@@ -153,7 +157,7 @@
               <textarea
                 v-model="editingNote.text"
                 rows="2"
-                class="w-full rounded-xl bg-base-100 dark:bg-base-300 p-3 text-sm text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+                class="w-full rounded-xl bg-base-300 p-3 text-sm text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
               ></textarea>
               <div v-if="editingNote.isAnswer" class="flex items-center gap-2 text-[11px] uppercase tracking-wide text-base-content-muted">
                 <span class="inline-flex h-2 w-2 rounded-full bg-neutral-200"></span>
@@ -169,7 +173,7 @@
                 </button>
                 <div class="flex gap-2">
                   <button
-                    class="rounded-xl bg-base-200 px-4 py-2 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+                    class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card dark:bg-base-200"
                     type="button"
                     @click="editingNote = null"
                   >
@@ -188,7 +192,7 @@
             <div v-else class="mt-2 flex items-start gap-2 text-sm leading-relaxed">
               <span
                 v-if="note.isAnswer"
-                class="mt-[3px] inline-flex items-center rounded-lg border border-base-300 bg-base-300/50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-base-content-muted"
+                class="mt-[3px] inline-flex items-center rounded-lg border border-base-100 bg-base-100/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-base-content-muted dark:border-base-300 dark:bg-base-300/50"
               >
                 Answered
               </span>
@@ -227,7 +231,7 @@
           class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
           @click.self="closeEditing"
         >
-          <div class="w-full max-w-lg rounded-2xl bg-base-200 p-5 shadow-modal">
+          <div class="w-full max-w-lg rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
             <header class="mb-4 flex items-center justify-between">
               <h4 class="m-0 text-base font-semibold">Edit request</h4>
               <button
@@ -304,7 +308,7 @@
           class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="cancelDeleteNote"
         >
-          <div class="w-full max-w-sm rounded-2xl bg-base-200 p-5 shadow-modal">
+          <div class="w-full max-w-sm rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
             <header class="mb-3">
               <h4 class="m-0 text-base font-semibold">Delete note?</h4>
             </header>
@@ -340,7 +344,7 @@
           class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="cancelDeleteRequest"
         >
-          <div class="w-full max-w-sm rounded-2xl bg-base-200 p-5 shadow-modal">
+          <div class="w-full max-w-sm rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
             <header class="mb-3">
               <h4 class="m-0 text-base font-semibold">Delete prayer request?</h4>
             </header>
@@ -394,7 +398,7 @@ const priorityClasses: Record<Priority, string> = {
   urgent: 'border-accent-200/50 bg-accent-200/12 text-accent-300',
   high: 'border-primary-200/50 bg-primary-200/12 text-primary-300',
   medium: 'border-primary-muted/50 bg-primary-muted/12 text-primary-muted',
-  low: 'border-base-300 bg-base-300/50 text-base-content-muted',
+  low: 'border-base-100 bg-base-100/70 text-base-content-muted dark:border-base-300 dark:bg-base-300/50',
 };
 
 const editing = ref<boolean>(false);

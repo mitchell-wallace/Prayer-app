@@ -1,6 +1,6 @@
 <template>
   <footer
-    class="flex-none bg-gradient-to-b from-transparent via-base-100/82 to-base-100 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+    class="flex-none bg-gradient-to-b from-transparent via-base-200/82 to-base-200 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur dark:via-base-100/82 dark:to-base-100"
   >
     <div class="mx-auto grid max-w-3xl gap-3 px-4 sm:px-6">
       <!-- Unified navigation with progress dots -->

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-[100dvh] flex-col overflow-hidden bg-base-100 text-base-content">
+  <div class="flex h-[100dvh] flex-col overflow-hidden bg-base-200 text-base-content dark:bg-base-100">
     <AppHeader :info-stats="infoStats" />
 
     <Content
@@ -36,7 +36,7 @@
           class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
           @click.self="closeAnsweredModal"
         >
-          <div class="w-full max-w-md rounded-2xl bg-base-200 p-5 shadow-modal">
+          <div class="w-full max-w-md rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
             <header class="mb-4 flex items-center justify-between">
               <h4 class="m-0 text-base font-semibold">Answered prayer</h4>
               <button
