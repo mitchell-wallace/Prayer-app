@@ -1,14 +1,26 @@
 import { computed, ref } from 'vue';
+import {
+  DEFAULT_QUEUE_CONFIG,
+  createCycleState,
+  pickNextFromCycle,
+  removeFromCycle,
+} from './queueAlgorithm.js';
 
 const PAGE_SIZE = 6;
 const MAX_RENDER_QUEUE_SIZE = 36;
 const KEEP_BEHIND_COUNT = 10;
 
-function buildProgressDots({ renderQueue, currentIndex, poolSize }) {
+function buildProgressDots({ renderQueue, currentIndex }) {
   const total = renderQueue.length;
   const maxVisible = 5;
 
-  const isLoopPoint = (index) => poolSize > 0 && index % poolSize === 0;
+  const isLoopPoint = (index) => {
+    if (index <= 0) return true;
+    const current = renderQueue[index];
+    const previous = renderQueue[index - 1];
+    if (!current || !previous) return false;
+    return current.cycle !== previous.cycle;
+  };
 
   let start = Math.max(0, currentIndex - 2);
   let end = start + maxVisible;
@@ -79,11 +91,14 @@ function buildProgressDots({ renderQueue, currentIndex, poolSize }) {
   return dots;
 }
 
-export function createQueueService(activeRequests) {
+export function createQueueService(
+  activeRequests,
+  { now = () => Date.now(), config = DEFAULT_QUEUE_CONFIG } = {}
+) {
   const renderQueue = ref([]);
-  const feedIndex = ref(0);
   const cycleCount = ref(0);
   const currentIndex = ref(0);
+  let cycleState = null;
 
   const currentItem = computed(() => renderQueue.value[currentIndex.value] || null);
 
@@ -94,7 +109,6 @@ export function createQueueService(activeRequests) {
     buildProgressDots({
       renderQueue: renderQueue.value,
       currentIndex: currentIndex.value,
-      poolSize: activeRequests.value.length,
     })
   );
 
@@ -115,28 +129,40 @@ export function createQueueService(activeRequests) {
     }
   }
 
+  function ensureCycleReady() {
+    if (!cycleState || cycleState.remaining <= 0) {
+      const pool = activeRequests.value;
+      if (!pool.length) {
+        cycleState = null;
+        return false;
+      }
+      if (cycleState && cycleState.remaining <= 0) {
+        cycleCount.value += 1;
+      }
+      cycleState = createCycleState(pool, { now: now(), config });
+    }
+    return true;
+  }
+
   function loadMore() {
     const pool = activeRequests.value;
     if (!pool.length) return;
     const next = [];
-    for (let i = 0; i < PAGE_SIZE; i += 1) {
-      const idx = (feedIndex.value + i) % pool.length;
-      const cycle = Math.floor((feedIndex.value + i) / pool.length) + cycleCount.value;
-      next.push({ request: pool[idx], cycle });
+    while (next.length < PAGE_SIZE) {
+      if (!ensureCycleReady()) break;
+      const request = pickNextFromCycle(cycleState);
+      if (!request) break;
+      next.push({ request, cycle: cycleCount.value });
     }
-    feedIndex.value += PAGE_SIZE;
-    if (feedIndex.value >= pool.length) {
-      const completed = Math.floor(feedIndex.value / pool.length);
-      cycleCount.value += completed;
-      feedIndex.value = feedIndex.value % pool.length;
+    if (next.length) {
+      renderQueue.value = [...renderQueue.value, ...next];
+      pruneRenderQueue();
     }
-    renderQueue.value = [...renderQueue.value, ...next];
-    pruneRenderQueue();
   }
 
   function resetFeed() {
     renderQueue.value = [];
-    feedIndex.value = 0;
+    cycleState = null;
     cycleCount.value = 0;
     currentIndex.value = 0;
     if (activeRequests.value.length) {
@@ -146,16 +172,22 @@ export function createQueueService(activeRequests) {
 
   function nextCard() {
     if (renderQueue.value.length <= 1) return;
-    currentIndex.value = (currentIndex.value + 1) % renderQueue.value.length;
-    const remaining = renderQueue.value.length - currentIndex.value;
-    if (remaining <= 2) {
+    if (currentIndex.value < renderQueue.value.length - 1) {
+      currentIndex.value += 1;
+    } else {
+      const beforeLength = renderQueue.value.length;
       loadMore();
+      if (renderQueue.value.length > beforeLength) {
+        currentIndex.value += 1;
+      }
     }
+    const remaining = renderQueue.value.length - currentIndex.value;
+    if (remaining <= 2) loadMore();
   }
 
   function previousCard() {
     if (!canGoPrevious.value) return;
-    currentIndex.value -= 1;
+    currentIndex.value = Math.max(0, currentIndex.value - 1);
   }
 
   function navigateToIndex(index) {
@@ -204,12 +236,14 @@ export function createQueueService(activeRequests) {
     }
 
     currentIndex.value = nextIndex;
+    removeFromCycle(cycleState, requestId);
   }
 
   function insertRequest(record) {
     if (renderQueue.value.length > 0) {
       const insertPosition = currentIndex.value + 1;
-      renderQueue.value.splice(insertPosition, 0, { request: record, cycle: cycleCount.value });
+      const cycle = currentItem.value?.cycle ?? cycleCount.value;
+      renderQueue.value.splice(insertPosition, 0, { request: record, cycle });
     } else {
       renderQueue.value = [{ request: record, cycle: 0 }];
       currentIndex.value = 0;
@@ -218,7 +252,6 @@ export function createQueueService(activeRequests) {
 
   return {
     renderQueue,
-    feedIndex,
     cycleCount,
     currentIndex,
     currentItem,

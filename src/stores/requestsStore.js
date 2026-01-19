@@ -11,22 +11,11 @@ import {
   updateRequest as serviceUpdateRequest,
 } from '../app/requestsService.js';
 import { createQueueService } from '../app/queueService.js';
-import { priorityScore } from '../domain/requests.js';
 
 const requests = ref([]);
 const loading = ref(true);
 
-const activeRequests = computed(() =>
-  requests.value
-    .filter((r) => r.status === 'active')
-    .sort((a, b) => {
-      const priorityDelta = (priorityScore[b.priority] || 0) - (priorityScore[a.priority] || 0);
-      if (priorityDelta !== 0) return priorityDelta;
-      const lastA = getLastPrayed(a) ?? 0;
-      const lastB = getLastPrayed(b) ?? 0;
-      return lastA - lastB;
-    })
-);
+const activeRequests = computed(() => requests.value.filter((r) => r.status === 'active'));
 
 const answeredRequests = computed(() => requests.value.filter((r) => r.status === 'answered'));
 
@@ -37,13 +26,9 @@ const infoStats = computed(() => ({
   active: activeRequests.value.length,
   answered: answeredRequests.value.length,
   queued: renderQueue.value.length,
-  cycle: cycleCount.value + 1,
+  cycle: (currentItem.value?.cycle ?? cycleCount.value) + 1,
   currentRequest: currentItem.value?.request || null,
 }));
-
-function getLastPrayed(request) {
-  return request.prayedAt?.length ? Math.max(...request.prayedAt) : null;
-}
 
 function replaceRequest(updated) {
   const idx = requests.value.findIndex((r) => r.id === updated.id);
