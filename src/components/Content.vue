@@ -1,35 +1,46 @@
 <template>
-  <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-x-clip px-4 pt-3 pb-2 sm:px-6">
-    <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-base-content/70">
-      No active requests yet. Add one below.
-    </p>
+  <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col overflow-x-clip px-4 pt-3 pb-2 sm:px-6">
+    <div class="relative flex min-h-0 flex-1 flex-col">
+      <Transition :name="slideDirection">
+        <div
+          v-if="currentItem"
+          :key="currentItem.request.id + '-' + currentIndex"
+          class="absolute inset-0 flex flex-col gap-3 rounded-2xl bg-base-300 p-3 shadow-sm dark:bg-base-200 sm:p-4"
+        >
+          <!-- Card container with padding for shadow overflow -->
+          <div
+            class="relative flex-1 min-h-0 -mx-1 px-1 -my-1 py-1"
+            @touchstart.passive="$emit('touch-start', $event)"
+            @touchend.passive="$emit('touch-end', $event)"
+          >
+            <!-- Inner wrapper for slide animation positioning -->
+            <div class="relative h-full min-h-0">
+              <RequestCard
+                class="absolute inset-0"
+                data-testid="request-card"
+                :request="currentItem.request"
+                @pray="$emit('pray', $event)"
+                @mark-answered="$emit('mark-answered', $event)"
+                @update-request="$emit('update-request', $event)"
+                @delete-request="$emit('delete-request', $event)"
+                @add-note="$emit('add-note', $event)"
+                @edit-note="$emit('edit-note', $event)"
+                @delete-note="$emit('delete-note', $event)"
+              />
+            </div>
+          </div>
+        </div>
+      </Transition>
 
-    <div v-if="loading" class="text-sm text-base-content/70">Loading requests…</div>
+      <div
+        v-if="!currentItem"
+        class="flex min-h-0 flex-1 flex-col gap-3 rounded-2xl bg-base-300 p-3 shadow-sm dark:bg-base-200 sm:p-4"
+      >
+        <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-base-content/70">
+          No active requests yet. Add one below.
+        </p>
 
-    <!-- Card container with padding for shadow overflow -->
-    <div
-      v-if="currentItem"
-      class="relative flex-1 min-h-0 -mx-2 px-2 -my-1 py-1"
-      @touchstart.passive="$emit('touch-start', $event)"
-      @touchend.passive="$emit('touch-end', $event)"
-    >
-      <!-- Inner wrapper for slide animation positioning -->
-      <div class="relative h-full min-h-0">
-        <Transition :name="slideDirection">
-          <RequestCard
-            :key="currentItem.request.id + '-' + currentIndex"
-            class="absolute inset-0"
-            data-testid="request-card"
-            :request="currentItem.request"
-            @pray="$emit('pray', $event)"
-            @mark-answered="$emit('mark-answered', $event)"
-            @update-request="$emit('update-request', $event)"
-            @delete-request="$emit('delete-request', $event)"
-            @add-note="$emit('add-note', $event)"
-            @edit-note="$emit('edit-note', $event)"
-            @delete-note="$emit('delete-note', $event)"
-          />
-        </Transition>
+        <div v-if="loading" class="text-sm text-base-content/70">Loading requests…</div>
       </div>
     </div>
   </main>
