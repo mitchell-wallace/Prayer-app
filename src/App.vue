@@ -1,137 +1,33 @@
 <template>
   <div class="flex h-[100dvh] flex-col overflow-hidden bg-base-100 text-base-content">
-    <header
-      class="z-30 w-full flex-none bg-base-100/92 backdrop-blur"
-    >
-      <div class="mx-auto max-w-3xl px-4 sm:px-6">
-        <div class="flex h-12 items-center justify-between">
-          <span class="text-sm font-semibold tracking-wide uppercase text-base-content-muted">Prayer Rhythm</span>
-          <div class="flex items-center gap-2">
-            <InfoModal :stats="infoStats" />
-            <SettingsModal />
-          </div>
-        </div>
-      </div>
-    </header>
+    <AppHeader :info-stats="infoStats" />
 
-    <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-x-clip px-4 pt-3 pb-2 sm:px-6">
-      <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-base-content-muted">
-        No active requests yet. Add one below.
-      </p>
+    <Content
+      :active-requests="activeRequests"
+      :loading="loading"
+      :current-item="currentItem"
+      :current-index="currentIndex"
+      :slide-direction="slideDirection"
+      @touch-start="handleTouchStart"
+      @touch-end="handleTouchEnd"
+      @pray="recordPrayer"
+      @mark-answered="openAnsweredModal"
+      @update-request="updateRequest"
+      @delete-request="deleteRequest"
+      @add-note="addNote"
+      @edit-note="editNote"
+      @delete-note="deleteNote"
+    />
 
-      <div v-if="loading" class="text-sm text-base-content-muted">Loading requests…</div>
-
-      <!-- Card container with padding for shadow overflow -->
-      <div
-        v-if="currentItem"
-        class="relative flex-1 min-h-0 -mx-2 px-2 -my-1 py-1"
-        @touchstart.passive="handleTouchStart"
-        @touchend.passive="handleTouchEnd"
-      >
-        <!-- Inner wrapper for slide animation positioning -->
-        <div class="relative h-full min-h-0">
-          <Transition :name="slideDirection">
-            <RequestCard
-              :key="currentItem.request.id + '-' + currentIndex"
-              class="absolute inset-0"
-              data-testid="request-card"
-              :request="currentItem.request"
-              @pray="recordPrayer"
-              @mark-answered="openAnsweredModal"
-              @update-request="updateRequest"
-              @delete-request="deleteRequest"
-              @add-note="addNote"
-              @edit-note="editNote"
-              @delete-note="deleteNote"
-            />
-          </Transition>
-        </div>
-      </div>
-    </main>
-
-    <footer
-      class="flex-none bg-gradient-to-b from-transparent via-base-100/82 to-base-100 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur"
-    >
-      <div class="mx-auto grid max-w-3xl gap-3 px-4 sm:px-6">
-        <!-- Unified navigation with progress dots -->
-        <div v-if="renderQueue.length > 1" class="flex items-center justify-center gap-3">
-          <button
-            class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
-            type="button"
-            data-testid="prev-button"
-            :disabled="renderQueue.length <= 1"
-            @click="goPreviousCard"
-            aria-label="Previous card"
-          >
-            <IconChevronLeft :size="18" stroke-width="2.5" />
-          </button>
-
-          <div class="flex items-center gap-1.5" role="list">
-            <!-- Left overflow indicator (pale blue if it's a loop point) -->
-            <span
-              v-if="progressIndicator.hasLeftOverflow"
-              :class="[
-                'h-1.5 w-1.5 rounded-full transition-colors duration-150',
-                progressIndicator.leftOverflowIsLoopAdjacent ? 'bg-primary-200/40' : 'bg-neutral-200/20',
-              ]"
-            ></span>
-            <!-- Main dots / loop icons -->
-            <template v-for="item in progressIndicator.items" :key="item.index">
-              <!-- Loop icon (shown when this position is a loop point and NOT current) -->
-              <button
-                v-if="item.isLoopPoint && item.index !== currentIndex"
-                class="inline-flex h-5 w-5 items-center justify-center text-primary-200/70 transition-all duration-150 hover:text-primary-200"
-                type="button"
-                @click="jumpToIndex(item.index)"
-                aria-label="Jump to cycle start"
-              >
-                <IconRefresh :size="14" stroke-width="2.5" />
-              </button>
-              <!-- Current dot: dark blue if loop point, dark gray otherwise -->
-              <button
-                v-else-if="item.index === currentIndex"
-                :class="[
-                  'h-2.5 w-2.5 rounded-full transition-all duration-150',
-                  item.isLoopPoint ? 'bg-primary-200/60' : 'bg-neutral-200/60',
-                ]"
-                type="button"
-                @click="jumpToIndex(item.index)"
-                aria-label="Current card"
-              ></button>
-              <!-- Regular inactive dot -->
-              <button
-                v-else
-                class="h-2 w-2 rounded-full bg-neutral-200/30 transition-all duration-150 hover:bg-neutral-200/60"
-                type="button"
-                @click="jumpToIndex(item.index)"
-                aria-label="Jump to card"
-              ></button>
-            </template>
-            <!-- Right overflow indicator (pale blue if it's a loop point) -->
-            <span
-              v-if="progressIndicator.hasRightOverflow"
-              :class="[
-                'h-1.5 w-1.5 rounded-full transition-colors duration-150',
-                progressIndicator.rightOverflowIsLoopAdjacent ? 'bg-primary-200/40' : 'bg-neutral-200/20',
-              ]"
-            ></span>
-          </div>
-
-          <button
-            class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card disabled:opacity-40 disabled:hover:shadow-sm"
-            type="button"
-            data-testid="next-button"
-            :disabled="renderQueue.length <= 1"
-            @click="goNextCard"
-            aria-label="Next card"
-          >
-            <IconChevronRight :size="18" stroke-width="2.5" />
-          </button>
-        </div>
-
-        <AddRequestForm @save="createRequest" />
-      </div>
-    </footer>
+    <AppFooter
+      :render-queue="renderQueue"
+      :progress-indicator="progressIndicator"
+      :current-index="currentIndex"
+      @prev="goPreviousCard"
+      @next="goNextCard"
+      @jump="jumpToIndex"
+      @create-request="createRequest"
+    />
 
     <Teleport to="body">
       <Transition name="modal">
@@ -186,11 +82,10 @@
 
 <script setup lang="ts">
 import { Teleport, Transition, onMounted, reactive, ref } from 'vue';
-import { IconChevronLeft, IconChevronRight, IconRefresh, IconX } from '@tabler/icons-vue';
-import AddRequestForm from './components/AddRequestForm.vue';
-import InfoModal from './components/InfoModal.vue';
-import RequestCard from './components/RequestCard.vue';
-import SettingsModal from './components/SettingsModal.vue';
+import { IconX } from '@tabler/icons-vue';
+import AppFooter from './components/AppFooter.vue';
+import AppHeader from './components/AppHeader.vue';
+import Content from './components/Content.vue';
 import { useRequestsStore } from './stores/requestsStore.js';
 import { initThemeWatcher } from './app/settingsService.js';
 import type {
