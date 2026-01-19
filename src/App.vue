@@ -24,6 +24,7 @@
       :progress-dots="progressDots"
       :can-go-previous="canGoPrevious"
       :can-go-next="canGoNext"
+      :slide-direction="slideDirection"
       @prev="goPreviousCard"
       @next="goNextCard"
       @create-request="createRequest"

@@ -188,8 +188,47 @@
   }
 
   .dot-animate {
-    transition: transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out;
+    transition: transform 120ms ease-out, background-color 120ms ease-out, color 120ms ease-out, opacity 120ms ease-out;
     transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  .dot-slot {
+    will-change: transform;
+  }
+
+  .dot-strip {
+    --dot-step: 16px;
+    position: relative;
+    display: inline-flex;
+  }
+
+  .dot-layer {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .dot-layer--outgoing {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .dot-layer--incoming.dot-layer--forward {
+    animation: dot-layer-in-forward 180ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both;
+  }
+
+  .dot-layer--incoming.dot-layer--backward {
+    animation: dot-layer-in-backward 180ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms both;
+  }
+
+  .dot-layer--outgoing.dot-layer--forward {
+    animation: dot-layer-out-forward 160ms ease-out both;
+  }
+
+  .dot-layer--outgoing.dot-layer--backward {
+    animation: dot-layer-out-backward 160ms ease-out both;
   }
 
   .dot-animate:hover {
@@ -201,23 +240,93 @@
   }
 
   .dot-current {
-    transform: translateZ(0) scale(1.1);
-    animation: dot-pop 160ms ease-out;
+    transform: translateZ(0) scale(1.05);
   }
 
   .dot-current.dot-animate:hover {
     transform: translateZ(0) scale(1.2);
   }
 
-  @keyframes dot-pop {
+  .dot-outgoing {
+    animation: dot-outgoing 60ms ease-out forwards;
+  }
+
+  .dot-incoming {
+    animation: dot-incoming 140ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+
+  @keyframes dot-outgoing {
     0% {
-      transform: translateZ(0) scale(0.85);
-    }
-    70% {
-      transform: translateZ(0) scale(1.2);
+      transform: translateZ(0) scale(1.1);
+      opacity: 1;
+      filter: brightness(1.05);
     }
     100% {
-      transform: translateZ(0) scale(1.1);
+      transform: translateZ(0) scale(0.7);
+      opacity: 0.4;
+      filter: brightness(0.95);
+    }
+  }
+
+  @keyframes dot-incoming {
+    0% {
+      transform: translateZ(0) scale(0.65);
+      opacity: 0.4;
+      filter: brightness(0.95);
+    }
+    60% {
+      transform: translateZ(0) scale(1.2);
+      opacity: 1;
+      filter: brightness(1.1);
+    }
+    100% {
+      transform: translateZ(0) scale(1.05);
+      opacity: 1;
+      filter: brightness(1.05);
+    }
+  }
+
+  @keyframes dot-layer-in-forward {
+    0% {
+      transform: translateX(var(--dot-step));
+      opacity: 0.4;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes dot-layer-in-backward {
+    0% {
+      transform: translateX(calc(-1 * var(--dot-step)));
+      opacity: 0.4;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes dot-layer-out-forward {
+    0% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(calc(-1 * var(--dot-step)));
+      opacity: 0;
+    }
+  }
+
+  @keyframes dot-layer-out-backward {
+    0% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(var(--dot-step));
+      opacity: 0;
     }
   }
 }
