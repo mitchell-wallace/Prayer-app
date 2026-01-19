@@ -87,6 +87,9 @@ export function createQueueService(activeRequests) {
 
   const currentItem = computed(() => renderQueue.value[currentIndex.value] || null);
 
+  const canGoPrevious = computed(() => currentIndex.value > 0);
+  const canGoNext = computed(() => renderQueue.value.length > 1);
+
   const progressDots = computed(() =>
     buildProgressDots({
       renderQueue: renderQueue.value,
@@ -151,8 +154,8 @@ export function createQueueService(activeRequests) {
   }
 
   function previousCard() {
-    if (renderQueue.value.length <= 1) return;
-    currentIndex.value = (currentIndex.value - 1 + renderQueue.value.length) % renderQueue.value.length;
+    if (!canGoPrevious.value) return;
+    currentIndex.value -= 1;
   }
 
   function navigateToIndex(index) {
@@ -219,6 +222,8 @@ export function createQueueService(activeRequests) {
     cycleCount,
     currentIndex,
     currentItem,
+    canGoPrevious,
+    canGoNext,
     progressDots,
     resetFeed,
     loadMore,

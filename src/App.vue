@@ -22,9 +22,10 @@
     <AppFooter
       :render-queue="renderQueue"
       :progress-dots="progressDots"
+      :can-go-previous="canGoPrevious"
+      :can-go-next="canGoNext"
       @prev="goPreviousCard"
       @next="goNextCard"
-      @jump="jumpToIndex"
       @create-request="createRequest"
     />
 
@@ -105,10 +106,11 @@ const {
   renderQueue,
   currentIndex,
   currentItem,
+  canGoPrevious,
+  canGoNext,
   progressDots,
   infoStats,
   init,
-  navigateToIndex,
 } = store;
 
 const touchStart = ref<TouchCoords | null>(null);
@@ -171,22 +173,17 @@ async function saveAnsweredNote(): Promise<void> {
 }
 
 function goNextCard(): void {
-  if (renderQueue.value.length <= 1) return;
+  if (!canGoNext.value) return;
   slideDirection.value = 'card-slide-left';
   store.nextCard();
 }
 
 function goPreviousCard(): void {
-  if (renderQueue.value.length <= 1) return;
+  if (!canGoPrevious.value) return;
   slideDirection.value = 'card-slide-right';
   store.previousCard();
 }
 
-function jumpToIndex(index: number): void {
-  if (index === currentIndex.value) return;
-  slideDirection.value = index > currentIndex.value ? 'card-slide-left' : 'card-slide-right';
-  navigateToIndex(index);
-}
 
 function handleTouchStart(event: TouchEvent): void {
   const touch = event.changedTouches[0];

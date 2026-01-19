@@ -31,7 +31,7 @@ const activeRequests = computed(() =>
 const answeredRequests = computed(() => requests.value.filter((r) => r.status === 'answered'));
 
 const queue = createQueueService(activeRequests);
-const { renderQueue, currentIndex, currentItem, progressDots, cycleCount } = queue;
+const { renderQueue, currentIndex, currentItem, progressDots, cycleCount, canGoPrevious, canGoNext } = queue;
 
 const infoStats = computed(() => ({
   active: activeRequests.value.length,
@@ -124,6 +124,8 @@ export function useRequestsStore() {
     renderQueue,
     currentIndex,
     currentItem,
+    canGoPrevious,
+    canGoNext,
     progressDots,
     infoStats,
     init,

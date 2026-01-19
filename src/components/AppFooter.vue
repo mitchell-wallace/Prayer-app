@@ -7,59 +7,53 @@
           class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
           type="button"
           data-testid="prev-button"
-          :disabled="renderQueue.length <= 1"
+          :disabled="!canGoPrevious"
           @click="$emit('prev')"
           aria-label="Previous card"
         >
           <IconChevronLeft :size="18" stroke-width="2.5" />
         </button>
 
-        <div class="flex items-center gap-1.5" role="list">
+        <div
+          ref="dotStripRef"
+          class="flex items-center gap-1.5 select-none cursor-pointer"
+          @click="handleDotStripClick"
+        >
           <template v-for="dot in progressDots" :key="dot.slot">
-            <span
-              v-if="dot.isBeforeQueueStart"
-              class="dot-animate h-1.5 w-1.5 rounded-full border border-neutral-200/40"
-            ></span>
-            <span
-              v-else-if="dot.isPlaceholder"
-              class="dot-animate h-2 w-2 rounded-full border border-neutral-200/40"
-            ></span>
-            <!-- Loop icon (shown when this position is a loop point and NOT current) -->
-            <button
-              v-else-if="dot.isLoopPoint && dot.index !== null && !dot.isCurrent"
-              class="dot-animate inline-flex h-2.5 w-2.5 items-center justify-center text-primary-200/70 hover:text-primary-200"
-              type="button"
-              @click="$emit('jump', dot.index)"
-              aria-label="Jump to cycle start"
-            >
-              <IconRefresh :size="10" stroke-width="2.5" />
-            </button>
-            <!-- Current dot: dark blue if loop point, dark gray otherwise -->
-            <button
-              v-else-if="dot.isCurrent && dot.index !== null"
-              :class="[
-                'dot-animate dot-current h-2.5 w-2.5 rounded-full',
-                dot.isLoopPoint ? 'bg-primary-200/60' : 'bg-neutral-200/60',
-              ]"
-              type="button"
-              @click="$emit('jump', dot.index)"
-              aria-label="Current card"
-            ></button>
-            <!-- Regular inactive dot -->
-            <button
-              v-else-if="dot.index !== null"
-              class="dot-animate h-2 w-2 rounded-full bg-neutral-200/40 hover:bg-neutral-200/60"
-              type="button"
-              @click="$emit('jump', dot.index)"
-              aria-label="Jump to card"
-            ></button>
-            <span
-              v-else
-              :class="[
-                'dot-animate h-1.5 w-1.5 rounded-full',
-                dot.isLoopPoint ? 'bg-primary-200/40' : 'bg-neutral-200/40',
-              ]"
-            ></span>
+            <span class="inline-flex h-2.5 w-2.5 shrink-0 items-center justify-center">
+              <span
+                v-if="dot.isBeforeQueueStart"
+                class="dot-animate h-1.5 w-1.5 rounded-full border border-neutral-200/40"
+              ></span>
+              <span
+                v-else-if="dot.isPlaceholder"
+                class="dot-animate h-2 w-2 rounded-full border border-neutral-200/40"
+              ></span>
+              <span
+                v-else-if="dot.isLoopPoint && dot.index !== null && !dot.isCurrent"
+                class="dot-animate inline-flex h-2.5 w-2.5 items-center justify-center text-primary-200/70 hover:text-primary-200 dark:text-primary-300/70"
+              >
+                <IconRefresh :size="10" stroke-width="2.5" />
+              </span>
+              <span
+                v-else-if="dot.isCurrent"
+                :class="[
+                  'dot-animate dot-current h-2.5 w-2.5 rounded-full',
+                  dot.isLoopPoint ? 'bg-primary-200/60' : 'bg-neutral-200/60',
+                ]"
+              ></span>
+              <span
+                v-else-if="dot.index !== null"
+                class="dot-animate h-2 w-2 rounded-full bg-neutral-200/40 hover:bg-neutral-200/60"
+              ></span>
+              <span
+                v-else
+                :class="[
+                  'dot-animate h-1.5 w-1.5 rounded-full',
+                  dot.isLoopPoint ? 'bg-primary-200/40' : 'bg-neutral-200/40',
+                ]"
+              ></span>
+            </span>
           </template>
         </div>
 
@@ -67,7 +61,7 @@
           class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
           type="button"
           data-testid="next-button"
-          :disabled="renderQueue.length <= 1"
+          :disabled="!canGoNext"
           @click="$emit('next')"
           aria-label="Next card"
         >
@@ -81,19 +75,43 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue';
 import { IconChevronLeft, IconChevronRight, IconRefresh } from '@tabler/icons-vue';
 import AddRequestForm from './AddRequestForm.vue';
 import type { CreateRequestPayload, ProgressDot, QueueItem } from '../types';
 
-defineProps<{
+const props = defineProps<{
   renderQueue: QueueItem[];
   progressDots: ProgressDot[];
+  canGoPrevious: boolean;
+  canGoNext: boolean;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (event: 'prev'): void;
   (event: 'next'): void;
-  (event: 'jump', index: number): void;
   (event: 'create-request', payload: CreateRequestPayload): void;
 }>();
+
+const dotStripRef = ref<HTMLDivElement | null>(null);
+
+const currentSlot = computed(() => {
+  const active = props.progressDots.find((dot) => dot.isCurrent);
+  return active ? active.slot : Math.floor(props.progressDots.length / 2);
+});
+
+function handleDotStripClick(event: MouseEvent): void {
+  if (!dotStripRef.value || props.progressDots.length === 0) return;
+  const rect = dotStripRef.value.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const slotWidth = rect.width / props.progressDots.length;
+  const clickedSlot = Math.floor(x / slotWidth);
+  if (clickedSlot <= currentSlot.value) {
+    if (!props.canGoPrevious) return;
+    emit('prev');
+    return;
+  }
+  if (!props.canGoNext) return;
+  emit('next');
+}
 </script>

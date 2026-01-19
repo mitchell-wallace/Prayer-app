@@ -9,6 +9,8 @@ export interface RequestsStore {
   renderQueue: Ref<QueueItem[]>;
   currentIndex: Ref<number>;
   currentItem: ComputedRef<QueueItem | null>;
+  canGoPrevious: ComputedRef<boolean>;
+  canGoNext: ComputedRef<boolean>;
   progressDots: ComputedRef<ProgressDot[]>;
   infoStats: ComputedRef<InfoStats>;
   init: () => Promise<void>;
