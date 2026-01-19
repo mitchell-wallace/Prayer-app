@@ -172,3 +172,52 @@
   transform: translateX(100%);
   opacity: 0;
 }
+
+@layer components {
+  .nav-button-animate {
+    transition: transform 150ms ease-out, box-shadow 150ms ease-out, color 150ms ease-out, background-color 150ms ease-out;
+    transform: translateZ(0);
+  }
+
+  .nav-button-animate:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  .nav-button-animate:active:not(:disabled) {
+    transform: translateY(0) scale(0.95);
+  }
+
+  .dot-animate {
+    transition: transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out;
+    transform: translateZ(0);
+  }
+
+  .dot-animate:hover {
+    transform: translateZ(0) scale(1.1);
+  }
+
+  .dot-animate:active {
+    transform: translateZ(0) scale(0.95);
+  }
+
+  .dot-current {
+    transform: translateZ(0) scale(1.1);
+    animation: dot-pop 160ms ease-out;
+  }
+
+  .dot-current.dot-animate:hover {
+    transform: translateZ(0) scale(1.2);
+  }
+
+  @keyframes dot-pop {
+    0% {
+      transform: translateZ(0) scale(0.85);
+    }
+    70% {
+      transform: translateZ(0) scale(1.2);
+    }
+    100% {
+      transform: translateZ(0) scale(1.1);
+    }
+  }
+}

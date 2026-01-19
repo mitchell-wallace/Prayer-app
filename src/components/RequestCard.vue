@@ -113,7 +113,7 @@
           <li
             v-for="note in sortedNotes"
             :key="note.id"
-            class="rounded-xl bg-base-200 p-3 shadow-sm dark:bg-base-300"
+            class="rounded-xl bg-base-300 p-3 shadow-sm"
             data-testid="note-item"
           >
             <div class="flex items-start justify-between gap-2 text-xs text-base-content/70">

@@ -4,7 +4,7 @@
       <!-- Unified navigation with progress dots -->
       <div v-if="renderQueue.length > 1" class="flex items-center justify-center gap-3">
         <button
-          class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
+          class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
           type="button"
           data-testid="prev-button"
           :disabled="renderQueue.length <= 1"
@@ -19,7 +19,7 @@
             <span
               v-if="progressIndicator.hasLeftOverflow"
               :class="[
-                'h-1.5 w-1.5 rounded-full transition-colors duration-150',
+                'h-1.5 w-1.5 rounded-full transition-all duration-150',
                 progressIndicator.leftOverflowIsLoopAdjacent ? 'bg-primary-200/40' : 'bg-neutral-200/40',
               ]"
             ></span>
@@ -28,7 +28,7 @@
               <!-- Loop icon (shown when this position is a loop point and NOT current) -->
               <button
                 v-if="item.isLoopPoint && item.index !== currentIndex"
-                class="inline-flex h-2.5 w-2.5 items-center justify-center text-primary-200/70 transition-all duration-150 hover:text-primary-200"
+                class="dot-animate inline-flex h-2.5 w-2.5 items-center justify-center text-primary-200/70 hover:text-primary-200"
                 type="button"
                 @click="$emit('jump', item.index)"
                 aria-label="Jump to cycle start"
@@ -39,7 +39,7 @@
               <button
                 v-else-if="item.index === currentIndex"
                 :class="[
-                  'h-2.5 w-2.5 rounded-full transition-all duration-150',
+                  'dot-animate dot-current h-2.5 w-2.5 rounded-full',
                   item.isLoopPoint ? 'bg-primary-200/60' : 'bg-neutral-200/60',
                 ]"
                 type="button"
@@ -49,7 +49,7 @@
               <!-- Regular inactive dot -->
               <button
                 v-else
-                class="h-2 w-2 rounded-full bg-neutral-200/40 transition-all duration-150 hover:bg-neutral-200/60"
+                class="dot-animate h-2 w-2 rounded-full bg-neutral-200/40 hover:bg-neutral-200/60"
                 type="button"
                 @click="$emit('jump', item.index)"
                 aria-label="Jump to card"
@@ -59,14 +59,14 @@
             <span
               v-if="progressIndicator.hasRightOverflow"
               :class="[
-                'h-1.5 w-1.5 rounded-full transition-colors duration-150',
+                'h-1.5 w-1.5 rounded-full transition-all duration-150',
                 progressIndicator.rightOverflowIsLoopAdjacent ? 'bg-primary-200/40' : 'bg-neutral-200/40',
               ]"
             ></span>
-        </div>
+          </div>
 
         <button
-          class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
+          class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
           type="button"
           data-testid="next-button"
           :disabled="renderQueue.length <= 1"
