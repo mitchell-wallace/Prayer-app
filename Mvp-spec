@@ -14,8 +14,6 @@ Create a request with:
 
 Title (required)
 
-Details (optional)
-
 Priority: urgent | high | medium | low
 
 Duration: 10 days | 1 month | 3 months | 1 year
@@ -23,7 +21,7 @@ Duration: 10 days | 1 month | 3 months | 1 year
 
 Edit request fields after creation:
 
-title/details/priority/duration
+title/priority/duration
 
 Duration changes recompute expiresAt from createdAt (not from “now”)
 
@@ -108,8 +106,6 @@ PrayerRequest
 id: string (UUID)
 
 title: string
-
-details: string | null
 
 priority: "urgent" | "high" | "medium" | "low"
 
@@ -290,8 +286,6 @@ priority selector
 
 duration selector
 
-optional details (expandable)
-
 
 Submit returns user to feed, new item appears promptly.
 
@@ -317,9 +311,7 @@ Mark answered
 Edit request
 
 
-Expand/collapse or details view for:
-
-full details
+Expand/collapse for:
 
 notes thread (newest-first)
 

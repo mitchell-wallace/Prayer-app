@@ -8,6 +8,8 @@
             data-testid="priority-toggle"
             class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
             @click="togglePriority"
+            @mousedown.prevent
+            @touchstart.prevent
             aria-haspopup="listbox"
             :aria-expanded="priorityOpen"
           >
@@ -27,6 +29,8 @@
                   form.priority === option.value ? 'bg-primary/10 text-primary' : '',
                 ]"
                 @click="selectPriority(option.value)"
+                @mousedown.prevent
+                @touchstart.prevent
               >
                 {{ option.label }}
               </button>
@@ -40,6 +44,8 @@
             data-testid="duration-toggle"
             class="inline-flex items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text shadow-sm transition-all duration-150 hover:shadow-card"
             @click="toggleDuration"
+            @mousedown.prevent
+            @touchstart.prevent
             aria-haspopup="listbox"
             :aria-expanded="durationOpen"
           >
@@ -59,6 +65,8 @@
                   form.durationPreset === option.value ? 'bg-primary/10 text-primary' : '',
                 ]"
                 @click="selectDuration(option.value)"
+                @mousedown.prevent
+                @touchstart.prevent
               >
                 {{ option.label }}
               </button>
@@ -166,7 +174,7 @@ const priorityLabel = computed<string>(() => {
 const durationLabel = computed<string>(() => {
   return durationOptions.find((o) => o.value === form.durationPreset)?.label || 'Duration';
 });
-const showControls = computed<boolean>(() => isFocused.value || priorityOpen.value || durationOpen.value);
+const showControls = computed<boolean>(() => isFocused.value || priorityOpen.value || durationOpen.value || !!form.title.trim());
 
 function clearTitle(): void {
   form.title = '';
@@ -197,11 +205,13 @@ function toggleDuration(): void {
 function selectPriority(value: Priority): void {
   form.priority = value;
   priorityOpen.value = false;
+  inputRef.value?.focus();
 }
 
 function selectDuration(value: DurationPreset): void {
   form.durationPreset = value;
   durationOpen.value = false;
+  inputRef.value?.focus();
 }
 
 function handleBlur(): void {

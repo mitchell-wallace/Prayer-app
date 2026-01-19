@@ -1,4 +1,4 @@
-import { computeExpiry } from '../utils/time.js';
+import { computeExpiry } from '../utils/time';
 
 export const priorityScore = {
   urgent: 4,

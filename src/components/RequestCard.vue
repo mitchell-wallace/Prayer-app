@@ -61,7 +61,7 @@
         </div>
       </header>
 
-      <div class="mt-4 grid gap-3 rounded-2xl bg-card-muted p-4 shadow-sm">
+      <div class="mt-6 grid gap-3">
         <p class="text-xs font-medium uppercase tracking-wide text-muted">Notes</p>
 
         <div v-if="noteFormOpen" class="grid gap-2" data-testid="note-form">
@@ -105,7 +105,7 @@
         </button>
 
         <p v-if="!sortedNotes.length" class="m-0 text-sm text-muted">No notes</p>
-        <ol v-else class="grid gap-3 text-sm" role="list" data-testid="notes-list">
+        <ol v-else class="grid gap-4 text-sm" role="list" data-testid="notes-list">
           <li
             v-for="note in sortedNotes"
             :key="note.id"
@@ -373,7 +373,7 @@
 <script setup lang="ts">
 import { Teleport, Transition, computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconDotsVertical, IconPlus, IconX } from '@tabler/icons-vue';
-import { daysLeft, timeAgo } from '../utils/time.js';
+import { daysLeft, formatNoteTimestamp, timeAgo } from '../utils/time';
 import type { Note, PrayerRequest, Priority } from '../types';
 
 const props = defineProps<{
@@ -512,8 +512,7 @@ function cancelDeleteNote(): void {
 }
 
 function formatTimestamp(ts: number): string {
-  const d = new Date(ts);
-  return `${d.toLocaleDateString()} · ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  return formatNoteTimestamp(ts);
 }
 
 // Close menus on outside click

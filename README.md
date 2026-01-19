@@ -7,7 +7,7 @@ A mobile-first client-side prayer request tracker with prioritized feed cycling,
 - Smart expiry calculation from created date with status handling (active/answered).
 - "Prayed" action appends timestamps to influence feed ordering by recency.
 - Notes thread per request with add/edit/delete, displayed newest-first.
-- Prayer requests focus on a single title field; add any extra context as notes instead of a separate "details" field.
+- Prayer requests focus on a single title field; add any extra context as notes.
 - Infinite-style feed that cycles through active requests and surfaces a completion banner once everything is covered.
 - Local persistence with SQL.js for offline-first behavior (database bytes stored in IndexedDB).
 - **Theme support**: Light, Dark, and System (auto) modes via settings.

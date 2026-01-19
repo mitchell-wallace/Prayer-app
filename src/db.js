@@ -1,6 +1,6 @@
 import { del, get, set } from 'idb-keyval';
 import { openDatabase } from './sqljs.js';
-import { computeExpiry } from './utils/time.js';
+import { computeExpiry } from './utils/time';
 
 const STORAGE_KEY = 'prayer-sql-db';
 let dbInstance = null;
