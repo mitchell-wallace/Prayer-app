@@ -3,10 +3,7 @@ import type { ProgressDot } from '../types';
 
 export type DotMotionDirection = 'forward' | 'backward' | '';
 
-export function useProgressDotsAnimation(
-  progressDots: Ref<ProgressDot[]>,
-  slideDirection: Ref<string>
-) {
+export function useProgressDotsAnimation(progressDots: Ref<ProgressDot[]>, slideDirection: Ref<string>) {
   const outgoingDot = ref<ProgressDot | null>(null);
   const incomingSlot = ref<number | null>(null);
   const incomingReady = ref<boolean>(false);
@@ -52,9 +49,7 @@ export function useProgressDotsAnimation(
       }, 240);
 
       const shouldShift =
-        prevCurrent.index !== null &&
-        nextCurrent.index !== null &&
-        Math.max(prevCurrent.index, nextCurrent.index) >= 3;
+        prevCurrent.index !== null && nextCurrent.index !== null && Math.max(prevCurrent.index, nextCurrent.index) >= 3;
 
       if (shouldShift && prev) {
         previousDots.value = prev.map((dot) => ({ ...dot }));
