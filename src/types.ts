@@ -67,19 +67,15 @@ export interface SelectOption<T = string> {
   label: string;
 }
 
-/** Progress indicator item with loop point info */
-export interface ProgressItem extends QueueItem {
-  index: number;
+/** Progress dot model for the navigation strip */
+export interface ProgressDot {
+  slot: number;
+  index: number | null;
+  isBeforeQueueStart: boolean;
+  isAfterQueueEnd: boolean;
+  isCurrent: boolean;
   isLoopPoint: boolean;
-}
-
-/** Progress indicator state */
-export interface ProgressIndicator {
-  items: ProgressItem[];
-  hasLeftOverflow: boolean;
-  hasRightOverflow: boolean;
-  leftOverflowIsLoopAdjacent: boolean;
-  rightOverflowIsLoopAdjacent: boolean;
+  isPlaceholder: boolean;
 }
 
 /** Touch coordinates for swipe detection */

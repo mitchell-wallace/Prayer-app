@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue';
-import type { InfoStats, Note, PrayerRequest, ProgressIndicator, QueueItem } from '../types';
+import type { InfoStats, Note, PrayerRequest, ProgressDot, QueueItem } from '../types';
 
 export interface RequestsStore {
   requests: Ref<PrayerRequest[]>;
@@ -9,7 +9,7 @@ export interface RequestsStore {
   renderQueue: Ref<QueueItem[]>;
   currentIndex: Ref<number>;
   currentItem: ComputedRef<QueueItem | null>;
-  progressIndicator: ComputedRef<ProgressIndicator>;
+  progressDots: ComputedRef<ProgressDot[]>;
   infoStats: ComputedRef<InfoStats>;
   init: () => Promise<void>;
   resetFeed: () => void;

@@ -21,8 +21,7 @@
 
     <AppFooter
       :render-queue="renderQueue"
-      :progress-indicator="progressIndicator"
-      :current-index="currentIndex"
+      :progress-dots="progressDots"
       @prev="goPreviousCard"
       @next="goNextCard"
       @jump="jumpToIndex"
@@ -106,7 +105,7 @@ const {
   renderQueue,
   currentIndex,
   currentItem,
-  progressIndicator,
+  progressDots,
   infoStats,
   init,
   navigateToIndex,

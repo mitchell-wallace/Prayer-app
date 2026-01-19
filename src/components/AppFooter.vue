@@ -15,55 +15,53 @@
         </button>
 
         <div class="flex items-center gap-1.5" role="list">
-          <!-- Left overflow indicator (pale blue if it's a loop point) -->
+          <template v-for="dot in progressDots" :key="dot.slot">
             <span
-              v-if="progressIndicator.hasLeftOverflow"
+              v-if="dot.isBeforeQueueStart"
+              class="dot-animate h-1.5 w-1.5 rounded-full border border-neutral-200/40"
+            ></span>
+            <span
+              v-else-if="dot.isPlaceholder"
+              class="dot-animate h-2 w-2 rounded-full border border-neutral-200/40"
+            ></span>
+            <!-- Loop icon (shown when this position is a loop point and NOT current) -->
+            <button
+              v-else-if="dot.isLoopPoint && dot.index !== null && !dot.isCurrent"
+              class="dot-animate inline-flex h-2.5 w-2.5 items-center justify-center text-primary-200/70 hover:text-primary-200"
+              type="button"
+              @click="$emit('jump', dot.index)"
+              aria-label="Jump to cycle start"
+            >
+              <IconRefresh :size="10" stroke-width="2.5" />
+            </button>
+            <!-- Current dot: dark blue if loop point, dark gray otherwise -->
+            <button
+              v-else-if="dot.isCurrent && dot.index !== null"
               :class="[
-                'h-1.5 w-1.5 rounded-full transition-all duration-150',
-                progressIndicator.leftOverflowIsLoopAdjacent ? 'bg-primary-200/40' : 'bg-neutral-200/40',
+                'dot-animate dot-current h-2.5 w-2.5 rounded-full',
+                dot.isLoopPoint ? 'bg-primary-200/60' : 'bg-neutral-200/60',
+              ]"
+              type="button"
+              @click="$emit('jump', dot.index)"
+              aria-label="Current card"
+            ></button>
+            <!-- Regular inactive dot -->
+            <button
+              v-else-if="dot.index !== null"
+              class="dot-animate h-2 w-2 rounded-full bg-neutral-200/40 hover:bg-neutral-200/60"
+              type="button"
+              @click="$emit('jump', dot.index)"
+              aria-label="Jump to card"
+            ></button>
+            <span
+              v-else
+              :class="[
+                'dot-animate h-1.5 w-1.5 rounded-full',
+                dot.isLoopPoint ? 'bg-primary-200/40' : 'bg-neutral-200/40',
               ]"
             ></span>
-            <!-- Main dots / loop icons -->
-            <template v-for="item in progressIndicator.items" :key="item.index">
-              <!-- Loop icon (shown when this position is a loop point and NOT current) -->
-              <button
-                v-if="item.isLoopPoint && item.index !== currentIndex"
-                class="dot-animate inline-flex h-2.5 w-2.5 items-center justify-center text-primary-200/70 hover:text-primary-200"
-                type="button"
-                @click="$emit('jump', item.index)"
-                aria-label="Jump to cycle start"
-              >
-                <IconRefresh :size="10" stroke-width="2.5" />
-              </button>
-              <!-- Current dot: dark blue if loop point, dark gray otherwise -->
-              <button
-                v-else-if="item.index === currentIndex"
-                :class="[
-                  'dot-animate dot-current h-2.5 w-2.5 rounded-full',
-                  item.isLoopPoint ? 'bg-primary-200/60' : 'bg-neutral-200/60',
-                ]"
-                type="button"
-                @click="$emit('jump', item.index)"
-                aria-label="Current card"
-              ></button>
-              <!-- Regular inactive dot -->
-              <button
-                v-else
-                class="dot-animate h-2 w-2 rounded-full bg-neutral-200/40 hover:bg-neutral-200/60"
-                type="button"
-                @click="$emit('jump', item.index)"
-                aria-label="Jump to card"
-              ></button>
-            </template>
-            <!-- Right overflow indicator (pale blue if it's a loop point) -->
-            <span
-              v-if="progressIndicator.hasRightOverflow"
-              :class="[
-                'h-1.5 w-1.5 rounded-full transition-all duration-150',
-                progressIndicator.rightOverflowIsLoopAdjacent ? 'bg-primary-200/40' : 'bg-neutral-200/40',
-              ]"
-            ></span>
-          </div>
+          </template>
+        </div>
 
         <button
           class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
@@ -85,12 +83,11 @@
 <script setup lang="ts">
 import { IconChevronLeft, IconChevronRight, IconRefresh } from '@tabler/icons-vue';
 import AddRequestForm from './AddRequestForm.vue';
-import type { CreateRequestPayload, ProgressIndicator, QueueItem } from '../types';
+import type { CreateRequestPayload, ProgressDot, QueueItem } from '../types';
 
 defineProps<{
   renderQueue: QueueItem[];
-  progressIndicator: ProgressIndicator;
-  currentIndex: number;
+  progressDots: ProgressDot[];
 }>();
 
 defineEmits<{
