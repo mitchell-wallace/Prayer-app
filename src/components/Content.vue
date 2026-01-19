@@ -1,10 +1,10 @@
 <template>
   <main class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3 overflow-x-clip px-4 pt-3 pb-2 sm:px-6">
-    <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-base-content-muted">
+    <p v-if="!activeRequests.length && !loading" class="mt-2 text-sm text-base-content/70">
       No active requests yet. Add one below.
     </p>
 
-    <div v-if="loading" class="text-sm text-base-content-muted">Loading requests…</div>
+    <div v-if="loading" class="text-sm text-base-content/70">Loading requests…</div>
 
     <!-- Card container with padding for shadow overflow -->
     <div

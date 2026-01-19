@@ -4,7 +4,7 @@
     <button
       type="button"
       data-testid="settings-button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
       aria-label="Open settings"
       @click="open = true"
     >
@@ -20,11 +20,11 @@
           class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="open = false"
         >
-          <div class="w-full max-w-md rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
+          <div class="w-full max-w-md rounded-2xl bg-base-300 p-5 shadow-xl dark:bg-base-200">
             <header class="mb-4 flex items-center justify-between">
               <h2 class="m-0 text-base font-semibold">Settings</h2>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
                 type="button"
                 @click="open = false"
               >
@@ -45,8 +45,8 @@
                     :class="[
                       'rounded-xl px-3 py-2.5 text-sm font-semibold shadow-sm transition-all duration-150',
                       settings.theme === option.value
-                        ? 'bg-primary-200 text-white shadow-card'
-                        : 'bg-base-300 text-base-content-muted hover:text-base-content hover:shadow-card',
+                        ? 'bg-primary-200 text-white shadow-lg'
+                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-lg',
                     ]"
                     @click="setTheme(option.value)"
                   >
@@ -67,8 +67,8 @@
                     :class="[
                       'rounded-xl px-3 py-2.5 text-xs font-semibold shadow-sm transition-all duration-150',
                       settings.defaultPriority === option.value
-                        ? 'bg-primary-200 text-white shadow-card'
-                        : 'bg-base-300 text-base-content-muted hover:text-base-content hover:shadow-card',
+                        ? 'bg-primary-200 text-white shadow-lg'
+                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-lg',
                     ]"
                     @click="setDefaultPriority(option.value)"
                   >
@@ -89,8 +89,8 @@
                     :class="[
                       'rounded-xl px-2 py-2.5 text-xs font-semibold shadow-sm transition-all duration-150',
                       settings.defaultDuration === option.value
-                        ? 'bg-primary-200 text-white shadow-card'
-                        : 'bg-base-300 text-base-content-muted hover:text-base-content hover:shadow-card',
+                        ? 'bg-primary-200 text-white shadow-lg'
+                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-lg',
                     ]"
                     @click="setDefaultDuration(option.value)"
                   >
@@ -100,7 +100,7 @@
               </div>
             </div>
 
-            <p class="mt-5 text-center text-xs text-base-content-muted">
+            <p class="mt-5 text-center text-xs text-base-content/70">
               Settings are saved automatically
             </p>
           </div>

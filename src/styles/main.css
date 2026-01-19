@@ -10,10 +10,7 @@
   --color-base-100: oklch(0.94 0.005 250); /* chips */
   --color-base-200: oklch(0.97 0.005 250); /* page background */
   --color-base-300: oklch(1.0 0 0); /* cards/inputs - white */
-  
-  /* Text */
   --color-base-content: oklch(0.15 0.03 260);
-  --color-base-content-muted: oklch(0.50 0.03 250);
   
   /* Primary (royal blue, hue 273) */
   --color-primary-100: oklch(0.45 0.20 273);
@@ -37,21 +34,11 @@
   --color-danger: oklch(0.55 0.22 25);
   --color-success: oklch(0.55 0.18 145);
   
-  /* Medium priority (primary with lower saturation, ~50%) */
-  --color-primary-muted: oklch(0.55 0.11 273);
-  
-  /* Progress dots (neutral with opacity) */
-  --color-dot: oklch(0.40 0.02 250 / 0.40);
-  --color-dot-active: oklch(0.40 0.02 250 / 0.60);
-  --color-dot-overflow: oklch(0.40 0.02 250 / 0.20);
-  
-  /* Overlay (black with opacity only) */
-  --color-overlay: rgba(0, 0, 0, 0.5);
-  
   /* Shadows (black with opacity only) */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.08);
-  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.12);
   --shadow-primary-glow: 0 0 0 3px oklch(0.50 0.22 273 / 0.2);
 }
 
@@ -60,10 +47,7 @@
   --color-base-100: oklch(0.27 0.01 273); /* page background */
   --color-base-200: oklch(0.32 0.01 273); /* cards */
   --color-base-300: oklch(0.36 0.01 273); /* muted areas/inputs */
-  
-  /* Text */
   --color-base-content: oklch(0.97 0.005 250);
-  --color-base-content-muted: oklch(0.70 0.01 250);
   
   /* Primary (royal blue, hue 273) */
   --color-primary-100: oklch(0.45 0.20 273);
@@ -78,30 +62,20 @@
   --color-accent-content: oklch(1.0 0 0);
   
   /* Neutral (inverts between modes - stands out) */
-  --color-neutral-100: oklch(0.85 0.01 250); /* light gray in dark mode */
-  --color-neutral-200: oklch(0.80 0.01 250);
-  --color-neutral-300: oklch(0.75 0.01 250);
+  --color-neutral-100: oklch(0.92 0.01 250); /* light gray in dark mode */
+  --color-neutral-200: oklch(0.87 0.01 250);
+  --color-neutral-300: oklch(0.82 0.01 250);
   --color-neutral-content: oklch(0.18 0.02 250); /* dark text on light bg */
   
   /* Danger/Success */
   --color-danger: oklch(0.60 0.22 25);
   --color-success: oklch(0.70 0.18 145);
   
-  /* Medium priority (primary with lower saturation, ~50%) */
-  --color-primary-muted: oklch(0.60 0.12 273);
-  
-  /* Progress dots (neutral with opacity) */
-  --color-dot: oklch(0.80 0.01 250 / 0.30);
-  --color-dot-active: oklch(0.80 0.01 250 / 0.60);
-  --color-dot-overflow: oklch(0.80 0.01 250 / 0.20);
-  
-  /* Overlay (black with opacity only) */
-  --color-overlay: rgba(0, 0, 0, 0.6);
-  
   /* Shadows (black with opacity only) */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.5);
   --shadow-primary-glow: 0 0 0 3px oklch(0.5641 0.2402 273 / 0.25);
 }
 

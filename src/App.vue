@@ -36,11 +36,11 @@
           class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
           @click.self="closeAnsweredModal"
         >
-          <div class="w-full max-w-md rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
+          <div class="w-full max-w-md rounded-2xl bg-base-300 p-5 shadow-xl dark:bg-base-200">
             <header class="mb-4 flex items-center justify-between">
               <h4 class="m-0 text-base font-semibold">Answered prayer</h4>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
                 type="button"
                 @click="closeAnsweredModal"
               >
@@ -48,24 +48,24 @@
               </button>
             </header>
             <div class="grid gap-3">
-              <p class="text-sm text-base-content-muted">How did God answer your prayer?</p>
+              <p class="text-sm text-base-content/70">How did God answer your prayer?</p>
               <textarea
                 v-model="answeredModal.text"
                 rows="3"
                 placeholder="Describe how your prayer was answered..."
-                class="w-full rounded-xl bg-base-300 p-4 text-sm text-base-content placeholder:text-base-content-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+                class="w-full rounded-xl bg-base-300 p-4 text-sm text-base-content placeholder:text-base-content/70 shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
               ></textarea>
             </div>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
                 type="button"
                 @click="closeAnsweredModal"
               >
                 Cancel
               </button>
               <button
-                class="w-full rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card disabled:opacity-50"
+                class="w-full rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg disabled:opacity-50"
                 type="button"
                 :disabled="!answeredModal.text.trim()"
                 @click="saveAnsweredNote"

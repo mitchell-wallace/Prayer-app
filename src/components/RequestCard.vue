@@ -6,7 +6,7 @@
     <div class="relative flex-1 min-h-0 overflow-auto pb-8 -mx-3 px-3">
       <div class="absolute right-3 top-0" data-request-menu>
         <button
-          class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content-muted transition-colors duration-150 hover:text-base-content"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content/70 transition-colors duration-150 hover:text-base-content"
           type="button"
           @click="toggleRequestMenu"
           aria-label="Request options"
@@ -17,7 +17,7 @@
         </button>
         <div
           v-if="requestMenuOpen"
-          class="absolute right-0 top-full mt-1 w-32 rounded-xl bg-base-300 p-1 shadow-modal z-10 dark:bg-base-200"
+          class="absolute right-0 top-full mt-1 w-32 rounded-xl bg-base-300 p-1 shadow-xl z-10 dark:bg-base-200"
           role="menu"
         >
           <button
@@ -53,12 +53,12 @@
             {{ request.priority }}
           </span>
           <span
-            class="rounded-xl border border-base-100 bg-base-100 px-3 py-1 font-semibold text-base-content-muted dark:border-base-300 dark:bg-base-300"
+            class="rounded-xl border border-base-100 bg-base-100 px-3 py-1 font-semibold text-base-content/70 dark:border-base-300 dark:bg-base-300"
           >
             {{ expiryCopy }}
           </span>
           <span
-            class="rounded-xl border border-base-100 bg-base-100 px-3 py-1 font-semibold text-base-content-muted dark:border-base-300 dark:bg-base-300"
+            class="rounded-xl border border-base-100 bg-base-100 px-3 py-1 font-semibold text-base-content/70 dark:border-base-300 dark:bg-base-300"
           >
             Last {{ lastPrayed }}
           </span>
@@ -66,7 +66,7 @@
       </header>
 
       <div class="mt-6 grid gap-3">
-        <p class="text-xs font-medium uppercase tracking-wide text-base-content-muted">Notes</p>
+        <p class="text-xs font-medium uppercase tracking-wide text-base-content/70">Notes</p>
 
         <div v-if="noteFormOpen" class="grid gap-2" data-testid="note-form">
           <textarea
@@ -76,19 +76,19 @@
             rows="2"
             required
             placeholder="Capture the latest update"
-            class="w-full rounded-xl bg-base-300 p-3 text-sm text-base-content placeholder:text-base-content-muted shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
+            class="w-full rounded-xl bg-base-300 p-3 text-sm text-base-content placeholder:text-base-content/70 shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
             @keydown.enter.exact.prevent="submitNote"
           ></textarea>
           <div class="flex justify-end gap-2">
             <button
-              class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card dark:bg-base-200"
+              class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg dark:bg-base-200"
               type="button"
               @click="cancelNote"
             >
               Cancel
             </button>
             <button
-              class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card"
+              class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg"
               type="button"
               data-testid="note-submit"
               @click="submitNote"
@@ -108,7 +108,7 @@
           Add note
         </button>
 
-        <p v-if="!sortedNotes.length" class="m-0 text-sm text-base-content-muted">No notes</p>
+        <p v-if="!sortedNotes.length" class="m-0 text-sm text-base-content/70">No notes</p>
         <ol v-else class="grid gap-4 text-sm" role="list" data-testid="notes-list">
           <li
             v-for="note in sortedNotes"
@@ -116,11 +116,11 @@
             class="rounded-xl bg-base-300 p-3 shadow-sm"
             data-testid="note-item"
           >
-            <div class="flex items-start justify-between gap-2 text-xs text-base-content-muted">
+            <div class="flex items-start justify-between gap-2 text-xs text-base-content/70">
               <span>{{ formatTimestamp(note.createdAt) }}</span>
               <div class="relative" data-note-menu>
                 <button
-                  class="inline-flex h-6 w-6 items-center justify-center rounded-lg text-base-content-muted transition-all duration-150 hover:text-base-content hover:bg-base-300"
+                  class="inline-flex h-6 w-6 items-center justify-center rounded-lg text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-300"
                   type="button"
                   @click="toggleNoteMenu(note.id)"
                   aria-label="Note options"
@@ -131,7 +131,7 @@
                 </button>
                 <div
                   v-if="noteMenuOpen === note.id"
-                  class="absolute right-0 top-full mt-1 w-28 rounded-xl bg-base-300 p-1 shadow-modal z-10 dark:bg-base-200"
+                  class="absolute right-0 top-full mt-1 w-28 rounded-xl bg-base-300 p-1 shadow-xl z-10 dark:bg-base-200"
                   role="menu"
                 >
                   <button
@@ -159,7 +159,7 @@
                 rows="2"
                 class="w-full rounded-xl bg-base-300 p-3 text-sm text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
               ></textarea>
-              <div v-if="editingNote.isAnswer" class="flex items-center gap-2 text-[11px] uppercase tracking-wide text-base-content-muted">
+              <div v-if="editingNote.isAnswer" class="flex items-center gap-2 text-[11px] uppercase tracking-wide text-base-content/70">
                 <span class="inline-flex h-2 w-2 rounded-full bg-neutral-200"></span>
                 Answered note
               </div>
@@ -173,14 +173,14 @@
                 </button>
                 <div class="flex gap-2">
                   <button
-                    class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card dark:bg-base-200"
+                    class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg dark:bg-base-200"
                     type="button"
                     @click="editingNote = null"
                   >
                     Cancel
                   </button>
                   <button
-                    class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card"
+                    class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg"
                     type="button"
                     @click="saveNoteEdit(note)"
                   >
@@ -192,7 +192,7 @@
             <div v-else class="mt-2 flex items-start gap-2 text-sm leading-relaxed">
               <span
                 v-if="note.isAnswer"
-                class="mt-[3px] inline-flex items-center rounded-lg border border-base-100 bg-base-100/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-base-content-muted dark:border-base-300 dark:bg-base-300/50"
+                class="mt-[3px] inline-flex items-center rounded-lg border border-base-100 bg-base-100/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-base-content/70 dark:border-base-300 dark:bg-base-300/50"
               >
                 Answered
               </span>
@@ -214,7 +214,7 @@
           Answered
         </button>
         <button
-          class="h-12 rounded-xl bg-primary-200 px-4 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-card"
+          class="h-12 rounded-xl bg-primary-200 px-4 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg"
           type="button"
           data-testid="pray-button"
           @click="emit('pray', request)"
@@ -231,11 +231,11 @@
           class="fixed inset-0 z-40 grid place-items-center bg-black/60 p-4"
           @click.self="closeEditing"
         >
-          <div class="w-full max-w-lg rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
+          <div class="w-full max-w-lg rounded-2xl bg-base-300 p-5 shadow-xl dark:bg-base-200">
             <header class="mb-4 flex items-center justify-between">
               <h4 class="m-0 text-base font-semibold">Edit request</h4>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
                 type="button"
                 @click="closeEditing"
               >
@@ -244,7 +244,7 @@
             </header>
             <div class="grid gap-4">
               <label class="grid gap-1.5 text-sm font-semibold">
-                <span class="text-base-content-muted">Title</span>
+                <span class="text-base-content/70">Title</span>
                 <input
                   v-model="editForm.title"
                   required
@@ -253,7 +253,7 @@
               </label>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label class="grid gap-1.5 text-sm font-semibold">
-                  <span class="text-base-content-muted">Priority</span>
+                  <span class="text-base-content/70">Priority</span>
                   <select
                     v-model="editForm.priority"
                     class="w-full rounded-xl bg-base-300 px-4 py-3 text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
@@ -265,7 +265,7 @@
                   </select>
                 </label>
                 <label class="grid gap-1.5 text-sm font-semibold">
-                  <span class="text-base-content-muted">Duration</span>
+                  <span class="text-base-content/70">Duration</span>
                   <select
                     v-model="editForm.durationPreset"
                     class="w-full rounded-xl bg-base-300 px-4 py-3 text-base-content shadow-sm transition-shadow duration-150 focus:outline-none focus:shadow-primary-glow"
@@ -281,14 +281,14 @@
             </div>
             <div class="mt-5 flex justify-end gap-2">
               <button
-                class="rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+                class="rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
                 type="button"
                 @click="closeEditing"
               >
                 Cancel
               </button>
               <button
-                class="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-card"
+                class="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-lg"
                 type="button"
                 @click="saveEdit"
               >
@@ -308,23 +308,23 @@
           class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="cancelDeleteNote"
         >
-          <div class="w-full max-w-sm rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
+          <div class="w-full max-w-sm rounded-2xl bg-base-300 p-5 shadow-xl dark:bg-base-200">
             <header class="mb-3">
               <h4 class="m-0 text-base font-semibold">Delete note?</h4>
             </header>
-            <p class="text-sm text-base-content-muted">
+            <p class="text-sm text-base-content/70">
               Are you sure you want to delete this note? This action cannot be undone.
             </p>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
                 type="button"
                 @click="cancelDeleteNote"
               >
                 Cancel
               </button>
               <button
-                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:opacity-90 hover:shadow-card"
+                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:opacity-90 hover:shadow-lg"
                 type="button"
                 @click="confirmDeleteNote"
               >
@@ -344,23 +344,23 @@
           class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
           @click.self="cancelDeleteRequest"
         >
-          <div class="w-full max-w-sm rounded-2xl bg-base-300 p-5 shadow-modal dark:bg-base-200">
+          <div class="w-full max-w-sm rounded-2xl bg-base-300 p-5 shadow-xl dark:bg-base-200">
             <header class="mb-3">
               <h4 class="m-0 text-base font-semibold">Delete prayer request?</h4>
             </header>
-            <p class="text-sm text-base-content-muted">
+            <p class="text-sm text-base-content/70">
               Are you sure you want to delete this prayer request and all its notes? This action cannot be undone.
             </p>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content-muted shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-card"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
                 type="button"
                 @click="cancelDeleteRequest"
               >
                 Cancel
               </button>
               <button
-                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:opacity-90 hover:shadow-card"
+                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:opacity-90 hover:shadow-lg"
                 type="button"
                 @click="confirmDeleteRequest"
               >
@@ -397,8 +397,8 @@ const emit = defineEmits<{
 const priorityClasses: Record<Priority, string> = {
   urgent: 'border-accent-200/50 bg-accent-200/12 text-accent-300',
   high: 'border-primary-200/50 bg-primary-200/12 text-primary-300',
-  medium: 'border-primary-muted/50 bg-primary-muted/12 text-primary-muted',
-  low: 'border-base-100 bg-base-100/70 text-base-content-muted dark:border-base-300 dark:bg-base-300/50',
+  medium: 'border-primary-200/70 bg-primary-200/12 text-primary-200/70',
+  low: 'border-base-100 bg-base-100/70 text-base-content/70 dark:border-base-300 dark:bg-base-300/50',
 };
 
 const editing = ref<boolean>(false);

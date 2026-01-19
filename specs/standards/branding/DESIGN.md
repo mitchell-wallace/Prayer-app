@@ -19,11 +19,12 @@ All colors use **OKLCH format** for perceptual uniformity. Exceptions:
 
 | Token | Purpose | Light Mode | Dark Mode |
 |-------|---------|------------|-----------|
-| `base-100` | Page background | `oklch(0.97 0.005 250)` | `oklch(0.15 0.01 273)` |
-| `base-200` | Cards, elevated surfaces | `oklch(1.0 0 0)` | `oklch(0.20 0.01 273)` |
-| `base-300` | Muted areas, inputs | `oklch(0.96 0.005 250)` | `oklch(0.24 0.01 273)` |
+| `base-100` | Chips, smallest surfaces | `oklch(0.94 0.005 250)` | `oklch(0.27 0.01 273)` |
+| `base-200` | Page background | `oklch(0.97 0.005 250)` | `oklch(0.32 0.01 273)` |
+| `base-300` | Cards, inputs, notes | `oklch(1.0 0 0)` | `oklch(0.36 0.01 273)` |
 | `base-content` | Primary text | `oklch(0.15 0.03 260)` | `oklch(0.97 0.005 250)` |
-| `base-content-muted` | Secondary text | `oklch(0.50 0.03 250)` | `oklch(0.70 0.01 250)` |
+
+Muted text uses `base-content` with opacity (e.g. `text-base-content/70`).
 
 ### Primary Colors (Royal Blue, Hue 273)
 
@@ -73,10 +74,8 @@ Priority badges use color tokens directly with opacity modifiers:
 |----------|--------|------------|------|
 | Urgent | `border-accent-200/50` | `bg-accent-200/12` | `text-accent-300` |
 | High | `border-primary-200/50` | `bg-primary-200/12` | `text-primary-300` |
-| Medium | `border-primary-muted/50` | `bg-primary-muted/12` | `text-primary-muted` |
-| Low | `border-base-300` | `bg-base-300/50` | `text-base-content-muted` |
-
-The `primary-muted` token is a lower-saturation variant (~50% chroma) of primary for medium priority.
+| Medium | `border-primary-200/70` | `bg-primary-200/12` | `text-primary-200/70` |
+| Low | `border-base-100` | `bg-base-100/70` | `text-base-content/70` |
 
 ## Naming Conventions
 
@@ -91,7 +90,7 @@ The `primary-muted` token is a lower-saturation variant (~50% chroma) of primary
 ### Examples
 ```html
 <!-- Note cards: different hierarchy per mode -->
-<div class="bg-base-100 dark:bg-base-300">
+<div class="bg-base-300">
 
 <!-- Answered button: uses neutral -->
 <button class="bg-neutral-100 text-neutral-content hover:bg-neutral-200">
@@ -124,8 +123,9 @@ The `primary-muted` token is a lower-saturation variant (~50% chroma) of primary
 | Token | Usage |
 |-------|-------|
 | `shadow-sm` | Subtle elevation for note cards, buttons |
-| `shadow-card` | Primary card elevation, hover states |
-| `shadow-modal` | Strong elevation for modals, dropdowns |
+| `shadow-md` | Medium elevation (16px spread) |
+| `shadow-lg` | Primary card elevation, hover states |
+| `shadow-xl` | Strong elevation for modals, dropdowns |
 | `shadow-primary-glow` | Focus ring using primary color |
 
 Cards and modals use shadows for depth rather than visible borders.
@@ -201,25 +201,25 @@ Cards and modals use shadows for depth rather than visible borders.
 - Border radius: `rounded-xl`
 
 ### Cards
-- Elevated with `shadow-sm` or `shadow-card`
-- Background: `bg-base-200`
+- Elevated with `shadow-sm` or `shadow-lg`
+- Background: `bg-base-300`
 - Border radius: `rounded-2xl`
 
 ### Note Cards
-- Background: `bg-base-100 dark:bg-base-300`
+- Background: `bg-base-300`
 - Shadow: `shadow-sm`
 - Uses different tiers per mode for visual hierarchy
 
 ### Modals
-- Strong shadow: `shadow-modal`
+- Strong shadow: `shadow-xl`
 - Overlay: `bg-black/60`
-- Background: `bg-base-200`
+- Background: `bg-base-300`
 - Border radius: `rounded-2xl`
 
 ### Progress Indicator
 - Maximum 5 large dots visible
-- Uses neutral color with opacity scaling:
+- Uses neutral color with inline opacity:
   - Active: `bg-neutral-200/60`
-  - Inactive: `bg-neutral-200/30`
-  - Overflow: `bg-neutral-200/20`
+- Inactive: `bg-neutral-200/40`
+- Overflow: `bg-neutral-200/40`
 - Loop points use primary color tints
