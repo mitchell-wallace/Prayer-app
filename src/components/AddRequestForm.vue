@@ -6,10 +6,9 @@
           <button
             type="button"
             data-testid="priority-toggle"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-base-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-lg dark:bg-base-200"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-base-300 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-lg dark:bg-base-200"
             @click="togglePriority"
-            @mousedown.prevent
-            @touchstart.prevent
+            @pointerdown.prevent
             aria-haspopup="listbox"
             :aria-expanded="priorityOpen"
           >
@@ -29,8 +28,7 @@
                   form.priority === option.value ? 'bg-primary-200/10 text-primary-200' : '',
                 ]"
                 @click="selectPriority(option.value)"
-                @mousedown.prevent
-                @touchstart.prevent
+                @pointerdown.prevent
               >
                 {{ option.label }}
               </button>
@@ -42,10 +40,9 @@
           <button
             type="button"
             data-testid="duration-toggle"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-base-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-lg dark:bg-base-200"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-base-300 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-lg dark:bg-base-200"
             @click="toggleDuration"
-            @mousedown.prevent
-            @touchstart.prevent
+            @pointerdown.prevent
             aria-haspopup="listbox"
             :aria-expanded="durationOpen"
           >
@@ -65,8 +62,7 @@
                   form.durationPreset === option.value ? 'bg-primary-200/10 text-primary-200' : '',
                 ]"
                 @click="selectDuration(option.value)"
-                @mousedown.prevent
-                @touchstart.prevent
+                @pointerdown.prevent
               >
                 {{ option.label }}
               </button>

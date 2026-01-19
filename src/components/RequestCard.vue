@@ -288,7 +288,7 @@
                 Cancel
               </button>
               <button
-                class="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-lg"
+                class="rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg"
                 type="button"
                 @click="saveEdit"
               >
