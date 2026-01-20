@@ -23,6 +23,7 @@ export const DEFAULT_QUEUE_CONFIG = {
     medium: 2,
     low: 1,
   },
+  newCardBoost: 1,
 };
 
 export function buildInterleaveDeck(weights, priorityOrder) {
@@ -50,9 +51,13 @@ export function computeRecencyScale(daysSince, recoveryDays, { recencyMin, recen
 
 export function computeScore(request, now, config = DEFAULT_QUEUE_CONFIG) {
   const lastPrayedAt = request.prayedAt?.length ? Math.max(...request.prayedAt) : null;
+  const hasHistory = lastPrayedAt !== null;
   const daysSince = computeDaysSince(lastPrayedAt, now);
-  const recency = computeRecencyScale(daysSince, config.recoveryDays[request.priority], config);
-  return (config.priorityWeights[request.priority] || 0) * recency;
+  const recency = hasHistory
+    ? computeRecencyScale(daysSince, config.recoveryDays[request.priority], config)
+    : config.recencyMax;
+  const newCardBoost = hasHistory ? 1 : config.newCardBoost || 1;
+  return (config.priorityWeights[request.priority] || 0) * recency * newCardBoost;
 }
 
 function buildBucketItem(request, now, config) {

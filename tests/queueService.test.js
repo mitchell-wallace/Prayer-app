@@ -80,3 +80,17 @@ test('orders higher-recency urgent requests ahead of very recent ones', () => {
   const first = queue.renderQueue.value[0]?.request.id;
   expect(first).toBe('old');
 });
+
+test('treats never-prayed requests as higher recency than yesterday', () => {
+  const now = Date.now();
+  const activeRequests = ref([
+    makeRequest({ id: 'never', priority: 'medium', prayedAt: [] }),
+    makeRequest({ id: 'yesterday', priority: 'medium', prayedAt: [now - MS_PER_DAY] }),
+  ]);
+
+  const queue = createQueueService(activeRequests, { now: () => Date.now() });
+  queue.resetFeed();
+
+  const first = queue.renderQueue.value[0]?.request.id;
+  expect(first).toBe('never');
+});
