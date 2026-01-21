@@ -1,4 +1,4 @@
-import type { DurationPreset, Priority, Settings, Theme } from '../types';
+import type { DurationPreset, Priority, Settings, Theme } from '../core/types';
 
 export const settings: Settings;
 export function initThemeWatcher(): void;

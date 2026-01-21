@@ -1,14 +1,14 @@
-import { computed, ref } from 'vue';
 import type { Ref } from 'vue';
-import type { PrayerRequest, ProgressDot, QueueItem } from '../types';
+import { computed, ref } from 'vue';
 import {
-  DEFAULT_QUEUE_CONFIG,
   type CycleState,
-  type QueueConfig,
   createCycleState,
+  DEFAULT_QUEUE_CONFIG,
   pickNextFromCycle,
+  type QueueConfig,
   removeFromCycle,
-} from './queueAlgorithm.ts';
+} from '../core/queueAlgorithm';
+import type { PrayerRequest, ProgressDot, QueueItem } from '../core/types';
 
 const PAGE_SIZE = 6;
 const MAX_RENDER_QUEUE_SIZE = 36;
@@ -253,7 +253,6 @@ export function createQueueService(
     nextIndex = Math.max(0, Math.min(nextIndex, newQueue.length - 1));
 
     if (autoAdvance && wasCurrentRemoved && newQueue.length > 1) {
-      // Keep the same index; no additional increment needed.
     }
 
     currentIndex.value = nextIndex;

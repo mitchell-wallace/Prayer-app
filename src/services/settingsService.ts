@@ -1,9 +1,9 @@
+import type { DurationPreset, Priority, Theme } from '../core/types';
 import {
-  settings,
   initThemeWatcher as initThemeWatcherInternal,
   resetSettings as resetSettingsInternal,
-} from '../settings.ts';
-import type { DurationPreset, Priority, Theme } from '../types';
+  settings,
+} from '../stores/settings';
 
 const allowedThemes = new Set<Theme>(['light', 'dark', 'system']);
 const allowedPriorities = new Set<Priority>(['urgent', 'high', 'medium', 'low']);
