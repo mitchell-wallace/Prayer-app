@@ -1,4 +1,4 @@
-import type { Settings } from './types';
+import type { Settings } from '../core/types';
 
 export const settings: Settings;
 export function initThemeWatcher(): void;

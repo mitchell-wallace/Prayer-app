@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue';
-import type { InfoStats, Note, PrayerRequest, ProgressDot, QueueItem } from '../types';
+import type { InfoStats, Note, PrayerRequest, ProgressDot, QueueItem } from '../core/types';
 
 export interface RequestsStore {
   requests: Ref<PrayerRequest[]>;

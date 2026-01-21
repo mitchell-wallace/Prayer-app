@@ -1,17 +1,17 @@
 import { computed, ref } from 'vue';
+import type { CreateRequestPayload, InfoStats, Note, PrayerRequest } from '../core/types';
+import { createQueueService } from '../services/queueService';
 import {
+  initRequests,
   addNote as serviceAddNote,
   createRequest as serviceCreateRequest,
   deleteNote as serviceDeleteNote,
   deleteRequest as serviceDeleteRequest,
   editNote as serviceEditNote,
-  initRequests,
   markAnswered as serviceMarkAnswered,
   recordPrayer as serviceRecordPrayer,
   updateRequest as serviceUpdateRequest,
-} from '../app/requestsService.ts';
-import { createQueueService } from '../app/queueService.ts';
-import type { CreateRequestPayload, InfoStats, Note, PrayerRequest } from '../types';
+} from '../services/requestsService';
 
 const requests = ref<PrayerRequest[]>([]);
 const loading = ref<boolean>(true);
