@@ -1,8 +1,8 @@
 import { del, get, set } from 'idb-keyval';
 import type { Database, SqlValue } from 'sql.js';
-import { openDatabase } from './sqljs.ts';
-import { computeExpiry } from './utils/time';
-import type { DurationPreset, Note, PrayerRequest, Priority, RequestStatus } from './types';
+import type { DurationPreset, Note, PrayerRequest, Priority, RequestStatus } from '../core/types';
+import { computeExpiry } from '../formatting/time';
+import { openDatabase } from './sqljs';
 
 const STORAGE_KEY = 'prayer-sql-db';
 let dbInstance: Database | null = null;

@@ -1,4 +1,4 @@
-import type { PrayerRequest } from './types';
+import type { PrayerRequest } from '../core/types';
 
 export function initDb(): Promise<unknown>;
 export function fetchAllRequests(): Promise<PrayerRequest[]>;

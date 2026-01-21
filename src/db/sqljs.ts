@@ -1,5 +1,5 @@
-import initSqlJs from 'sql.js';
 import type { Database, SqlJsConfig, SqlJsStatic } from 'sql.js';
+import initSqlJs from 'sql.js';
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 
 let sqlInstance: SqlJsStatic | null = null;
