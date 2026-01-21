@@ -84,18 +84,18 @@
 <script setup lang="ts">
 import { Teleport, Transition, onMounted, reactive, ref } from 'vue';
 import { IconX } from '@tabler/icons-vue';
-import AppFooter from './components/AppFooter.vue';
-import AppHeader from './components/AppHeader.vue';
-import Content from './components/Content.vue';
-import { useRequestsStore } from './stores/requestsStore.ts';
-import { initThemeWatcher } from './app/settingsService.ts';
+import AppFooter from './components/layout/AppFooter.vue';
+import AppHeader from './components/layout/AppHeader.vue';
+import Content from './components/layout/Content.vue';
+import { useRequestsStore } from './stores/requestsStore';
+import { initThemeWatcher } from './services/settingsService';
+import { useSwipeGesture } from './composables/useSwipeGesture';
 import type {
   AnsweredModalState,
   CreateRequestPayload,
   Note,
   PrayerRequest,
-  TouchCoords,
-} from './types';
+} from './core/types';
 
 // Initialize theme watcher
 initThemeWatcher();
@@ -114,9 +114,17 @@ const {
   init,
 } = store;
 
-const touchStart = ref<TouchCoords | null>(null);
 const slideDirection = ref<string>('card-slide-left');
 const answeredModal = reactive<AnsweredModalState>({ open: false, request: null, text: '' });
+
+const { handleTouchStart, handleTouchEnd } = useSwipeGesture({
+  onSwipeLeft: () => {
+    goNextCard();
+  },
+  onSwipeRight: () => {
+    goPreviousCard();
+  },
+});
 
 onMounted(async () => {
   await init();
@@ -183,25 +191,5 @@ function goPreviousCard(): void {
   if (!canGoPrevious.value) return;
   slideDirection.value = 'card-slide-right';
   store.previousCard();
-}
-
-
-function handleTouchStart(event: TouchEvent): void {
-  const touch = event.changedTouches[0];
-  touchStart.value = { x: touch.clientX, y: touch.clientY };
-}
-
-function handleTouchEnd(event: TouchEvent): void {
-  if (!touchStart.value) return;
-  const touch = event.changedTouches[0];
-  const dx = touch.clientX - touchStart.value.x;
-  const dy = touch.clientY - touchStart.value.y;
-  touchStart.value = null;
-  if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
-  if (dx < 0) {
-    goNextCard();
-  } else {
-    goPreviousCard();
-  }
 }
 </script>
