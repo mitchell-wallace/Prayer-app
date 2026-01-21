@@ -1,15 +1,18 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { ref } from 'vue';
-import { createQueueService } from '../src/app/queueService.js';
+import { createQueueService } from '../src/app/queueService.ts';
+import type { PrayerRequest, Priority } from '../src/types';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-function makeRequest({
-  id,
-  priority = 'urgent',
-  createdAt,
-  prayedAt = [],
-} = {}) {
+type RequestSeed = {
+  id: string;
+  priority?: Priority;
+  createdAt?: number;
+  prayedAt?: number[];
+};
+
+function makeRequest({ id, priority = 'urgent', createdAt, prayedAt = [] }: RequestSeed): PrayerRequest {
   const baseTime = createdAt ?? Date.now();
   return {
     id,

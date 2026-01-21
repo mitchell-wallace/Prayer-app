@@ -9,20 +9,21 @@ import {
   markAnswered as serviceMarkAnswered,
   recordPrayer as serviceRecordPrayer,
   updateRequest as serviceUpdateRequest,
-} from '../app/requestsService.js';
-import { createQueueService } from '../app/queueService.js';
+} from '../app/requestsService.ts';
+import { createQueueService } from '../app/queueService.ts';
+import type { CreateRequestPayload, InfoStats, Note, PrayerRequest } from '../types';
 
-const requests = ref([]);
-const loading = ref(true);
+const requests = ref<PrayerRequest[]>([]);
+const loading = ref<boolean>(true);
 
-const activeRequests = computed(() => requests.value.filter((r) => r.status === 'active'));
+const activeRequests = computed<PrayerRequest[]>(() => requests.value.filter((r) => r.status === 'active'));
 
-const answeredRequests = computed(() => requests.value.filter((r) => r.status === 'answered'));
+const answeredRequests = computed<PrayerRequest[]>(() => requests.value.filter((r) => r.status === 'answered'));
 
 const queue = createQueueService(activeRequests);
 const { renderQueue, currentIndex, currentItem, progressDots, cycleCount, canGoPrevious, canGoNext } = queue;
 
-const infoStats = computed(() => ({
+const infoStats = computed<InfoStats>(() => ({
   active: activeRequests.value.length,
   answered: answeredRequests.value.length,
   queued: renderQueue.value.length,
@@ -30,7 +31,7 @@ const infoStats = computed(() => ({
   currentRequest: currentItem.value?.request || null,
 }));
 
-function replaceRequest(updated) {
+function replaceRequest(updated: PrayerRequest): void {
   const idx = requests.value.findIndex((r) => r.id === updated.id);
   if (idx !== -1) {
     requests.value.splice(idx, 1, updated);
@@ -40,45 +41,45 @@ function replaceRequest(updated) {
   );
 }
 
-async function init() {
+async function init(): Promise<void> {
   requests.value = await initRequests();
   loading.value = false;
   queue.resetFeed();
 }
 
-async function createRequest(payload) {
+async function createRequest(payload: CreateRequestPayload): Promise<void> {
   const record = await serviceCreateRequest(payload);
   requests.value = [record, ...requests.value];
   queue.insertRequest(record);
 }
 
-async function recordPrayer(request) {
+async function recordPrayer(request: PrayerRequest): Promise<PrayerRequest> {
   const updated = await serviceRecordPrayer(request);
   replaceRequest(updated);
   return updated;
 }
 
-async function updateRequest(request) {
+async function updateRequest(request: PrayerRequest): Promise<void> {
   const updated = await serviceUpdateRequest(request);
   replaceRequest(updated);
 }
 
-async function addNote({ request, text }) {
+async function addNote({ request, text }: { request: PrayerRequest; text: string }): Promise<void> {
   const updated = await serviceAddNote({ request, text });
   replaceRequest(updated);
 }
 
-async function editNote({ request, note }) {
+async function editNote({ request, note }: { request: PrayerRequest; note: Note }): Promise<void> {
   const updated = await serviceEditNote({ request, note });
   replaceRequest(updated);
 }
 
-async function deleteNote({ request, note }) {
+async function deleteNote({ request, note }: { request: PrayerRequest; note: Note }): Promise<void> {
   const updated = await serviceDeleteNote({ request, note });
   replaceRequest(updated);
 }
 
-async function deleteRequest(request) {
+async function deleteRequest(request: PrayerRequest): Promise<void> {
   await serviceDeleteRequest(request.id);
   requests.value = requests.value.filter((r) => r.id !== request.id);
   queue.removeRequestFromQueue(request.id, { autoAdvance: true });
@@ -87,7 +88,7 @@ async function deleteRequest(request) {
   }
 }
 
-async function markAnswered({ request, text }) {
+async function markAnswered({ request, text }: { request: PrayerRequest; text: string }): Promise<PrayerRequest> {
   const updated = await serviceMarkAnswered({ request, text });
   replaceRequest(updated);
   queue.removeRequestFromQueue(updated.id, { autoAdvance: true });

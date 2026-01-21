@@ -87,8 +87,8 @@ import { IconX } from '@tabler/icons-vue';
 import AppFooter from './components/AppFooter.vue';
 import AppHeader from './components/AppHeader.vue';
 import Content from './components/Content.vue';
-import { useRequestsStore } from './stores/requestsStore.js';
-import { initThemeWatcher } from './app/settingsService.js';
+import { useRequestsStore } from './stores/requestsStore.ts';
+import { initThemeWatcher } from './app/settingsService.ts';
 import type {
   AnsweredModalState,
   CreateRequestPayload,

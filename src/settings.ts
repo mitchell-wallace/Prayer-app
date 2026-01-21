@@ -1,18 +1,22 @@
 import { reactive, watch, watchEffect } from 'vue';
+import type { Settings, Theme } from './types';
 
 const STORAGE_KEY = 'prayer-app-settings';
 
-const defaults = {
+const defaults: Settings = {
   theme: 'system', // 'light', 'dark', 'system'
   defaultPriority: 'medium',
   defaultDuration: '6m',
 };
 
-function loadSettings() {
+function loadSettings(): Settings {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return { ...defaults, ...JSON.parse(stored) };
+      const parsed: unknown = JSON.parse(stored);
+      if (typeof parsed === 'object' && parsed) {
+        return { ...defaults, ...(parsed as Partial<Settings>) };
+      }
     }
   } catch (e) {
     console.warn('Failed to load settings from localStorage', e);
@@ -20,7 +24,7 @@ function loadSettings() {
   return { ...defaults };
 }
 
-export const settings = reactive(loadSettings());
+export const settings = reactive<Settings>(loadSettings());
 
 // Persist settings on change
 watch(
@@ -36,7 +40,7 @@ watch(
 );
 
 // Apply theme to document
-function applyTheme(theme) {
+function applyTheme(theme: Theme): void {
   const root = document.documentElement;
 
   if (theme === 'system') {
@@ -48,7 +52,7 @@ function applyTheme(theme) {
 }
 
 // Watch for theme changes and apply
-export function initThemeWatcher() {
+export function initThemeWatcher(): void {
   // Initial application
   applyTheme(settings.theme);
 
@@ -66,6 +70,6 @@ export function initThemeWatcher() {
   });
 }
 
-export function resetSettings() {
+export function resetSettings(): void {
   Object.assign(settings, defaults);
 }

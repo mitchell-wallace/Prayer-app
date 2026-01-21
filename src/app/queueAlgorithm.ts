@@ -1,6 +1,35 @@
+import type { PrayerRequest, Priority } from '../types';
+
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-export const DEFAULT_QUEUE_CONFIG = {
+export type QueueConfig = {
+  priorityOrder: Priority[];
+  priorityWeights: Record<Priority, number>;
+  recoveryDays: Record<Priority, number>;
+  recencyMin: number;
+  recencyMax: number;
+  interleaveWindow: number;
+  interleaveWeights: Record<Priority, number>;
+  newCardBoost: number;
+};
+
+type BucketItem = {
+  request: PrayerRequest;
+  score: number;
+  lastPrayedAt: number;
+  createdAt: number;
+};
+
+export type CycleState = {
+  buckets: Record<Priority, BucketItem[]>;
+  remaining: number;
+  deck: Priority[];
+  deckIndex: number;
+  priorityOrder: Priority[];
+  interleaveWindow: number;
+};
+
+export const DEFAULT_QUEUE_CONFIG: QueueConfig = {
   priorityOrder: ['urgent', 'high', 'medium', 'low'],
   priorityWeights: {
     urgent: 100,
@@ -26,8 +55,8 @@ export const DEFAULT_QUEUE_CONFIG = {
   newCardBoost: 1,
 };
 
-export function buildInterleaveDeck(weights, priorityOrder) {
-  const deck = [];
+export function buildInterleaveDeck(weights: Record<Priority, number>, priorityOrder: Priority[]): Priority[] {
+  const deck: Priority[] = [];
   for (const priority of priorityOrder) {
     const count = Math.max(0, Math.floor(weights[priority] || 0));
     for (let i = 0; i < count; i += 1) {
@@ -37,30 +66,34 @@ export function buildInterleaveDeck(weights, priorityOrder) {
   return deck.length ? deck : [...priorityOrder];
 }
 
-export function computeDaysSince(lastPrayedAt, now) {
+export function computeDaysSince(lastPrayedAt: number | null | undefined, now: number): number {
   if (lastPrayedAt === null || lastPrayedAt === undefined) return 0;
   return Math.max(0, (now - lastPrayedAt) / MS_PER_DAY);
 }
 
-export function computeRecencyScale(daysSince, recoveryDays, { recencyMin, recencyMax }) {
+export function computeRecencyScale(
+  daysSince: number,
+  recoveryDays: number,
+  { recencyMin, recencyMax }: Pick<QueueConfig, 'recencyMin' | 'recencyMax'>
+): number {
   if (!recoveryDays || recoveryDays <= 0) return recencyMax;
   const cap = recoveryDays * 2;
   const ratio = Math.min(daysSince, cap) / cap;
   return recencyMin + ratio * (recencyMax - recencyMin);
 }
 
-export function computeScore(request, now, config = DEFAULT_QUEUE_CONFIG) {
+export function computeScore(request: PrayerRequest, now: number, config: QueueConfig = DEFAULT_QUEUE_CONFIG): number {
   const lastPrayedAt = request.prayedAt?.length ? Math.max(...request.prayedAt) : null;
   const hasHistory = lastPrayedAt !== null;
   const daysSince = computeDaysSince(lastPrayedAt, now);
   const recency = hasHistory
     ? computeRecencyScale(daysSince, config.recoveryDays[request.priority], config)
     : config.recencyMax;
-  const newCardBoost = hasHistory ? 1 : config.newCardBoost || 1;
+  const newCardBoost = hasHistory ? 1 : config.newCardBoost;
   return (config.priorityWeights[request.priority] || 0) * recency * newCardBoost;
 }
 
-function buildBucketItem(request, now, config) {
+function buildBucketItem(request: PrayerRequest, now: number, config: QueueConfig): BucketItem {
   return {
     request,
     score: computeScore(request, now, config),
@@ -69,7 +102,7 @@ function buildBucketItem(request, now, config) {
   };
 }
 
-function sortBucket(bucket) {
+function sortBucket(bucket: BucketItem[]): void {
   bucket.sort((a, b) => {
     if (a.score !== b.score) return a.score - b.score;
     if (a.lastPrayedAt !== b.lastPrayedAt) return b.lastPrayedAt - a.lastPrayedAt;
@@ -77,11 +110,11 @@ function sortBucket(bucket) {
   });
 }
 
-function bucketTopScore(bucket) {
+function bucketTopScore(bucket: BucketItem[]): number | null {
   return bucket.length ? bucket[bucket.length - 1].score : null;
 }
 
-function pickPriorityFromDeck(state, eligible) {
+function pickPriorityFromDeck(state: CycleState, eligible: Set<Priority>): Priority | null {
   const deck = state.deck;
   if (!deck.length) return null;
   for (let i = 0; i < deck.length; i += 1) {
@@ -95,8 +128,8 @@ function pickPriorityFromDeck(state, eligible) {
   return null;
 }
 
-function selectNextPriority(state) {
-  const scored = [];
+function selectNextPriority(state: CycleState): Priority | null {
+  const scored: Array<{ priority: Priority; score: number }> = [];
   for (const priority of state.priorityOrder) {
     const score = bucketTopScore(state.buckets[priority]);
     if (score !== null) scored.push({ priority, score });
@@ -124,9 +157,17 @@ function selectNextPriority(state) {
   return bestPriority;
 }
 
-export function createCycleState(requests, { now = Date.now(), config = DEFAULT_QUEUE_CONFIG } = {}) {
+export function createCycleState(
+  requests: PrayerRequest[],
+  { now = Date.now(), config = DEFAULT_QUEUE_CONFIG }: { now?: number; config?: QueueConfig } = {}
+): CycleState {
   const priorityOrder = config.priorityOrder || DEFAULT_QUEUE_CONFIG.priorityOrder;
-  const buckets = {};
+  const buckets: Record<Priority, BucketItem[]> = {
+    urgent: [],
+    high: [],
+    medium: [],
+    low: [],
+  };
   let remaining = 0;
 
   for (const priority of priorityOrder) {
@@ -153,7 +194,7 @@ export function createCycleState(requests, { now = Date.now(), config = DEFAULT_
   };
 }
 
-export function pickNextFromCycle(state) {
+export function pickNextFromCycle(state: CycleState | null): PrayerRequest | null {
   if (!state || state.remaining <= 0) return null;
   const priority = selectNextPriority(state);
   if (!priority) return null;
@@ -163,7 +204,7 @@ export function pickNextFromCycle(state) {
   return item.request;
 }
 
-export function removeFromCycle(state, requestId) {
+export function removeFromCycle(state: CycleState | null, requestId: string): void {
   if (!state) return;
   for (const priority of state.priorityOrder) {
     const bucket = state.buckets[priority];

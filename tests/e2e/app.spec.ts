@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 const transitionWaitMs = 250;
 
-async function clearStorage(page) {
+async function clearStorage(page: Page): Promise<void> {
   await page.evaluate(async () => {
     localStorage.clear();
     if (indexedDB?.databases) {
@@ -24,7 +25,7 @@ async function clearStorage(page) {
   });
 }
 
-async function waitForCard(page) {
+async function waitForCard(page: Page): Promise<void> {
   await page.getByTestId('request-title').first().waitFor();
 }
 

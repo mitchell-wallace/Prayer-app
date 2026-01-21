@@ -5,7 +5,7 @@ export type Priority = 'urgent' | 'high' | 'medium' | 'low';
 export type DurationPreset = '10d' | '1m' | '3m' | '6m' | '1y';
 
 /** Status of a prayer request */
-export type RequestStatus = 'active' | 'answered';
+export type RequestStatus = 'active' | 'answered' | 'archived';
 
 /** Theme options for the application */
 export type Theme = 'light' | 'dark' | 'system';
@@ -15,6 +15,7 @@ export interface Note {
   id: string;
   text: string;
   createdAt: number;
+  updatedAt?: number;
   isAnswer?: boolean;
 }
 

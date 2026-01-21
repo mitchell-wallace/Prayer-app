@@ -113,7 +113,7 @@
 <script setup lang="ts">
 import { ref, Teleport, Transition } from 'vue';
 import { IconSettings, IconX } from '@tabler/icons-vue';
-import { settings, setDefaultDuration, setDefaultPriority, setTheme } from '../app/settingsService.js';
+import { settings, setDefaultDuration, setDefaultPriority, setTheme } from '../app/settingsService.ts';
 import type { DurationPreset, Priority, SelectOption, Theme } from '../types';
 
 const open = ref<boolean>(false);

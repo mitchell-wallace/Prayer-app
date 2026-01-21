@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test } from 'vitest';
-import { bootstrapSeed, clearDbCache, fetchAllRequests, resetDbForTests, saveRequest } from '../src/db.js';
-import { computeExpiry } from '../src/utils/time.js';
+import { bootstrapSeed, clearDbCache, fetchAllRequests, resetDbForTests, saveRequest } from '../src/db.ts';
+import { computeExpiry } from '../src/utils/time.ts';
+import type { PrayerRequest } from '../src/types';
 
 beforeEach(async () => {
   await resetDbForTests();
@@ -24,13 +25,13 @@ test('bootstrapSeed populates initial records only once', async () => {
 test('saveRequest writes and reloads data from persistent storage', async () => {
   await bootstrapSeed();
   const now = Date.now();
-  const newRequest = {
+  const newRequest: PrayerRequest = {
     id: 'test-id',
     title: 'SQL storage works',
     priority: 'high',
-    durationPreset: '1d',
+    durationPreset: '10d',
     createdAt: now,
-    expiresAt: computeExpiry(now, '1d'),
+    expiresAt: computeExpiry(now, '10d'),
     status: 'active',
     prayedAt: [],
     notes: [],
@@ -43,6 +44,9 @@ test('saveRequest writes and reloads data from persistent storage', async () => 
   const records = await fetchAllRequests();
   const saved = records.find((r) => r.id === 'test-id');
   expect(saved).toBeTruthy();
+  if (!saved) {
+    throw new Error('Expected saved request to exist.');
+  }
   expect(saved.title).toBe('SQL storage works');
   expect(saved.prayedAt).toEqual([]);
   expect(saved.notes).toEqual([]);

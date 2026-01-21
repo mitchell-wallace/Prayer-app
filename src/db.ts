@@ -1,35 +1,69 @@
 import { del, get, set } from 'idb-keyval';
-import { openDatabase } from './sqljs.js';
+import type { Database, SqlValue } from 'sql.js';
+import { openDatabase } from './sqljs.ts';
 import { computeExpiry } from './utils/time';
+import type { DurationPreset, Note, PrayerRequest, Priority, RequestStatus } from './types';
 
 const STORAGE_KEY = 'prayer-sql-db';
-let dbInstance = null;
+let dbInstance: Database | null = null;
 
 const SCHEMA_VERSION = 2;
 
-async function loadDbBytes() {
-  const buffer = await get(STORAGE_KEY);
-  return buffer ? new Uint8Array(buffer) : undefined;
+type BaseRequestRecord = Omit<PrayerRequest, 'notes' | 'prayedAt'> & {
+  notes?: Note[];
+  prayedAt?: number[];
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
-async function persistDb(db) {
+function toStringValue(value: SqlValue): string {
+  if (typeof value === 'string') return value;
+  if (value === null || value === undefined) return '';
+  return String(value);
+}
+
+function toNumberValue(value: SqlValue): number {
+  if (typeof value === 'number') return value;
+  if (value === null || value === undefined) return 0;
+  return Number(value);
+}
+
+function parseJsonArray(value: SqlValue): unknown[] {
+  if (typeof value !== 'string') return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+async function loadDbBytes(): Promise<Uint8Array | undefined> {
+  const buffer = await get<ArrayBuffer | Uint8Array | undefined>(STORAGE_KEY);
+  if (!buffer) return undefined;
+  return buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+}
+
+async function persistDb(db: Database): Promise<void> {
   const bytes = db.export();
   await set(STORAGE_KEY, bytes.buffer);
 }
 
-function tableExists(db, name) {
+function tableExists(db: Database, name: string): boolean {
   const result = db.exec(`SELECT name FROM sqlite_master WHERE type='table' AND name='${name}'`);
   return Boolean(result[0]?.values?.length);
 }
 
-function tableHasColumn(db, table, column) {
+function tableHasColumn(db: Database, table: string, column: string): boolean {
   if (!tableExists(db, table)) return false;
   const result = db.exec(`PRAGMA table_info(${table})`);
   const rows = result[0]?.values ?? [];
   return rows.some((row) => row[1] === column);
 }
 
-function getSchemaVersion(db) {
+function getSchemaVersion(db: Database): number {
   if (!tableExists(db, 'schema_version')) {
     return 1;
   }
@@ -37,13 +71,13 @@ function getSchemaVersion(db) {
   return Number(result[0]?.values?.[0]?.[0] ?? 1);
 }
 
-function setSchemaVersion(db, version) {
+function setSchemaVersion(db: Database, version: number): void {
   db.exec('CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)');
   db.exec('DELETE FROM schema_version');
   db.exec(`INSERT INTO schema_version (version) VALUES (${version})`);
 }
 
-function createSchemaV2(db) {
+function createSchemaV2(db: Database): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS requests (
       id TEXT PRIMARY KEY,
@@ -75,7 +109,7 @@ function createSchemaV2(db) {
   `);
 }
 
-function migrateV1ToV2(db) {
+function migrateV1ToV2(db: Database): void {
   db.run('BEGIN');
   try {
     db.exec('ALTER TABLE requests RENAME TO requests_v1');
@@ -85,7 +119,7 @@ function migrateV1ToV2(db) {
       SELECT id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt
       FROM requests_v1
     `);
-    const rows = result[0]?.values ?? [];
+    const rows: SqlValue[][] = result[0]?.values ?? [];
 
     const insertRequest = db.prepare(`
       INSERT INTO requests (
@@ -104,26 +138,54 @@ function migrateV1ToV2(db) {
     `);
 
     for (const row of rows) {
-      const [id, title, priority, durationPreset, createdAt, expiresAt, status, prayedAt, notes, updatedAt] = row;
+      const [
+        idValue,
+        titleValue,
+        priorityValue,
+        durationPresetValue,
+        createdAtValue,
+        expiresAtValue,
+        statusValue,
+        prayedAtValue,
+        notesValue,
+        updatedAtValue,
+      ] = row;
+
+      const id = toStringValue(idValue);
+      const title = toStringValue(titleValue);
+      const priority = toStringValue(priorityValue) as Priority;
+      const durationPreset = toStringValue(durationPresetValue) as DurationPreset;
+      const createdAt = toNumberValue(createdAtValue);
+      const expiresAt = toNumberValue(expiresAtValue);
+      const status = toStringValue(statusValue) as RequestStatus;
+      const updatedAt = toNumberValue(updatedAtValue);
 
       insertRequest.run([id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt]);
 
-      const prayedList = JSON.parse(prayedAt || '[]');
+      const prayedList = parseJsonArray(prayedAtValue);
       for (const prayedTimestamp of prayedList) {
-        insertPrayer.run([crypto.randomUUID(), id, prayedTimestamp]);
+        if (typeof prayedTimestamp === 'number') {
+          insertPrayer.run([crypto.randomUUID(), id, prayedTimestamp]);
+        }
       }
 
-      const noteList = JSON.parse(notes || '[]');
+      const noteList = parseJsonArray(notesValue);
       for (const note of noteList) {
+        if (!isRecord(note)) continue;
         const normalizedText = typeof note.text === 'string' ? note.text.trim() : '';
         if (!normalizedText) continue;
+        const isAnswer = note.isAnswer === true;
         insertNote.run([
-          note.id || crypto.randomUUID(),
+          typeof note.id === 'string' ? note.id : crypto.randomUUID(),
           id,
           normalizedText,
-          note.createdAt || createdAt,
-          note.isAnswer ? 1 : 0,
-          note.updatedAt || note.createdAt || updatedAt,
+          typeof note.createdAt === 'number' ? note.createdAt : createdAt,
+          isAnswer ? 1 : 0,
+          typeof note.updatedAt === 'number'
+            ? note.updatedAt
+            : typeof note.createdAt === 'number'
+              ? note.createdAt
+              : updatedAt,
         ]);
       }
     }
@@ -140,7 +202,7 @@ function migrateV1ToV2(db) {
   }
 }
 
-function ensureSchema(db) {
+function ensureSchema(db: Database): void {
   const hasRequests = tableExists(db, 'requests');
   if (!hasRequests) {
     createSchemaV2(db);
@@ -162,7 +224,7 @@ function ensureSchema(db) {
   }
 }
 
-export async function initDb() {
+export async function initDb(): Promise<Database> {
   if (dbInstance) return dbInstance;
   const bytes = await loadDbBytes();
   const db = await openDatabase(bytes);
@@ -171,7 +233,7 @@ export async function initDb() {
   return dbInstance;
 }
 
-function deserializeRequest(row) {
+function deserializeRequest(row: BaseRequestRecord): PrayerRequest {
   return {
     id: row.id,
     title: row.title,
@@ -186,25 +248,35 @@ function deserializeRequest(row) {
   };
 }
 
-export async function fetchAllRequests() {
+export async function fetchAllRequests(): Promise<PrayerRequest[]> {
   const db = await initDb();
   const result = db.exec(`
     SELECT id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt
     FROM requests
     ORDER BY createdAt DESC
   `);
-  const rows = result[0]?.values ?? [];
-  const baseRequests = rows.map(([id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt]) =>
-    deserializeRequest({
-      id,
-      title,
-      priority,
-      durationPreset,
-      createdAt,
-      expiresAt,
-      status,
-      updatedAt,
-    })
+  const rows: SqlValue[][] = result[0]?.values ?? [];
+  const baseRequests = rows.map(
+    ([
+      idValue,
+      titleValue,
+      priorityValue,
+      durationPresetValue,
+      createdAtValue,
+      expiresAtValue,
+      statusValue,
+      updatedAtValue,
+    ]) =>
+      deserializeRequest({
+        id: toStringValue(idValue),
+        title: toStringValue(titleValue),
+        priority: toStringValue(priorityValue) as Priority,
+        durationPreset: toStringValue(durationPresetValue) as DurationPreset,
+        createdAt: toNumberValue(createdAtValue),
+        expiresAt: toNumberValue(expiresAtValue),
+        status: toStringValue(statusValue) as RequestStatus,
+        updatedAt: toNumberValue(updatedAtValue),
+      })
   );
 
   const notesResult = db.exec(`
@@ -212,30 +284,32 @@ export async function fetchAllRequests() {
     FROM notes
     ORDER BY createdAt DESC
   `);
-  const notesRows = notesResult[0]?.values ?? [];
-  const notesByRequest = new Map();
+  const notesRows: SqlValue[][] = notesResult[0]?.values ?? [];
+  const notesByRequest = new Map<string, Note[]>();
   for (const [id, requestId, text, createdAt, isAnswer, updatedAt] of notesRows) {
-    const list = notesByRequest.get(requestId) || [];
+    const requestKey = toStringValue(requestId);
+    const list = notesByRequest.get(requestKey) || [];
     list.push({
-      id,
-      text,
-      createdAt,
+      id: toStringValue(id),
+      text: toStringValue(text),
+      createdAt: toNumberValue(createdAt),
       isAnswer: Boolean(isAnswer),
-      updatedAt,
+      updatedAt: toNumberValue(updatedAt),
     });
-    notesByRequest.set(requestId, list);
+    notesByRequest.set(requestKey, list);
   }
 
   const prayersResult = db.exec(`
     SELECT requestId, prayedAt
     FROM prayer_events
   `);
-  const prayersRows = prayersResult[0]?.values ?? [];
-  const prayersByRequest = new Map();
+  const prayersRows: SqlValue[][] = prayersResult[0]?.values ?? [];
+  const prayersByRequest = new Map<string, number[]>();
   for (const [requestId, prayedAt] of prayersRows) {
-    const list = prayersByRequest.get(requestId) || [];
-    list.push(prayedAt);
-    prayersByRequest.set(requestId, list);
+    const requestKey = toStringValue(requestId);
+    const list = prayersByRequest.get(requestKey) || [];
+    list.push(toNumberValue(prayedAt));
+    prayersByRequest.set(requestKey, list);
   }
 
   return baseRequests.map((request) => ({
@@ -245,7 +319,7 @@ export async function fetchAllRequests() {
   }));
 }
 
-export async function saveRequest(record) {
+export async function saveRequest(record: PrayerRequest): Promise<void> {
   const db = await initDb();
   db.run('BEGIN');
   try {
@@ -308,7 +382,7 @@ export async function saveRequest(record) {
   }
 }
 
-export async function deleteRequest(id) {
+export async function deleteRequest(id: string): Promise<void> {
   const db = await initDb();
   try {
     const deleteNotes = db.prepare('DELETE FROM notes WHERE requestId = ?');
@@ -322,18 +396,21 @@ export async function deleteRequest(id) {
     stmt.free();
     await persistDb(db);
   } catch (error) {
-    throw new Error(`Failed to delete request ${id}: ${error.message}`);
+    if (error instanceof Error) {
+      throw new Error(`Failed to delete request ${id}: ${error.message}`);
+    }
+    throw new Error(`Failed to delete request ${id}.`);
   }
 }
 
-async function countRequests() {
+async function countRequests(): Promise<number> {
   const db = await initDb();
   const result = db.exec('SELECT COUNT(*) as count FROM requests');
   const count = result[0]?.values?.[0]?.[0] ?? 0;
   return Number(count);
 }
 
-export async function bootstrapSeed() {
+export async function bootstrapSeed(): Promise<void> {
   const existing = await countRequests();
   if (existing > 0) return;
   const db = await initDb();
@@ -401,11 +478,11 @@ export async function bootstrapSeed() {
   }
 }
 
-export function clearDbCache() {
+export function clearDbCache(): void {
   dbInstance = null;
 }
 
-export async function resetDbForTests() {
+export async function resetDbForTests(): Promise<void> {
   dbInstance = null;
   await del(STORAGE_KEY);
 }

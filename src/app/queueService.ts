@@ -1,20 +1,41 @@
 import { computed, ref } from 'vue';
+import type { Ref } from 'vue';
+import type { PrayerRequest, ProgressDot, QueueItem } from '../types';
 import {
   DEFAULT_QUEUE_CONFIG,
+  type CycleState,
+  type QueueConfig,
   createCycleState,
   pickNextFromCycle,
   removeFromCycle,
-} from './queueAlgorithm.js';
+} from './queueAlgorithm.ts';
 
 const PAGE_SIZE = 6;
 const MAX_RENDER_QUEUE_SIZE = 36;
 const KEEP_BEHIND_COUNT = 10;
 
-function buildProgressDots({ renderQueue, currentIndex }) {
+type BuildProgressDotsArgs = {
+  renderQueue: QueueItem[];
+  currentIndex: number;
+};
+
+type ProgressDotItem = {
+  index: number | null;
+  isLoopPoint: boolean;
+  isCurrent: boolean;
+  isPlaceholder: boolean;
+};
+
+type CreateQueueOptions = {
+  now?: () => number;
+  config?: QueueConfig;
+};
+
+function buildProgressDots({ renderQueue, currentIndex }: BuildProgressDotsArgs): ProgressDot[] {
   const total = renderQueue.length;
   const maxVisible = 5;
 
-  const isLoopPoint = (index) => {
+  const isLoopPoint = (index: number): boolean => {
     if (index <= 0) return true;
     const current = renderQueue[index];
     const previous = renderQueue[index - 1];
@@ -30,7 +51,7 @@ function buildProgressDots({ renderQueue, currentIndex }) {
     start = Math.max(0, end - maxVisible);
   }
 
-  const items = [];
+  const items: ProgressDotItem[] = [];
   for (let i = start; i < end; i += 1) {
     items.push({
       index: i,
@@ -55,7 +76,7 @@ function buildProgressDots({ renderQueue, currentIndex }) {
   const leftOverflowIsLoopAdjacent = hasLeftOverflow && isLoopPoint(start - 1);
   const rightOverflowIsLoopAdjacent = hasRightOverflow && isLoopPoint(end);
 
-  const dots = [];
+  const dots: ProgressDot[] = [];
   dots.push({
     slot: 0,
     index: null,
@@ -92,27 +113,27 @@ function buildProgressDots({ renderQueue, currentIndex }) {
 }
 
 export function createQueueService(
-  activeRequests,
-  { now = () => Date.now(), config = DEFAULT_QUEUE_CONFIG } = {}
+  activeRequests: Ref<PrayerRequest[]>,
+  { now = () => Date.now(), config = DEFAULT_QUEUE_CONFIG }: CreateQueueOptions = {}
 ) {
-  const renderQueue = ref([]);
-  const cycleCount = ref(0);
-  const currentIndex = ref(0);
-  let cycleState = null;
+  const renderQueue = ref<QueueItem[]>([]);
+  const cycleCount = ref<number>(0);
+  const currentIndex = ref<number>(0);
+  let cycleState: CycleState | null = null;
 
-  const currentItem = computed(() => renderQueue.value[currentIndex.value] || null);
+  const currentItem = computed<QueueItem | null>(() => renderQueue.value[currentIndex.value] || null);
 
-  const canGoPrevious = computed(() => currentIndex.value > 0);
-  const canGoNext = computed(() => renderQueue.value.length > 1);
+  const canGoPrevious = computed<boolean>(() => currentIndex.value > 0);
+  const canGoNext = computed<boolean>(() => renderQueue.value.length > 1);
 
-  const progressDots = computed(() =>
+  const progressDots = computed<ProgressDot[]>(() =>
     buildProgressDots({
       renderQueue: renderQueue.value,
       currentIndex: currentIndex.value,
     })
   );
 
-  function pruneRenderQueue() {
+  function pruneRenderQueue(): void {
     const overflow = renderQueue.value.length - MAX_RENDER_QUEUE_SIZE;
     if (overflow <= 0) return;
 
@@ -129,7 +150,7 @@ export function createQueueService(
     }
   }
 
-  function ensureCycleReady() {
+  function ensureCycleReady(): boolean {
     if (!cycleState || cycleState.remaining <= 0) {
       const pool = activeRequests.value;
       if (!pool.length) {
@@ -144,10 +165,10 @@ export function createQueueService(
     return true;
   }
 
-  function loadMore() {
+  function loadMore(): void {
     const pool = activeRequests.value;
     if (!pool.length) return;
-    const next = [];
+    const next: QueueItem[] = [];
     while (next.length < PAGE_SIZE) {
       if (!ensureCycleReady()) break;
       const request = pickNextFromCycle(cycleState);
@@ -160,7 +181,7 @@ export function createQueueService(
     }
   }
 
-  function resetFeed() {
+  function resetFeed(): void {
     renderQueue.value = [];
     cycleState = null;
     cycleCount.value = 0;
@@ -170,7 +191,7 @@ export function createQueueService(
     }
   }
 
-  function nextCard() {
+  function nextCard(): void {
     if (renderQueue.value.length <= 1) return;
     if (currentIndex.value < renderQueue.value.length - 1) {
       currentIndex.value += 1;
@@ -185,12 +206,12 @@ export function createQueueService(
     if (remaining <= 2) loadMore();
   }
 
-  function previousCard() {
+  function previousCard(): void {
     if (!canGoPrevious.value) return;
     currentIndex.value = Math.max(0, currentIndex.value - 1);
   }
 
-  function navigateToIndex(index) {
+  function navigateToIndex(index: number): void {
     if (index === currentIndex.value) return;
     currentIndex.value = index;
     const remaining = renderQueue.value.length - currentIndex.value;
@@ -199,14 +220,14 @@ export function createQueueService(
     }
   }
 
-  function removeRequestFromQueue(requestId, { autoAdvance = false } = {}) {
+  function removeRequestFromQueue(requestId: string, { autoAdvance = false }: { autoAdvance?: boolean } = {}): void {
     const oldQueue = renderQueue.value;
     if (!oldQueue.length) {
       currentIndex.value = 0;
       return;
     }
 
-    const removedIndices = [];
+    const removedIndices: number[] = [];
     for (let i = 0; i < oldQueue.length; i += 1) {
       if (oldQueue[i].request.id === requestId) removedIndices.push(i);
     }
@@ -215,7 +236,7 @@ export function createQueueService(
     const wasCurrentRemoved = removedIndices.includes(currentIndex.value);
     const removedBeforeCurrent = removedIndices.filter((idx) => idx < currentIndex.value).length;
 
-    const newQueue = oldQueue.filter((item) => item.request.id !== requestId);
+    const newQueue: QueueItem[] = oldQueue.filter((item) => item.request.id !== requestId);
     renderQueue.value = newQueue;
 
     if (!newQueue.length) {
@@ -239,7 +260,7 @@ export function createQueueService(
     removeFromCycle(cycleState, requestId);
   }
 
-  function insertRequest(record) {
+  function insertRequest(record: PrayerRequest): void {
     if (renderQueue.value.length > 0) {
       const insertPosition = currentIndex.value + 1;
       const cycle = currentItem.value?.cycle ?? cycleCount.value;
