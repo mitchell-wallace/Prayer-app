@@ -60,7 +60,7 @@ function tableHasColumn(db: Database, table: string, column: string): boolean {
   if (!tableExists(db, table)) return false;
   const result = db.exec(`PRAGMA table_info(${table})`);
   const rows = result[0]?.values ?? [];
-  return rows.some((row) => row[1] === column);
+  return rows.some((row: unknown[]) => row[1] === column);
 }
 
 function getSchemaVersion(db: Database): number {

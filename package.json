@@ -26,6 +26,7 @@
     "@playwright/test": "^1.54.2",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^25.0.8",
+    "@types/sql.js": "^1.4.9",
     "@vitejs/plugin-vue": "^5.0.0",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^27.4.0",
