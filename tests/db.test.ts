@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, expect, test } from 'vitest';
-import { bootstrapSeed, clearDbCache, fetchAllRequests, resetDbForTests, saveRequest } from '../src/db.ts';
-import { computeExpiry } from '../src/utils/time.ts';
-import type { PrayerRequest } from '../src/types';
+import type { PrayerRequest } from '../src/core/types';
+import { clearDbCache, resetDbForTests } from '../src/db/database';
+import { computeExpiry } from '../src/formatting/time';
+import { getAll, save, seed } from '../src/repositories/requestsRepository';
 
 beforeEach(async () => {
   await resetDbForTests();
@@ -13,17 +14,17 @@ afterEach(() => {
 });
 
 test('bootstrapSeed populates initial records only once', async () => {
-  await bootstrapSeed();
-  const first = await fetchAllRequests();
+  await seed();
+  const first = await getAll();
   expect(first.length).toBeGreaterThan(0);
 
-  await bootstrapSeed();
-  const second = await fetchAllRequests();
+  await seed();
+  const second = await getAll();
   expect(second.length).toBe(first.length);
 });
 
 test('saveRequest writes and reloads data from persistent storage', async () => {
-  await bootstrapSeed();
+  await seed();
   const now = Date.now();
   const newRequest: PrayerRequest = {
     id: 'test-id',
@@ -38,10 +39,10 @@ test('saveRequest writes and reloads data from persistent storage', async () => 
     updatedAt: now,
   };
 
-  await saveRequest(newRequest);
+  await save(newRequest);
   clearDbCache();
 
-  const records = await fetchAllRequests();
+  const records = await getAll();
   const saved = records.find((r) => r.id === 'test-id');
   expect(saved).toBeTruthy();
   if (!saved) {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { ref } from 'vue';
-import { createQueueService } from '../src/app/queueService.ts';
-import type { PrayerRequest, Priority } from '../src/types';
+import type { PrayerRequest, Priority } from '../src/core/types';
+import { createQueueService } from '../src/services/queueService';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
