@@ -1,4 +1,4 @@
-import type { DurationPreset } from '../types';
+import type { DurationPreset } from '../core/types';
 
 interface DurationOffset {
   days?: number;
