@@ -1,5 +1,5 @@
-import { computed, onBeforeUnmount, ref, watch, type Ref } from 'vue';
-import type { ProgressDot } from '../types';
+import { computed, onBeforeUnmount, type Ref, ref, watch } from 'vue';
+import type { ProgressDot } from '../core/types';
 
 export type DotMotionDirection = 'forward' | 'backward' | '';
 
