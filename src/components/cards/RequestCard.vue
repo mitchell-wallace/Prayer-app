@@ -377,8 +377,8 @@
 <script setup lang="ts">
 import { Teleport, Transition, computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconDotsVertical, IconPlus, IconX } from '@tabler/icons-vue';
-import { daysLeft, formatNoteTimestamp, timeAgo } from '../utils/time';
-import type { Note, PrayerRequest, Priority } from '../types';
+import { daysLeft, formatNoteTimestamp, timeAgo } from '../../formatting/time';
+import type { Note, PrayerRequest, Priority } from '../../core/types';
 
 const props = defineProps<{
   request: PrayerRequest;

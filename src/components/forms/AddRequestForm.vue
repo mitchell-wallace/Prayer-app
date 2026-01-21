@@ -109,8 +109,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconChevronDown, IconPlus } from '@tabler/icons-vue';
-import { settings } from '../app/settingsService.ts';
-import type { CreateRequestPayload, DurationPreset, Priority, SelectOption } from '../types';
+import { settings } from '../../stores/settings';
+import type { CreateRequestPayload, DurationPreset, Priority, SelectOption } from '../../core/types';
 
 const emit = defineEmits<{
   save: [payload: CreateRequestPayload];

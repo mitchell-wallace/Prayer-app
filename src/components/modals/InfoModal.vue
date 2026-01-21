@@ -97,7 +97,7 @@
 <script setup lang="ts">
 import { ref, Teleport, Transition } from 'vue';
 import { IconInfoCircle, IconX } from '@tabler/icons-vue';
-import type { InfoStats } from '../types';
+import type { InfoStats } from '../../core/types';
 
 function formatDate(ts: number): string {
   if (!ts) return '';
