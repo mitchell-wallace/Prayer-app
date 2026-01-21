@@ -186,10 +186,16 @@ function clearTitle(): void {
 async function submit(): Promise<void> {
   if (!form.title.trim()) return;
   emit('save', { ...form, title: form.title.trim() });
-  // Clear title but keep form active for adding more requests
   clearTitle();
+  priorityOpen.value = false;
+  durationOpen.value = false;
+  isExpanded.value = false;
+  restoreFocus.value = false;
+  if (isInputFocused.value) {
+    inputRef.value?.blur();
+  }
+  isInputFocused.value = false;
   await nextTick();
-  inputRef.value?.focus();
 }
 
 function handleFocus(): void {

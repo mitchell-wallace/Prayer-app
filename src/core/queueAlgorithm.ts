@@ -97,7 +97,7 @@ function buildBucketItem(request: PrayerRequest, now: number, config: QueueConfi
   return {
     request,
     score: computeScore(request, now, config),
-    lastPrayedAt: request.prayedAt?.length ? Math.max(...request.prayedAt) : 0,
+    lastPrayedAt: request.prayedAt?.length ? Math.max(...request.prayedAt) : now,
     createdAt: request.createdAt ?? 0,
   };
 }
