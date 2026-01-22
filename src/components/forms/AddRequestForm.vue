@@ -6,7 +6,7 @@
           <button
             type="button"
             data-testid="priority-toggle"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-base-300 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-lg dark:bg-base-200"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-base-300 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-md dark:bg-base-200"
             @click="togglePriority"
             @pointerdown.prevent
             aria-haspopup="listbox"
@@ -24,7 +24,7 @@
               <button
                 type="button"
                 :class="[
-                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-base-content transition-colors duration-150 hover:bg-base-300',
+                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-base-content transition-colors duration-150 hover:bg-base-100',
                   form.priority === option.value ? 'bg-primary-200/10 text-primary-200' : '',
                 ]"
                 @click="selectPriority(option.value)"
@@ -40,7 +40,7 @@
           <button
             type="button"
             data-testid="duration-toggle"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-base-300 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-lg dark:bg-base-200"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-base-300 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content shadow-sm transition-all duration-150 hover:shadow-md dark:bg-base-200"
             @click="toggleDuration"
             @pointerdown.prevent
             aria-haspopup="listbox"
@@ -58,7 +58,7 @@
               <button
                 type="button"
                 :class="[
-                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-base-content transition-colors duration-150 hover:bg-base-300',
+                  'w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-base-content transition-colors duration-150 hover:bg-base-100',
                   form.durationPreset === option.value ? 'bg-primary-200/10 text-primary-200' : '',
                 ]"
                 @click="selectDuration(option.value)"
@@ -93,7 +93,7 @@
           @keydown.enter.exact.prevent="submit"
         ></textarea>
         <button
-          class="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-200 text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg disabled:opacity-50 disabled:hover:bg-primary-200 disabled:hover:shadow-sm"
+          class="mt-1 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-200 text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-md disabled:opacity-50 disabled:hover:bg-primary-200 disabled:hover:shadow-sm"
           type="submit"
           data-testid="request-submit"
           :disabled="!form.title.trim()"

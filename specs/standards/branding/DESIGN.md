@@ -162,7 +162,13 @@ Cards and modals use shadows for depth rather than visible borders.
 ### Primary Button
 - Background: `bg-primary-200`
 - Text: `text-primary-content` (white)
-- Hover: `hover:bg-primary-100`
+- Hover: `hover:bg-primary-100 hover:shadow-md`
+- Border radius: `rounded-xl`
+
+### Secondary Button (Cancel, etc.)
+- Background: `bg-base-300 dark:bg-base-200`
+- Text: `text-base-content/70`
+- Hover: `hover:text-base-content hover:shadow-md`
 - Border radius: `rounded-xl`
 
 ### Neutral/Answered Button
@@ -173,7 +179,80 @@ Cards and modals use shadows for depth rather than visible borders.
 ### Danger Button
 - Background: `bg-danger`
 - Text: White
+- Hover: `hover:bg-danger/90`
 - Use only for destructive actions (delete)
+
+## Hover Effects
+
+All interactive elements require hover feedback. Use these patterns consistently:
+
+### Timing & Transitions
+- **Duration:** 150ms for all hover transitions
+- **Easing:** ease-out
+- **Class pattern:** `transition-all duration-150` (or `transition-colors` for color-only changes)
+
+### Icon Buttons (close, menu triggers, nav arrows)
+Small icon-only buttons use background color change, not shadow elevation.
+
+```html
+<!-- Standard icon button -->
+<button class="... text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100">
+
+<!-- Dark mode adjustment for icon buttons on base-300 -->
+<button class="... hover:bg-base-100 dark:hover:bg-base-100">
+```
+- **Text:** `text-base-content/70` → `hover:text-base-content`
+- **Background:** `hover:bg-base-100` (darkens in both modes)
+- **No shadow change** for icon buttons
+
+### Elevated Buttons (primary actions, form buttons)
+Buttons with existing `shadow-sm` elevation use subtle shadow increase.
+
+```html
+<!-- Primary action button -->
+<button class="bg-primary-200 shadow-sm ... hover:bg-primary-100 hover:shadow-md">
+
+<!-- Secondary/cancel button -->
+<button class="bg-base-300 text-base-content/70 shadow-sm ... hover:text-base-content hover:shadow-md">
+```
+- **Shadow:** `shadow-sm` → `hover:shadow-md` (not `shadow-lg` which is too dramatic)
+- **Color:** background darkens or text brightens
+
+### Dropdown Menu Items
+Menu items inside dropdowns use background color change only.
+
+```html
+<button class="... transition-colors duration-150 hover:bg-base-100">
+```
+- **Background:** `hover:bg-base-100` (works inside `bg-base-300` or `bg-base-200` containers)
+- **No shadow or text color changes**
+
+### Text Links
+Inline links and link-styled buttons use opacity reduction.
+
+```html
+<button class="text-primary-200 transition-opacity duration-150 hover:opacity-80">
+```
+- **Opacity:** `hover:opacity-80`
+
+### Disabled States
+Disabled buttons should suppress hover effects.
+
+```html
+<button class="... disabled:opacity-50 disabled:hover:bg-[original] disabled:hover:shadow-sm">
+```
+
+### Summary Table
+
+| Element Type | Text Change | Background Change | Shadow Change |
+|-------------|-------------|-------------------|---------------|
+| Icon button | `/70` → full | `hover:bg-base-100` | none |
+| Primary button | — | `hover:bg-primary-100` | `sm` → `md` |
+| Secondary button | `/70` → full | — | `sm` → `md` |
+| Neutral button | — | `hover:bg-neutral-200` | none |
+| Danger button | — | `hover:bg-danger/90` | `sm` → `md` |
+| Menu item | — | `hover:bg-base-100` | none |
+| Text link | — | — | none (use `opacity-80`) |
 
 ## Animations & Transitions
 

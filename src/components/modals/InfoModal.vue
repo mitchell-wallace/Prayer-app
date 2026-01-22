@@ -4,7 +4,7 @@
     <button
       type="button"
       data-testid="info-button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100"
       aria-label="View stats"
       @click="open"
     >
@@ -24,7 +24,7 @@
             <header class="mb-4 flex items-center justify-between">
               <h2 class="m-0 text-base font-semibold">Stats</h2>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100"
                 type="button"
                 @click="close"
               >

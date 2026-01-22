@@ -41,7 +41,7 @@
             <header class="mb-4 flex items-center justify-between">
               <h4 class="m-0 text-base font-semibold">Answered prayer</h4>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100"
                 type="button"
                 @click="closeAnsweredModal"
               >
@@ -59,14 +59,14 @@
             </div>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md"
                 type="button"
                 @click="closeAnsweredModal"
               >
                 Cancel
               </button>
               <button
-                class="w-full rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg disabled:opacity-50"
+                class="w-full rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-md disabled:opacity-50"
                 type="button"
                 :disabled="!answeredModal.text.trim()"
                 @click="saveAnsweredNote"

@@ -4,7 +4,7 @@
     <button
       type="button"
       data-testid="settings-button"
-      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+      class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100"
       aria-label="Open settings"
       @click="open"
     >
@@ -24,7 +24,7 @@
             <header class="mb-4 flex items-center justify-between">
               <h2 class="m-0 text-base font-semibold">Settings</h2>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100"
                 type="button"
                 @click="close"
               >
@@ -45,8 +45,8 @@
                     :class="[
                       'rounded-xl px-3 py-2.5 text-sm font-semibold shadow-sm transition-all duration-150',
                       settings.theme === option.value
-                        ? 'bg-primary-200 text-white shadow-lg'
-                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-lg',
+                        ? 'bg-primary-200 text-white shadow-md'
+                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-md',
                     ]"
                     @click="setTheme(option.value)"
                   >
@@ -67,8 +67,8 @@
                     :class="[
                       'rounded-xl px-3 py-2.5 text-xs font-semibold shadow-sm transition-all duration-150',
                       settings.defaultPriority === option.value
-                        ? 'bg-primary-200 text-white shadow-lg'
-                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-lg',
+                        ? 'bg-primary-200 text-white shadow-md'
+                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-md',
                     ]"
                     @click="setDefaultPriority(option.value)"
                   >
@@ -89,8 +89,8 @@
                     :class="[
                       'rounded-xl px-2 py-2.5 text-xs font-semibold shadow-sm transition-all duration-150',
                       settings.defaultDuration === option.value
-                        ? 'bg-primary-200 text-white shadow-lg'
-                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-lg',
+                        ? 'bg-primary-200 text-white shadow-md'
+                        : 'bg-base-300 text-base-content/70 hover:text-base-content hover:shadow-md',
                     ]"
                     @click="setDefaultDuration(option.value)"
                   >

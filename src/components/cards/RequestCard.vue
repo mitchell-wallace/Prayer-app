@@ -6,7 +6,7 @@
     <div class="relative flex-1 min-h-0 overflow-auto pb-8 -mx-3 px-3">
       <div class="absolute right-3 top-0" data-request-menu>
         <button
-          class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content/70 transition-colors duration-150 hover:text-base-content"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100"
           type="button"
           @click="toggleRequestMenu"
           aria-label="Request options"
@@ -21,7 +21,7 @@
           role="menu"
         >
           <button
-            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-base-content transition-colors duration-150 hover:bg-base-300"
+            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-base-content transition-colors duration-150 hover:bg-base-100"
             type="button"
             role="menuitem"
             @click="openEditFromMenu"
@@ -29,7 +29,7 @@
             Edit
           </button>
           <button
-            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-base-300"
+            class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-base-100"
             type="button"
             role="menuitem"
             @click="promptDeleteRequest"
@@ -81,14 +81,14 @@
           ></textarea>
           <div class="flex justify-end gap-2">
             <button
-              class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg dark:bg-base-200"
+              class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md dark:bg-base-200"
               type="button"
               @click="cancelNote"
             >
               Cancel
             </button>
             <button
-              class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg"
+              class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-md"
               type="button"
               data-testid="note-submit"
               @click="submitNote"
@@ -120,7 +120,7 @@
               <span>{{ formatTimestamp(note.createdAt) }}</span>
               <div class="relative" data-note-menu>
                 <button
-                  class="inline-flex h-6 w-6 items-center justify-center rounded-lg text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-300"
+                  class="inline-flex h-6 w-6 items-center justify-center rounded-lg text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100"
                   type="button"
                   @click="toggleNoteMenu(note.id)"
                   aria-label="Note options"
@@ -135,7 +135,7 @@
                   role="menu"
                 >
                   <button
-                    class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-base-content transition-colors duration-150 hover:bg-base-300"
+                    class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-base-content transition-colors duration-150 hover:bg-base-100"
                     type="button"
                     role="menuitem"
                     @click="startNoteEdit(note)"
@@ -143,7 +143,7 @@
                     Edit
                   </button>
                   <button
-                    class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-base-300"
+                    class="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-danger transition-colors duration-150 hover:bg-base-100"
                     type="button"
                     role="menuitem"
                     @click="promptDeleteNote(note)"
@@ -165,7 +165,7 @@
               </div>
               <div class="flex justify-between gap-2">
                 <button
-                  class="rounded-xl bg-danger/15 px-4 py-2 text-sm font-semibold text-danger transition-opacity duration-150 hover:opacity-80"
+                  class="rounded-xl bg-danger/15 px-4 py-2 text-sm font-semibold text-danger transition-all duration-150 hover:bg-danger/25"
                   type="button"
                   @click="promptDeleteNote(note)"
                 >
@@ -173,14 +173,14 @@
                 </button>
                 <div class="flex gap-2">
                   <button
-                    class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg dark:bg-base-200"
+                    class="rounded-xl bg-base-300 px-4 py-2 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md dark:bg-base-200"
                     type="button"
                     @click="editingNote = null"
                   >
                     Cancel
                   </button>
                   <button
-                    class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg"
+                    class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-md"
                     type="button"
                     @click="saveNoteEdit(note)"
                   >
@@ -214,7 +214,7 @@
           Answered
         </button>
         <button
-          class="h-12 rounded-xl bg-primary-200 px-4 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg"
+          class="h-12 rounded-xl bg-primary-200 px-4 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-md"
           type="button"
           data-testid="pray-button"
           @click="emit('pray', request)"
@@ -235,7 +235,7 @@
             <header class="mb-4 flex items-center justify-between">
               <h4 class="m-0 text-base font-semibold">Edit request</h4>
               <button
-                class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-base-content/70 transition-all duration-150 hover:text-base-content hover:bg-base-100"
                 type="button"
                 @click="closeEditing"
               >
@@ -281,14 +281,14 @@
             </div>
             <div class="mt-5 flex justify-end gap-2">
               <button
-                class="rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+                class="rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md"
                 type="button"
                 @click="closeEditing"
               >
                 Cancel
               </button>
               <button
-                class="rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-lg"
+                class="rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-md"
                 type="button"
                 @click="saveEdit"
               >
@@ -317,14 +317,14 @@
             </p>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md"
                 type="button"
                 @click="cancelDeleteNote"
               >
                 Cancel
               </button>
               <button
-                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:opacity-90 hover:shadow-lg"
+                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-danger/90 hover:shadow-md"
                 type="button"
                 @click="confirmDeleteNote"
               >
@@ -353,14 +353,14 @@
             </p>
             <div class="mt-5 grid grid-cols-2 gap-3">
               <button
-                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
+                class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md"
                 type="button"
                 @click="cancelDeleteRequest"
               >
                 Cancel
               </button>
               <button
-                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:opacity-90 hover:shadow-lg"
+                class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-danger/90 hover:shadow-md"
                 type="button"
                 @click="confirmDeleteRequest"
               >

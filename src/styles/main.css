@@ -110,6 +110,10 @@
     color: inherit;
   }
 
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
   ::-webkit-scrollbar {
     width: 8px;
   }

@@ -4,7 +4,7 @@
       <!-- Unified navigation with progress dots -->
       <div v-if="renderQueue.length > 1" class="flex items-center justify-center gap-3">
         <button
-          class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
+          class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-md disabled:opacity-40 disabled:hover:shadow-sm"
           type="button"
           data-testid="prev-button"
           :disabled="!canGoPrevious"
@@ -24,7 +24,7 @@
         />
 
         <button
-          class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-lg disabled:opacity-40 disabled:hover:shadow-sm"
+          class="nav-button-animate inline-flex h-8 w-8 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm hover:text-base-content hover:shadow-md disabled:opacity-40 disabled:hover:shadow-sm"
           type="button"
           data-testid="next-button"
           :disabled="!canGoNext"
