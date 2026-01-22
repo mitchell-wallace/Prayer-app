@@ -6,7 +6,9 @@
       "Bash(npm run test:*)",
       "Bash(npm run lint)",
       "Bash(npm run format:*)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx tailwindcss --help:*)"
     ]
   }
 }
