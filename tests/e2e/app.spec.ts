@@ -9,17 +9,19 @@ async function clearStorage(page: Page): Promise<void> {
     if (indexedDB?.databases) {
       const dbs = await indexedDB.databases();
       await Promise.all(
-        dbs
-          .filter((db) => db.name)
-          .map(
-            (db) =>
-              new Promise((resolve) => {
-                const request = indexedDB.deleteDatabase(db.name);
-                request.onsuccess = () => resolve();
-                request.onerror = () => resolve();
-                request.onblocked = () => resolve();
-              })
-          )
+        dbs.map(
+          (db) =>
+            new Promise<void>((resolve) => {
+              if (!db.name) {
+                resolve();
+                return;
+              }
+              const request = indexedDB.deleteDatabase(db.name);
+              request.onsuccess = () => resolve();
+              request.onerror = () => resolve();
+              request.onblocked = () => resolve();
+            })
+        )
       );
     }
   });
@@ -83,8 +85,9 @@ test('add request shows controls and queues new request after current', async ({
   await input.fill(requestTitle);
   await page.getByTestId('request-submit').click();
 
-  await expect(page.getByTestId('request-controls')).toBeHidden();
+  await expect(page.getByTestId('request-controls')).toBeVisible();
   await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
   await expect(title).toHaveText(before);
 
   await page.getByTestId('next-button').click();

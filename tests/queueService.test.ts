@@ -70,32 +70,22 @@ test('interleaves urgent and high when scores are within the window', () => {
   expect(firstTwo).toEqual(['u1', 'h1']);
 });
 
-test('orders higher-recency urgent requests ahead of very recent ones', () => {
+test.each<Priority>([
+  'urgent',
+  'high',
+  'medium',
+  'low',
+])('orders never-prayed requests ahead of recently-prayed ones (%s)', (priority) => {
   const now = Date.now();
   const activeRequests = [
-    makeRequest({ id: 'recent', priority: 'urgent', prayedAt: [] }),
-    makeRequest({ id: 'old', priority: 'urgent', prayedAt: [now - 10 * MS_PER_DAY] }),
+    makeRequest({ id: 'never', priority, prayedAt: [] }),
+    makeRequest({ id: 'recent', priority, prayedAt: [now - MS_PER_DAY] }),
   ];
 
   const queue = createQueueState();
   resetFeed(queue, activeRequests, { now: () => Date.now() });
 
   const first = queue.renderQueue[0]?.request.id;
-  expect(first).toBe('old');
-});
-
-test('treats never-prayed requests as oldest and thus highest priority', () => {
-  const now = Date.now();
-  const activeRequests = [
-    makeRequest({ id: 'never', priority: 'medium', prayedAt: [] }),
-    makeRequest({ id: 'yesterday', priority: 'medium', prayedAt: [now - MS_PER_DAY] }),
-  ];
-
-  const queue = createQueueState();
-  resetFeed(queue, activeRequests, { now: () => Date.now() });
-
-  const first = queue.renderQueue[0]?.request.id;
-  // Never-prayed has lastPrayedAt=0, making it "oldest" in tie-breaks
   expect(first).toBe('never');
 });
 

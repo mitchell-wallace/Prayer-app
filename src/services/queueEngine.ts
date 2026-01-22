@@ -170,11 +170,7 @@ function ensureCycleReady(
   return true;
 }
 
-export function loadMore(
-  state: QueueState,
-  activeRequests: PrayerRequest[],
-  options: QueueEngineOptions = {}
-): void {
+export function loadMore(state: QueueState, activeRequests: PrayerRequest[], options: QueueEngineOptions = {}): void {
   if (!activeRequests.length) return;
   const next: QueueItem[] = [];
   while (next.length < PAGE_SIZE) {
@@ -189,11 +185,7 @@ export function loadMore(
   }
 }
 
-export function resetFeed(
-  state: QueueState,
-  activeRequests: PrayerRequest[],
-  options: QueueEngineOptions = {}
-): void {
+export function resetFeed(state: QueueState, activeRequests: PrayerRequest[], options: QueueEngineOptions = {}): void {
   state.renderQueue = [];
   state.cycleState = null;
   state.cycleCount = 0;
@@ -203,11 +195,7 @@ export function resetFeed(
   }
 }
 
-export function nextCard(
-  state: QueueState,
-  activeRequests: PrayerRequest[],
-  options: QueueEngineOptions = {}
-): void {
+export function nextCard(state: QueueState, activeRequests: PrayerRequest[], options: QueueEngineOptions = {}): void {
   if (state.renderQueue.length <= 1) return;
   if (state.currentIndex < state.renderQueue.length - 1) {
     state.currentIndex += 1;

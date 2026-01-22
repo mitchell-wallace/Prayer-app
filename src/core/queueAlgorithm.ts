@@ -122,14 +122,10 @@ export function computeRecencyScale(
 }
 
 export function computeScore(request: PrayerRequest, now: number, config: QueueConfig = DEFAULT_QUEUE_CONFIG): number {
-  const lastPrayedAt = request.prayedAt?.length ? Math.max(...request.prayedAt) : null;
-  const hasHistory = lastPrayedAt !== null;
+  const lastPrayedAt = request.prayedAt?.length ? Math.max(...request.prayedAt) : 0;
   const daysSince = computeDaysSince(lastPrayedAt, now);
-  const recency = hasHistory
-    ? computeRecencyScale(daysSince, config.recoveryDays[request.priority], config)
-    : config.recencyMax;
-  const newCardBoost = hasHistory ? 1 : config.newCardBoost;
-  return (config.priorityWeights[request.priority] ?? 0) * recency * newCardBoost;
+  const recency = computeRecencyScale(daysSince, config.recoveryDays[request.priority], config);
+  return (config.priorityWeights[request.priority] ?? 0) * recency;
 }
 
 function buildBucketItem(request: PrayerRequest, now: number, config: QueueConfig): BucketItem {
@@ -144,7 +140,7 @@ function buildBucketItem(request: PrayerRequest, now: number, config: QueueConfi
 function sortBucket(bucket: BucketItem[]): void {
   bucket.sort((a, b) => {
     if (a.score !== b.score) return a.score - b.score;
-    if (a.lastPrayedAt !== b.lastPrayedAt) return b.lastPrayedAt - a.lastPrayedAt;
+    if (a.lastPrayedAt !== b.lastPrayedAt) return a.lastPrayedAt - b.lastPrayedAt;
     return b.createdAt - a.createdAt;
   });
 }

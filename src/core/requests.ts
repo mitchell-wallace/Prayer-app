@@ -144,11 +144,7 @@ export function applyAddNote(
   };
 }
 
-export function applyEditNote(
-  request: PrayerRequest,
-  note: Note,
-  { now }: { now: number }
-): PrayerRequest {
+export function applyEditNote(request: PrayerRequest, note: Note, { now }: { now: number }): PrayerRequest {
   const updatedNotes = (request.notes || []).map((n) => (n.id === note.id ? { ...note } : n));
   return {
     ...request,
@@ -157,11 +153,7 @@ export function applyEditNote(
   };
 }
 
-export function applyDeleteNote(
-  request: PrayerRequest,
-  noteId: string,
-  { now }: { now: number }
-): PrayerRequest {
+export function applyDeleteNote(request: PrayerRequest, noteId: string, { now }: { now: number }): PrayerRequest {
   const updatedNotes = (request.notes || []).filter((n) => n.id !== noteId);
   return {
     ...request,
