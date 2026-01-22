@@ -88,7 +88,7 @@ import AppFooter from './components/layout/AppFooter.vue';
 import AppHeader from './components/layout/AppHeader.vue';
 import Content from './components/layout/Content.vue';
 import { useRequestsStore } from './stores/requestsStore';
-import { initThemeWatcher } from './services/settingsService';
+import { initThemeWatcher } from './stores/settings';
 import { useSwipeGesture } from './composables/useSwipeGesture';
 import type {
   AnsweredModalState,

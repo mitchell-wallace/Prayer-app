@@ -3,7 +3,19 @@ import type { ProgressDot } from '../core/types';
 
 export type DotMotionDirection = 'forward' | 'backward' | '';
 
-export function useProgressDotsAnimation(progressDots: Ref<ProgressDot[]>, slideDirection: Ref<string>) {
+export interface UseProgressDotsAnimationReturn {
+  motionDirection: Ref<DotMotionDirection>;
+  previousDots: Ref<ProgressDot[]>;
+  isOutgoingDot: (dot: ProgressDot) => boolean;
+  isIncomingDot: (dot: ProgressDot) => boolean;
+  isIncomingPending: (dot: ProgressDot) => boolean;
+  isCurrentDot: (dot: ProgressDot) => boolean;
+}
+
+export function useProgressDotsAnimation(
+  progressDots: Ref<ProgressDot[]>,
+  slideDirection: Ref<string>
+): UseProgressDotsAnimationReturn {
   const outgoingDot = ref<ProgressDot | null>(null);
   const incomingSlot = ref<number | null>(null);
   const incomingReady = ref<boolean>(false);

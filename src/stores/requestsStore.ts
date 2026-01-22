@@ -16,7 +16,10 @@ import {
 const requests = ref<PrayerRequest[]>([]);
 const loading = ref<boolean>(true);
 
-const activeRequests = computed<PrayerRequest[]>(() => requests.value.filter((r) => r.status === 'active'));
+const activeRequests = computed<PrayerRequest[]>(() => {
+  const now = Date.now();
+  return requests.value.filter((r) => r.status === 'active' && r.expiresAt > now);
+});
 
 const answeredRequests = computed<PrayerRequest[]>(() => requests.value.filter((r) => r.status === 'answered'));
 
@@ -82,7 +85,7 @@ async function deleteNote({ request, note }: { request: PrayerRequest; note: Not
 async function deleteRequest(request: PrayerRequest): Promise<void> {
   await serviceDeleteRequest(request.id);
   requests.value = requests.value.filter((r) => r.id !== request.id);
-  queue.removeRequestFromQueue(request.id, { autoAdvance: true });
+  queue.removeRequestFromQueue(request.id);
   if (renderQueue.value.length === 0) {
     queue.resetFeed();
   }
@@ -91,7 +94,7 @@ async function deleteRequest(request: PrayerRequest): Promise<void> {
 async function markAnswered({ request, text }: { request: PrayerRequest; text: string }): Promise<PrayerRequest> {
   const updated = await serviceMarkAnswered({ request, text });
   replaceRequest(updated);
-  queue.removeRequestFromQueue(updated.id, { autoAdvance: true });
+  queue.removeRequestFromQueue(updated.id);
   if (renderQueue.value.length === 0) {
     queue.resetFeed();
   } else {

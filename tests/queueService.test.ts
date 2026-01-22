@@ -84,7 +84,7 @@ test('orders higher-recency urgent requests ahead of very recent ones', () => {
   expect(first).toBe('old');
 });
 
-test('treats never-prayed requests as higher recency than yesterday', () => {
+test('treats never-prayed requests as oldest and thus highest priority', () => {
   const now = Date.now();
   const activeRequests = ref([
     makeRequest({ id: 'never', priority: 'medium', prayedAt: [] }),
@@ -95,5 +95,38 @@ test('treats never-prayed requests as higher recency than yesterday', () => {
   queue.resetFeed();
 
   const first = queue.renderQueue.value[0]?.request.id;
+  // Never-prayed has lastPrayedAt=0, making it "oldest" in tie-breaks
   expect(first).toBe('never');
+});
+
+test('respects max-run-length of 3 to prevent priority streaks', () => {
+  const now = Date.now();
+  const prayedLongAgo = now - 30 * MS_PER_DAY;
+
+  const activeRequests = ref([
+    makeRequest({ id: 'u1', priority: 'urgent', prayedAt: [prayedLongAgo] }),
+    makeRequest({ id: 'u2', priority: 'urgent', prayedAt: [prayedLongAgo] }),
+    makeRequest({ id: 'u3', priority: 'urgent', prayedAt: [prayedLongAgo] }),
+    makeRequest({ id: 'u4', priority: 'urgent', prayedAt: [prayedLongAgo] }),
+    makeRequest({ id: 'h1', priority: 'high', prayedAt: [prayedLongAgo] }),
+    makeRequest({ id: 'h2', priority: 'high', prayedAt: [prayedLongAgo] }),
+  ]);
+
+  const queue = createQueueService(activeRequests, { now: () => Date.now() });
+  queue.resetFeed();
+
+  const priorities = queue.renderQueue.value.slice(0, 6).map((item) => item.request.priority);
+
+  let maxConsecutive = 0;
+  let current = 0;
+  for (const p of priorities) {
+    if (p === 'urgent') {
+      current += 1;
+      maxConsecutive = Math.max(maxConsecutive, current);
+    } else {
+      current = 0;
+    }
+  }
+
+  expect(maxConsecutive).toBeLessThanOrEqual(3);
 });

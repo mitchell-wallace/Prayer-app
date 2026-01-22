@@ -1,13 +1,19 @@
 import { reactive, watch, watchEffect } from 'vue';
-import type { Settings, Theme } from '../core/types';
-import { defaultSettings, load, save } from '../repositories/settingsRepository';
+import type { DurationPreset, Priority, Settings, Theme } from '../core/types';
+import {
+  loadSettings,
+  saveSettings,
+  isValidTheme,
+  isValidPriority,
+  isValidDuration,
+} from '../services/settingsService';
 
-export const settings = reactive<Settings>(load());
+export const settings = reactive<Settings>(loadSettings());
 
 watch(
   () => ({ ...settings }),
   (newSettings) => {
-    save(newSettings);
+    saveSettings(newSettings);
   },
   { deep: true }
 );
@@ -39,5 +45,22 @@ export function initThemeWatcher(): void {
 }
 
 export function resetSettings(): void {
-  Object.assign(settings, defaultSettings);
+  settings.theme = 'system';
+  settings.defaultPriority = 'medium';
+  settings.defaultDuration = '6m';
+}
+
+export function setTheme(value: Theme): void {
+  if (!isValidTheme(value)) return;
+  settings.theme = value;
+}
+
+export function setDefaultPriority(value: Priority): void {
+  if (!isValidPriority(value)) return;
+  settings.defaultPriority = value;
+}
+
+export function setDefaultDuration(value: DurationPreset): void {
+  if (!isValidDuration(value)) return;
+  settings.defaultDuration = value;
 }

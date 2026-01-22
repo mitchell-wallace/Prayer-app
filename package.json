@@ -8,6 +8,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest",
+    "typecheck": "npm run type-check",
     "type-check": "vue-tsc --noEmit",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",

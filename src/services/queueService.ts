@@ -121,7 +121,7 @@ export function createQueueService(
   const currentIndex = ref<number>(0);
   let cycleState: CycleState | null = null;
 
-  const currentItem = computed<QueueItem | null>(() => renderQueue.value[currentIndex.value] || null);
+  const currentItem = computed<QueueItem | null>(() => renderQueue.value[currentIndex.value] ?? null);
 
   const canGoPrevious = computed<boolean>(() => currentIndex.value > 0);
   const canGoNext = computed<boolean>(() => renderQueue.value.length > 1);
@@ -220,7 +220,7 @@ export function createQueueService(
     }
   }
 
-  function removeRequestFromQueue(requestId: string, { autoAdvance = false }: { autoAdvance?: boolean } = {}): void {
+  function removeRequestFromQueue(requestId: string): void {
     const oldQueue = renderQueue.value;
     if (!oldQueue.length) {
       currentIndex.value = 0;
@@ -251,9 +251,6 @@ export function createQueueService(
     }
 
     nextIndex = Math.max(0, Math.min(nextIndex, newQueue.length - 1));
-
-    if (autoAdvance && wasCurrentRemoved && newQueue.length > 1) {
-    }
 
     currentIndex.value = nextIndex;
     removeFromCycle(cycleState, requestId);

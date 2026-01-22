@@ -6,7 +6,7 @@
       data-testid="info-button"
       class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
       aria-label="View stats"
-      @click="open = true"
+      @click="open"
     >
       <IconInfoCircle :size="18" stroke-width="2" />
     </button>
@@ -15,10 +15,10 @@
     <Teleport to="body">
       <Transition name="modal">
         <div
-          v-if="open"
+          v-if="isOpen"
           data-testid="info-modal"
           class="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4"
-          @click.self="open = false"
+          @click.self="close"
         >
           <div class="w-full max-w-sm rounded-2xl bg-base-300 p-5 shadow-xl dark:bg-base-200">
             <header class="mb-4 flex items-center justify-between">
@@ -26,7 +26,7 @@
               <button
                 class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-base-300 text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-lg"
                 type="button"
-                @click="open = false"
+                @click="close"
               >
                 <IconX :size="18" stroke-width="2" />
               </button>
@@ -95,9 +95,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Teleport, Transition } from 'vue';
+import { Teleport, Transition } from 'vue';
 import { IconInfoCircle, IconX } from '@tabler/icons-vue';
 import type { InfoStats } from '../../core/types';
+import { useModal } from '../../composables/useModal';
 
 function formatDate(ts: number): string {
   if (!ts) return '';
@@ -109,5 +110,5 @@ defineProps<{
   stats: InfoStats;
 }>();
 
-const open = ref<boolean>(false);
+const { isOpen, open, close } = useModal();
 </script>

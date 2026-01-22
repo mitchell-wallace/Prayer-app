@@ -189,13 +189,9 @@ async function submit(): Promise<void> {
   clearTitle();
   priorityOpen.value = false;
   durationOpen.value = false;
-  isExpanded.value = false;
-  restoreFocus.value = false;
-  if (isInputFocused.value) {
-    inputRef.value?.blur();
-  }
-  isInputFocused.value = false;
+  // Keep form expanded for rapid entry of multiple requests
   await nextTick();
+  inputRef.value?.focus();
 }
 
 function handleFocus(): void {

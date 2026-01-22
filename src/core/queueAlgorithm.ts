@@ -11,6 +11,7 @@ export type QueueConfig = {
   interleaveWindow: number;
   interleaveWeights: Record<Priority, number>;
   newCardBoost: number;
+  maxRunLength: number;
 };
 
 type BucketItem = {
@@ -27,6 +28,9 @@ export type CycleState = {
   deckIndex: number;
   priorityOrder: Priority[];
   interleaveWindow: number;
+  maxRunLength: number;
+  lastPriority: Priority | null;
+  currentRunLength: number;
 };
 
 export const DEFAULT_QUEUE_CONFIG: QueueConfig = {
@@ -45,20 +49,21 @@ export const DEFAULT_QUEUE_CONFIG: QueueConfig = {
   },
   recencyMin: 0.1,
   recencyMax: 2.0,
-  interleaveWindow: 0.3,
+  interleaveWindow: 0.4,
   interleaveWeights: {
     urgent: 4,
     high: 3,
     medium: 2,
     low: 1,
   },
-  newCardBoost: 1,
+  newCardBoost: 1.25,
+  maxRunLength: 3,
 };
 
 export function buildInterleaveDeck(weights: Record<Priority, number>, priorityOrder: Priority[]): Priority[] {
   const deck: Priority[] = [];
   for (const priority of priorityOrder) {
-    const count = Math.max(0, Math.floor(weights[priority] || 0));
+    const count = Math.max(0, Math.floor(weights[priority] ?? 0));
     for (let i = 0; i < count; i += 1) {
       deck.push(priority);
     }
@@ -90,14 +95,14 @@ export function computeScore(request: PrayerRequest, now: number, config: QueueC
     ? computeRecencyScale(daysSince, config.recoveryDays[request.priority], config)
     : config.recencyMax;
   const newCardBoost = hasHistory ? 1 : config.newCardBoost;
-  return (config.priorityWeights[request.priority] || 0) * recency * newCardBoost;
+  return (config.priorityWeights[request.priority] ?? 0) * recency * newCardBoost;
 }
 
 function buildBucketItem(request: PrayerRequest, now: number, config: QueueConfig): BucketItem {
   return {
     request,
     score: computeScore(request, now, config),
-    lastPrayedAt: request.prayedAt?.length ? Math.max(...request.prayedAt) : now,
+    lastPrayedAt: request.prayedAt?.length ? Math.max(...request.prayedAt) : 0,
     createdAt: request.createdAt ?? 0,
   };
 }
@@ -131,10 +136,21 @@ function pickPriorityFromDeck(state: CycleState, eligible: Set<Priority>): Prior
 function selectNextPriority(state: CycleState): Priority | null {
   const scored: Array<{ priority: Priority; score: number }> = [];
   for (const priority of state.priorityOrder) {
+    // Skip if this priority has reached max consecutive picks
+    if (state.lastPriority === priority && state.currentRunLength >= state.maxRunLength) {
+      continue;
+    }
     const score = bucketTopScore(state.buckets[priority]);
     if (score !== null) scored.push({ priority, score });
   }
-  if (!scored.length) return null;
+  if (!scored.length) {
+    // All priorities exhausted or blocked - reset and try any available
+    for (const priority of state.priorityOrder) {
+      const score = bucketTopScore(state.buckets[priority]);
+      if (score !== null) scored.push({ priority, score });
+    }
+    if (!scored.length) return null;
+  }
 
   let maxScore = scored[0].score;
   for (const item of scored) {
@@ -191,6 +207,9 @@ export function createCycleState(
     deckIndex: 0,
     priorityOrder,
     interleaveWindow: config.interleaveWindow,
+    maxRunLength: config.maxRunLength,
+    lastPriority: null,
+    currentRunLength: 0,
   };
 }
 
@@ -201,6 +220,15 @@ export function pickNextFromCycle(state: CycleState | null): PrayerRequest | nul
   const item = state.buckets[priority].pop();
   if (!item) return null;
   state.remaining -= 1;
+
+  // Track run length for max-run-length constraint
+  if (state.lastPriority === priority) {
+    state.currentRunLength += 1;
+  } else {
+    state.lastPriority = priority;
+    state.currentRunLength = 1;
+  }
+
   return item.request;
 }
 

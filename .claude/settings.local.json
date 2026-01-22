@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git ls-tree:*)",
+      "WebFetch(domain:ampcode.com)",
+      "Bash(npm run test:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run format:*)",
+      "Bash(npm run build)"
+    ]
+  }
+}

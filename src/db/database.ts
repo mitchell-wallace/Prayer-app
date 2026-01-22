@@ -1,3 +1,8 @@
+/**
+ * @internal
+ * Low-level database operations for sql.js + IndexedDB persistence.
+ * External code should use repositories (src/repositories/) instead.
+ */
 import { del, get, set } from 'idb-keyval';
 import type { Database, SqlValue } from 'sql.js';
 import type { DurationPreset, Note, PrayerRequest, Priority, RequestStatus } from '../core/types';
@@ -8,6 +13,28 @@ const STORAGE_KEY = 'prayer-sql-db';
 let dbInstance: Database | null = null;
 
 const SCHEMA_VERSION = 2;
+
+const VALID_PRIORITIES = new Set<string>(['urgent', 'high', 'medium', 'low']);
+const VALID_STATUSES = new Set<string>(['active', 'answered']);
+const VALID_DURATIONS = new Set<string>(['10d', '1m', '3m', '6m', '1y']);
+
+function validatePriority(value: string): Priority {
+  if (VALID_PRIORITIES.has(value)) return value as Priority;
+  console.warn(`Invalid priority "${value}", defaulting to "medium"`);
+  return 'medium';
+}
+
+function validateStatus(value: string): RequestStatus {
+  if (VALID_STATUSES.has(value)) return value as RequestStatus;
+  console.warn(`Invalid status "${value}", defaulting to "active"`);
+  return 'active';
+}
+
+function validateDuration(value: string): DurationPreset {
+  if (VALID_DURATIONS.has(value)) return value as DurationPreset;
+  console.warn(`Invalid duration "${value}", defaulting to "6m"`);
+  return '6m';
+}
 
 type BaseRequestRecord = Omit<PrayerRequest, 'notes' | 'prayedAt'> & {
   notes?: Note[];
@@ -153,11 +180,11 @@ function migrateV1ToV2(db: Database): void {
 
       const id = toStringValue(idValue);
       const title = toStringValue(titleValue);
-      const priority = toStringValue(priorityValue) as Priority;
-      const durationPreset = toStringValue(durationPresetValue) as DurationPreset;
+      const priority = validatePriority(toStringValue(priorityValue));
+      const durationPreset = validateDuration(toStringValue(durationPresetValue));
       const createdAt = toNumberValue(createdAtValue);
       const expiresAt = toNumberValue(expiresAtValue);
-      const status = toStringValue(statusValue) as RequestStatus;
+      const status = validateStatus(toStringValue(statusValue));
       const updatedAt = toNumberValue(updatedAtValue);
 
       insertRequest.run([id, title, priority, durationPreset, createdAt, expiresAt, status, updatedAt]);
@@ -242,8 +269,8 @@ function deserializeRequest(row: BaseRequestRecord): PrayerRequest {
     createdAt: row.createdAt,
     expiresAt: row.expiresAt,
     status: row.status,
-    prayedAt: row.prayedAt || [],
-    notes: row.notes || [],
+    prayedAt: row.prayedAt ?? [],
+    notes: row.notes ?? [],
     updatedAt: row.updatedAt,
   };
 }
@@ -270,11 +297,11 @@ export async function fetchAllRequests(): Promise<PrayerRequest[]> {
       deserializeRequest({
         id: toStringValue(idValue),
         title: toStringValue(titleValue),
-        priority: toStringValue(priorityValue) as Priority,
-        durationPreset: toStringValue(durationPresetValue) as DurationPreset,
+        priority: validatePriority(toStringValue(priorityValue)),
+        durationPreset: validateDuration(toStringValue(durationPresetValue)),
         createdAt: toNumberValue(createdAtValue),
         expiresAt: toNumberValue(expiresAtValue),
-        status: toStringValue(statusValue) as RequestStatus,
+        status: validateStatus(toStringValue(statusValue)),
         updatedAt: toNumberValue(updatedAtValue),
       })
   );
