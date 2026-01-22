@@ -1,3 +1,7 @@
+/**
+ * Queue scoring and cycle selection logic.
+ * Pure algorithmic decisions only; no persistence or UI state.
+ */
 import type { PrayerRequest, Priority } from './types';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;

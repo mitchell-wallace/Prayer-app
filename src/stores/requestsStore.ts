@@ -1,6 +1,20 @@
-import { computed, ref } from 'vue';
+import { computed, reactive, ref, toRefs } from 'vue';
 import type { CreateRequestPayload, InfoStats, Note, PrayerRequest } from '../core/types';
-import { createQueueService } from '../services/queueService';
+import {
+  buildProgressDots,
+  canGoNext as canGoNextFromState,
+  canGoPrevious as canGoPreviousFromState,
+  createQueueState,
+  getCurrentItem,
+  insertRequest,
+  loadMore,
+  navigateToIndex,
+  nextCard,
+  previousCard,
+  removeRequestFromQueue,
+  resetFeed,
+  type QueueState,
+} from '../services/queueEngine';
 import {
   initRequests,
   addNote as serviceAddNote,
@@ -23,8 +37,12 @@ const activeRequests = computed<PrayerRequest[]>(() => {
 
 const answeredRequests = computed<PrayerRequest[]>(() => requests.value.filter((r) => r.status === 'answered'));
 
-const queue = createQueueService(activeRequests);
-const { renderQueue, currentIndex, currentItem, progressDots, cycleCount, canGoPrevious, canGoNext } = queue;
+const queueState = reactive<QueueState>(createQueueState());
+const { renderQueue, currentIndex, cycleCount } = toRefs(queueState);
+const currentItem = computed(() => getCurrentItem(queueState));
+const progressDots = computed(() => buildProgressDots(queueState));
+const canGoPrevious = computed(() => canGoPreviousFromState(queueState));
+const canGoNext = computed(() => canGoNextFromState(queueState));
 
 const infoStats = computed<InfoStats>(() => ({
   active: activeRequests.value.length,
@@ -47,13 +65,13 @@ function replaceRequest(updated: PrayerRequest): void {
 async function init(): Promise<void> {
   requests.value = await initRequests();
   loading.value = false;
-  queue.resetFeed();
+  resetFeed(queueState, activeRequests.value);
 }
 
 async function createRequest(payload: CreateRequestPayload): Promise<void> {
   const record = await serviceCreateRequest(payload);
   requests.value = [record, ...requests.value];
-  queue.insertRequest(record);
+  insertRequest(queueState, record);
 }
 
 async function recordPrayer(request: PrayerRequest): Promise<PrayerRequest> {
@@ -85,21 +103,21 @@ async function deleteNote({ request, note }: { request: PrayerRequest; note: Not
 async function deleteRequest(request: PrayerRequest): Promise<void> {
   await serviceDeleteRequest(request.id);
   requests.value = requests.value.filter((r) => r.id !== request.id);
-  queue.removeRequestFromQueue(request.id);
+  removeRequestFromQueue(queueState, request.id);
   if (renderQueue.value.length === 0) {
-    queue.resetFeed();
+    resetFeed(queueState, activeRequests.value);
   }
 }
 
 async function markAnswered({ request, text }: { request: PrayerRequest; text: string }): Promise<PrayerRequest> {
   const updated = await serviceMarkAnswered({ request, text });
   replaceRequest(updated);
-  queue.removeRequestFromQueue(updated.id);
+  removeRequestFromQueue(queueState, updated.id);
   if (renderQueue.value.length === 0) {
-    queue.resetFeed();
+    resetFeed(queueState, activeRequests.value);
   } else {
     const remaining = renderQueue.value.length - currentIndex.value;
-    if (remaining <= 2) queue.loadMore();
+    if (remaining <= 2) loadMore(queueState, activeRequests.value);
   }
   return updated;
 }
@@ -118,11 +136,11 @@ export function useRequestsStore() {
     progressDots,
     infoStats,
     init,
-    resetFeed: queue.resetFeed,
-    loadMore: queue.loadMore,
-    nextCard: queue.nextCard,
-    previousCard: queue.previousCard,
-    navigateToIndex: queue.navigateToIndex,
+    resetFeed: () => resetFeed(queueState, activeRequests.value),
+    loadMore: () => loadMore(queueState, activeRequests.value),
+    nextCard: () => nextCard(queueState, activeRequests.value),
+    previousCard: () => previousCard(queueState),
+    navigateToIndex: (index: number) => navigateToIndex(queueState, index, activeRequests.value),
     createRequest,
     recordPrayer,
     updateRequest,

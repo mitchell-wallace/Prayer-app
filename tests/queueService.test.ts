@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { ref } from 'vue';
 import { DEFAULT_QUEUE_CONFIG } from '../src/core/queueAlgorithm';
 import type { PrayerRequest, Priority } from '../src/core/types';
-import { createQueueService } from '../src/services/queueService';
+import { createQueueState, resetFeed } from '../src/services/queueEngine';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -40,62 +39,62 @@ afterEach(() => {
 
 test('builds a cycle without repeats and starts a new cycle when needed', () => {
   const now = Date.now();
-  const activeRequests = ref([
+  const activeRequests = [
     makeRequest({ id: 'a', priority: 'urgent', createdAt: now - MS_PER_DAY }),
     makeRequest({ id: 'b', priority: 'high', createdAt: now - 2 * MS_PER_DAY }),
     makeRequest({ id: 'c', priority: 'medium', createdAt: now - 3 * MS_PER_DAY }),
-  ]);
+  ];
 
-  const queue = createQueueService(activeRequests, { now: () => Date.now() });
-  queue.resetFeed();
+  const queue = createQueueState();
+  resetFeed(queue, activeRequests, { now: () => Date.now() });
 
-  const ids = queue.renderQueue.value.map((item) => item.request.id);
+  const ids = queue.renderQueue.map((item) => item.request.id);
   const firstCycleIds = ids.slice(0, 3);
   expect(new Set(firstCycleIds).size).toBe(3);
-  expect(queue.renderQueue.value[0].cycle).toBe(0);
-  expect(queue.renderQueue.value[3].cycle).toBe(1);
+  expect(queue.renderQueue[0].cycle).toBe(0);
+  expect(queue.renderQueue[3].cycle).toBe(1);
 });
 
 test('interleaves urgent and high when scores are within the window', () => {
   const now = Date.now();
   const prayedLongAgo = now - 20 * MS_PER_DAY;
-  const activeRequests = ref([
+  const activeRequests = [
     makeRequest({ id: 'u1', priority: 'urgent', prayedAt: [prayedLongAgo] }),
     makeRequest({ id: 'h1', priority: 'high', prayedAt: [prayedLongAgo] }),
-  ]);
+  ];
 
-  const queue = createQueueService(activeRequests, { now: () => Date.now() });
-  queue.resetFeed();
+  const queue = createQueueState();
+  resetFeed(queue, activeRequests, { now: () => Date.now() });
 
-  const firstTwo = queue.renderQueue.value.slice(0, 2).map((item) => item.request.id);
+  const firstTwo = queue.renderQueue.slice(0, 2).map((item) => item.request.id);
   expect(firstTwo).toEqual(['u1', 'h1']);
 });
 
 test('orders higher-recency urgent requests ahead of very recent ones', () => {
   const now = Date.now();
-  const activeRequests = ref([
+  const activeRequests = [
     makeRequest({ id: 'recent', priority: 'urgent', prayedAt: [] }),
     makeRequest({ id: 'old', priority: 'urgent', prayedAt: [now - 10 * MS_PER_DAY] }),
-  ]);
+  ];
 
-  const queue = createQueueService(activeRequests, { now: () => Date.now() });
-  queue.resetFeed();
+  const queue = createQueueState();
+  resetFeed(queue, activeRequests, { now: () => Date.now() });
 
-  const first = queue.renderQueue.value[0]?.request.id;
+  const first = queue.renderQueue[0]?.request.id;
   expect(first).toBe('old');
 });
 
 test('treats never-prayed requests as oldest and thus highest priority', () => {
   const now = Date.now();
-  const activeRequests = ref([
+  const activeRequests = [
     makeRequest({ id: 'never', priority: 'medium', prayedAt: [] }),
     makeRequest({ id: 'yesterday', priority: 'medium', prayedAt: [now - MS_PER_DAY] }),
-  ]);
+  ];
 
-  const queue = createQueueService(activeRequests, { now: () => Date.now() });
-  queue.resetFeed();
+  const queue = createQueueState();
+  resetFeed(queue, activeRequests, { now: () => Date.now() });
 
-  const first = queue.renderQueue.value[0]?.request.id;
+  const first = queue.renderQueue[0]?.request.id;
   // Never-prayed has lastPrayedAt=0, making it "oldest" in tie-breaks
   expect(first).toBe('never');
 });
@@ -104,19 +103,19 @@ test('respects max-run-length of 3 to prevent priority streaks', () => {
   const now = Date.now();
   const prayedLongAgo = now - 30 * MS_PER_DAY;
 
-  const activeRequests = ref([
+  const activeRequests = [
     makeRequest({ id: 'u1', priority: 'urgent', prayedAt: [prayedLongAgo] }),
     makeRequest({ id: 'u2', priority: 'urgent', prayedAt: [prayedLongAgo] }),
     makeRequest({ id: 'u3', priority: 'urgent', prayedAt: [prayedLongAgo] }),
     makeRequest({ id: 'u4', priority: 'urgent', prayedAt: [prayedLongAgo] }),
     makeRequest({ id: 'h1', priority: 'high', prayedAt: [prayedLongAgo] }),
     makeRequest({ id: 'h2', priority: 'high', prayedAt: [prayedLongAgo] }),
-  ]);
+  ];
 
-  const queue = createQueueService(activeRequests, { now: () => Date.now() });
-  queue.resetFeed();
+  const queue = createQueueState();
+  resetFeed(queue, activeRequests, { now: () => Date.now() });
 
-  const priorities = queue.renderQueue.value.slice(0, 6).map((item) => item.request.priority);
+  const priorities = queue.renderQueue.slice(0, 6).map((item) => item.request.priority);
 
   let maxConsecutive = 0;
   let current = 0;
@@ -133,25 +132,25 @@ test('respects max-run-length of 3 to prevent priority streaks', () => {
 });
 
 test('throws when queue config omits a priority', () => {
-  const activeRequests = ref([makeRequest({ id: 'only', priority: 'urgent' })]);
+  const activeRequests = [makeRequest({ id: 'only', priority: 'urgent' })];
   const config = {
     ...DEFAULT_QUEUE_CONFIG,
     priorityOrder: ['urgent', 'high', 'medium'] as Priority[],
   };
 
-  const queue = createQueueService(activeRequests, { now: () => Date.now(), config });
+  const queue = createQueueState();
 
-  expect(() => queue.resetFeed()).toThrow(/priorityOrder/i);
+  expect(() => resetFeed(queue, activeRequests, { now: () => Date.now(), config })).toThrow(/priorityOrder/i);
 });
 
 test('throws when queue config sets a priority weight to zero', () => {
-  const activeRequests = ref([makeRequest({ id: 'only', priority: 'urgent' })]);
+  const activeRequests = [makeRequest({ id: 'only', priority: 'urgent' })];
   const config = {
     ...DEFAULT_QUEUE_CONFIG,
     priorityWeights: { ...DEFAULT_QUEUE_CONFIG.priorityWeights, low: 0 },
   };
 
-  const queue = createQueueService(activeRequests, { now: () => Date.now(), config });
+  const queue = createQueueState();
 
-  expect(() => queue.resetFeed()).toThrow(/priorityWeights/i);
+  expect(() => resetFeed(queue, activeRequests, { now: () => Date.now(), config })).toThrow(/priorityWeights/i);
 });

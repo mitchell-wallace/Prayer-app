@@ -84,12 +84,12 @@ export function validateRequestRecord(record: PrayerRequest): void {
 
 export function createNoteEntry(
   text: string,
-  { isAnswer = false, now = Date.now() }: { isAnswer?: boolean; now?: number } = {}
+  { isAnswer = false, now, id }: { isAnswer?: boolean; now: number; id: string }
 ): Note {
   const normalized = normalizeText(text);
   requireString(normalized, 'note text');
   return {
-    id: crypto.randomUUID(),
+    id,
     text: normalized,
     createdAt: now,
     isAnswer,
@@ -98,11 +98,11 @@ export function createNoteEntry(
 
 export function createRequestRecord(
   payload: CreateRequestPayload,
-  { now = Date.now() }: { now?: number } = {}
+  { now, id }: { now: number; id: string }
 ): PrayerRequest {
   const normalized = validateCreatePayload(payload);
   return {
-    id: crypto.randomUUID(),
+    id,
     title: normalized.title,
     priority: normalized.priority,
     durationPreset: normalized.durationPreset,
@@ -115,7 +115,7 @@ export function createRequestRecord(
   };
 }
 
-export function applyPrayer(request: PrayerRequest, { now = Date.now() }: { now?: number } = {}): PrayerRequest {
+export function applyPrayer(request: PrayerRequest, { now }: { now: number }): PrayerRequest {
   return {
     ...request,
     prayedAt: [...(request.prayedAt || []), now],
@@ -123,7 +123,7 @@ export function applyPrayer(request: PrayerRequest, { now = Date.now() }: { now?
   };
 }
 
-export function applyRequestUpdate(request: PrayerRequest, { now = Date.now() }: { now?: number } = {}): PrayerRequest {
+export function applyRequestUpdate(request: PrayerRequest, { now }: { now: number }): PrayerRequest {
   return {
     ...request,
     expiresAt: computeExpiry(request.createdAt, request.durationPreset),
@@ -134,9 +134,9 @@ export function applyRequestUpdate(request: PrayerRequest, { now = Date.now() }:
 export function applyAddNote(
   request: PrayerRequest,
   text: string,
-  { now = Date.now() }: { now?: number } = {}
+  { now, id }: { now: number; id: string }
 ): PrayerRequest {
-  const entry = createNoteEntry(text, { now });
+  const entry = createNoteEntry(text, { now, id });
   return {
     ...request,
     notes: [...(request.notes || []), entry],
@@ -147,7 +147,7 @@ export function applyAddNote(
 export function applyEditNote(
   request: PrayerRequest,
   note: Note,
-  { now = Date.now() }: { now?: number } = {}
+  { now }: { now: number }
 ): PrayerRequest {
   const updatedNotes = (request.notes || []).map((n) => (n.id === note.id ? { ...note } : n));
   return {
@@ -160,7 +160,7 @@ export function applyEditNote(
 export function applyDeleteNote(
   request: PrayerRequest,
   noteId: string,
-  { now = Date.now() }: { now?: number } = {}
+  { now }: { now: number }
 ): PrayerRequest {
   const updatedNotes = (request.notes || []).filter((n) => n.id !== noteId);
   return {
@@ -173,9 +173,9 @@ export function applyDeleteNote(
 export function applyAnswered(
   request: PrayerRequest,
   text: string,
-  { now = Date.now() }: { now?: number } = {}
+  { now, id }: { now: number; id: string }
 ): PrayerRequest {
-  const entry = createNoteEntry(text, { isAnswer: true, now });
+  const entry = createNoteEntry(text, { isAnswer: true, now, id });
   return {
     ...request,
     status: 'answered',
