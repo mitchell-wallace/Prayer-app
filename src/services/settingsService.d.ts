@@ -1,8 +1,7 @@
 import type { DurationPreset, Priority, Settings, Theme } from '../core/types';
 
-export const settings: Settings;
-export function initThemeWatcher(): void;
-export function resetSettings(): void;
-export function setTheme(value: Theme): void;
-export function setDefaultPriority(value: Priority): void;
-export function setDefaultDuration(value: DurationPreset): void;
+export function loadSettings(): Settings;
+export function saveSettings(settings: Settings): void;
+export function isValidTheme(value: unknown): value is Theme;
+export function isValidPriority(value: unknown): value is Priority;
+export function isValidDuration(value: unknown): value is DurationPreset;

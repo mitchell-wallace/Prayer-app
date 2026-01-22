@@ -1,6 +1,7 @@
 import type { PrayerRequest, Priority } from './types';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const REQUIRED_PRIORITIES: Priority[] = ['urgent', 'high', 'medium', 'low'];
 
 export type QueueConfig = {
   priorityOrder: Priority[];
@@ -34,7 +35,7 @@ export type CycleState = {
 };
 
 export const DEFAULT_QUEUE_CONFIG: QueueConfig = {
-  priorityOrder: ['urgent', 'high', 'medium', 'low'],
+  priorityOrder: [...REQUIRED_PRIORITIES],
   priorityWeights: {
     urgent: 100,
     high: 70,
@@ -59,6 +60,35 @@ export const DEFAULT_QUEUE_CONFIG: QueueConfig = {
   newCardBoost: 1.25,
   maxRunLength: 3,
 };
+
+function assertPriorityOrder(priorityOrder: Priority[]): void {
+  if (!Array.isArray(priorityOrder)) {
+    throw new Error('QueueConfig priorityOrder must be an array');
+  }
+  const missing = REQUIRED_PRIORITIES.filter((priority) => !priorityOrder.includes(priority));
+  if (missing.length > 0) {
+    throw new Error(`QueueConfig priorityOrder missing priorities: ${missing.join(', ')}`);
+  }
+  const unique = new Set(priorityOrder);
+  if (unique.size !== priorityOrder.length) {
+    throw new Error('QueueConfig priorityOrder contains duplicate priorities');
+  }
+}
+
+function assertPositiveWeights(weights: Record<Priority, number>, label: string): void {
+  for (const priority of REQUIRED_PRIORITIES) {
+    const value = weights[priority];
+    if (!Number.isFinite(value) || value <= 0) {
+      throw new Error(`QueueConfig ${label}.${priority} must be a positive number`);
+    }
+  }
+}
+
+function assertQueueConfig(config: QueueConfig): void {
+  assertPriorityOrder(config.priorityOrder);
+  assertPositiveWeights(config.priorityWeights, 'priorityWeights');
+  assertPositiveWeights(config.interleaveWeights, 'interleaveWeights');
+}
 
 export function buildInterleaveDeck(weights: Record<Priority, number>, priorityOrder: Priority[]): Priority[] {
   const deck: Priority[] = [];
@@ -177,6 +207,7 @@ export function createCycleState(
   requests: PrayerRequest[],
   { now = Date.now(), config = DEFAULT_QUEUE_CONFIG }: { now?: number; config?: QueueConfig } = {}
 ): CycleState {
+  assertQueueConfig(config);
   const priorityOrder = config.priorityOrder || DEFAULT_QUEUE_CONFIG.priorityOrder;
   const buckets: Record<Priority, BucketItem[]> = {
     urgent: [],

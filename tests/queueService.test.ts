@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { ref } from 'vue';
+import { DEFAULT_QUEUE_CONFIG } from '../src/core/queueAlgorithm';
 import type { PrayerRequest, Priority } from '../src/core/types';
 import { createQueueService } from '../src/services/queueService';
 
@@ -129,4 +130,28 @@ test('respects max-run-length of 3 to prevent priority streaks', () => {
   }
 
   expect(maxConsecutive).toBeLessThanOrEqual(3);
+});
+
+test('throws when queue config omits a priority', () => {
+  const activeRequests = ref([makeRequest({ id: 'only', priority: 'urgent' })]);
+  const config = {
+    ...DEFAULT_QUEUE_CONFIG,
+    priorityOrder: ['urgent', 'high', 'medium'] as Priority[],
+  };
+
+  const queue = createQueueService(activeRequests, { now: () => Date.now(), config });
+
+  expect(() => queue.resetFeed()).toThrow(/priorityOrder/i);
+});
+
+test('throws when queue config sets a priority weight to zero', () => {
+  const activeRequests = ref([makeRequest({ id: 'only', priority: 'urgent' })]);
+  const config = {
+    ...DEFAULT_QUEUE_CONFIG,
+    priorityWeights: { ...DEFAULT_QUEUE_CONFIG.priorityWeights, low: 0 },
+  };
+
+  const queue = createQueueService(activeRequests, { now: () => Date.now(), config });
+
+  expect(() => queue.resetFeed()).toThrow(/priorityWeights/i);
 });
