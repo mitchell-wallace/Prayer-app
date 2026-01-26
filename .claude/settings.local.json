@@ -8,7 +8,8 @@
       "Bash(npm run format:*)",
       "Bash(npm run build)",
       "Bash(npm run type-check:*)",
-      "Bash(npx tailwindcss --help:*)"
+      "Bash(npx tailwindcss --help:*)",
+      "Bash(if not exist \"D:\\\\Libraries\\\\Documents\\\\_Programming\\\\_Freelance\\\\Prayer-app-2\\\\specs\\\\todos\\\\MIT-20\" mkdir \"D:\\\\Libraries\\\\Documents\\\\_Programming\\\\_Freelance\\\\Prayer-app-2\\\\specs\\\\todos\\\\MIT-20\")"
     ]
   }
 }

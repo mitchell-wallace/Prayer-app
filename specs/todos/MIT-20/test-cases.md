@@ -33,15 +33,29 @@ Expand unit test coverage for the data/business layers without over-testing a yo
 | validates record fields | `validateRequestRecord` | Throws when id/title empty |
 | validates record arrays | `validateRequestRecord` | Throws when prayedAt/notes not arrays |
 | validates note entries | `validateRequestRecord` | Throws when note missing id/text/createdAt |
+| normalizes/validates note text | `createNoteEntry` | Trims text and rejects empty values |
 | creates record with computed expiry | `createRequestRecord` | Sets expiresAt via computeExpiry |
 | creates record with active status | `createRequestRecord` | Default status is 'active' |
 | adds prayer timestamp | `applyPrayer` | Appends now to prayedAt array |
 | updates timestamp | `applyPrayer` | Sets updatedAt |
+| recomputes expiry on update | `applyRequestUpdate` | Recomputes expiresAt from createdAt + duration |
 | creates note entry | `applyAddNote` | Adds note with id/text/createdAt |
 | edits note in place | `applyEditNote` | Updates matching note by id |
 | removes note by id | `applyDeleteNote` | Filters out note with matching id |
 | sets answered status | `applyAnswered` | Changes status to 'answered' |
 | adds answer note | `applyAnswered` | Creates note with isAnswer=true |
+
+### 1.2 `queueAlgorithm.ts` - Config-Aware Core Behavior
+
+**File:** `tests/queueService.test.ts` (extend existing)
+
+| Test Case | Function | Description |
+|-----------|----------|-------------|
+| rejects invalid config priorities | `createCycleState` | Throws when `priorityOrder` is missing/duplicate/invalid |
+| rejects non-positive weights | `createCycleState` | Throws when priority or interleave weights <= 0 |
+| respects max run length | `pickNextFromCycle` | Never returns more than `maxRunLength` of the same priority consecutively |
+| respects interleave window intent | `pickNextFromCycle` | When scores are close, selection can vary across priorities (not fixed ordering) |
+| honors priority order set | `createCycleState` | Bucket ordering respects configured `priorityOrder` (no missing priorities) |
 
 ---
 
@@ -157,6 +171,9 @@ Mock dependencies: `requestsService`, `queueEngine`
 | markAnswered calls service.markAnswered | `markAnswered` | Delegates to service |
 | activeRequests filters by status+expiry | computed | Pure logic test |
 | answeredRequests filters by status | computed | Pure logic test |
+| deleteRequest updates queue state | `deleteRequest` | Removes from queue + resets feed if empty |
+| markAnswered updates queue state | `markAnswered` | Removes from queue + triggers loadMore when near end |
+| createRequest inserts into queue | `createRequest` | Inserted right after current item |
 
 ### 4.2 `settings.ts` - Layer Boundary
 
@@ -172,7 +189,8 @@ Mock dependencies: `settingsService`
 | setDefaultPriority validates via service | `setDefaultPriority` | Calls isValidPriority |
 | setDefaultDuration validates via service | `setDefaultDuration` | Calls isValidDuration |
 | resetSettings sets known defaults | `resetSettings` | Values match expected defaults |
-| watch triggers saveSettings on change | watch | Verifies auto-persist |
+| initThemeWatcher sets root theme | `initThemeWatcher` | Updates `data-theme` on document root |
+| initThemeWatcher reacts to system theme change | `initThemeWatcher` | Applies system theme on `matchMedia` change |
 
 ---
 
@@ -209,7 +227,7 @@ export const mockRequestsService = {
 
 ### Phase 1: Core Logic (High Value)
 1. `tests/core/requests.test.ts` - validation is critical path
-2. Extend `tests/queueService.test.ts` - navigation state machine
+2. Extend `tests/queueService.test.ts` - queue algorithm config + engine behavior
 
 ### Phase 2: Repositories
 3. Extend `tests/db.test.ts` with remove() test
@@ -243,3 +261,17 @@ export const mockRequestsService = {
 | Services | 3 | ~25 |
 | Stores | 2 | ~18 |
 | **Total** | 8 | ~67 |
+
+---
+
+## 8. Architectural Guardrails (Layer Enforcement)
+
+To support strict clean architecture boundaries beyond unit tests:
+
+**Lint Rule / Static Check**
+- Add a lint rule (or a small custom script) that enforces import constraints:
+  - `stores/` may not import from `repositories/` or `db/`
+  - `services/` may not import from `stores/` or `components/`
+  - `repositories/` may only import from `db/` + `core/types`
+  - `core/` may only import from `formatting/`
+- Run this check in CI alongside tests to prevent boundary drift.
