@@ -69,6 +69,10 @@ function assertPriorityOrder(priorityOrder: Priority[]): void {
   if (!Array.isArray(priorityOrder)) {
     throw new Error('QueueConfig priorityOrder must be an array');
   }
+  const invalid = priorityOrder.filter((priority) => !REQUIRED_PRIORITIES.includes(priority));
+  if (invalid.length > 0) {
+    throw new Error(`QueueConfig priorityOrder has invalid priorities: ${invalid.join(', ')}`);
+  }
   const missing = REQUIRED_PRIORITIES.filter((priority) => !priorityOrder.includes(priority));
   if (missing.length > 0) {
     throw new Error(`QueueConfig priorityOrder missing priorities: ${missing.join(', ')}`);

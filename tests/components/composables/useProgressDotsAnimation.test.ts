@@ -1,5 +1,6 @@
+import { mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { nextTick, ref } from 'vue';
+import { defineComponent, nextTick, ref } from 'vue';
 import { useProgressDotsAnimation } from '@/composables/useProgressDotsAnimation';
 import type { ProgressDot } from '@/core/types';
 
@@ -25,20 +26,21 @@ describe('useProgressDotsAnimation', () => {
     vi.useRealTimers();
   });
 
-  test('sets motionDirection on dot index change', async () => {
+  test('sets motion state immediately when shift is needed', async () => {
     const progressDots = ref<ProgressDot[]>([
       makeDot({ slot: 0, index: 3, isCurrent: true }),
       makeDot({ slot: 1, index: 4 }),
     ]);
     const slideDirection = ref('card-slide-left');
 
-    const { motionDirection } = useProgressDotsAnimation(progressDots, slideDirection);
+    const { motionDirection, previousDots } = useProgressDotsAnimation(progressDots, slideDirection);
 
     progressDots.value = [makeDot({ slot: 0, index: 4 }), makeDot({ slot: 1, index: 5, isCurrent: true })];
 
-    await vi.runAllTimersAsync();
+    await nextTick();
 
-    expect(motionDirection.value).toBe('');
+    expect(motionDirection.value).toBe('forward');
+    expect(previousDots.value.length).toBeGreaterThan(0);
   });
 
   test('clears motion state after timeout', async () => {
@@ -110,17 +112,44 @@ describe('useProgressDotsAnimation', () => {
   });
 
   test('cleans up timers on unmount', async () => {
-    const progressDots = ref<ProgressDot[]>([makeDot({ slot: 0, index: 0, isCurrent: true })]);
-    const slideDirection = ref('card-slide-left');
+    const TestComponent = defineComponent({
+      setup(_, { expose }) {
+        const progressDots = ref<ProgressDot[]>([
+          makeDot({ slot: 0, index: 3, isCurrent: true }),
+          makeDot({ slot: 1, index: 4 }),
+        ]);
+        const slideDirection = ref('card-slide-left');
+        const api = useProgressDotsAnimation(progressDots, slideDirection);
+        expose({ progressDots, slideDirection, ...api });
+        return () => null;
+      },
+    });
 
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
 
-    const { motionDirection } = useProgressDotsAnimation(progressDots, slideDirection);
+    const wrapper = mount(TestComponent);
+    const vm = wrapper.vm as unknown as {
+      progressDots: { value: ProgressDot[] };
+    };
 
-    progressDots.value = [makeDot({ slot: 0, index: 1, isCurrent: true })];
+    const initialCallCount = setTimeoutSpy.mock.results.length;
 
-    expect(motionDirection.value).toBeDefined();
+    vm.progressDots.value = [makeDot({ slot: 0, index: 4 }), makeDot({ slot: 1, index: 5, isCurrent: true })];
+    await nextTick();
 
+    wrapper.unmount();
+
+    const scheduledIds = setTimeoutSpy.mock.results
+      .slice(initialCallCount)
+      .map((result) => result.value)
+      .filter(Boolean);
+    expect(scheduledIds.length).toBeGreaterThan(0);
+    for (const id of scheduledIds) {
+      expect(clearTimeoutSpy).toHaveBeenCalledWith(id);
+    }
+
+    setTimeoutSpy.mockRestore();
     clearTimeoutSpy.mockRestore();
   });
 });
