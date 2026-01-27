@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import type { PrayerRequest } from '@/core/types';
 import { clearDbCache, resetDbForTests } from '@/db/database';
 import { computeExpiry } from '@/formatting/time';
@@ -7,9 +7,12 @@ import { getAll, remove, save, seed } from '@/repositories/requestsRepository';
 beforeEach(async () => {
   await resetDbForTests();
   clearDbCache();
+  vi.useFakeTimers({ shouldAdvanceTime: true, advanceTimeDelta: 1 });
+  vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   clearDbCache();
 });
 
@@ -18,6 +21,7 @@ test('bootstrapSeed populates initial records only once', async () => {
   const first = await getAll();
   expect(first.length).toBeGreaterThan(0);
 
+  clearDbCache();
   await seed();
   const second = await getAll();
   expect(second.length).toBe(first.length);

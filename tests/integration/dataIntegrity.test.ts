@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { clearDbCache, resetDbForTests } from '@/db/database';
 import { createRequest, initRequests } from '@/services/requestsService';
 
@@ -6,9 +6,12 @@ describe('Data Integrity', () => {
   beforeEach(async () => {
     await resetDbForTests();
     clearDbCache();
+    vi.useFakeTimers({ shouldAdvanceTime: true, advanceTimeDelta: 1 });
+    vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     clearDbCache();
   });
 
@@ -28,5 +31,7 @@ describe('Data Integrity', () => {
 
     expect(found).toBeTruthy();
     expect(found?.title).toBe(unicodeTitle);
+    expect(found?.createdAt).toBe(created.createdAt);
+    expect(found?.updatedAt).toBe(created.updatedAt);
   });
 });
