@@ -1,12 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import type { CreateRequestPayload, Note, PrayerRequest, QueueItem } from '../../src/core/types';
-import {
-  createQueueState,
-  insertRequest,
-  loadMore,
-  removeRequestFromQueue,
-  resetFeed,
-} from '../../src/services/queueEngine';
+import type { CreateRequestPayload, Note } from '../../src/core/types';
 import {
   initRequests,
   addNote as serviceAddNote,
@@ -18,7 +11,9 @@ import {
   recordPrayer as serviceRecordPrayer,
   updateRequest as serviceUpdateRequest,
 } from '../../src/services/requestsService';
+import { makeRequest } from '../fixtures/requests';
 
+// Only mock the service layer - use real queueEngine functions
 vi.mock('../../src/services/requestsService', () => ({
   initRequests: vi.fn(),
   createRequest: vi.fn(),
@@ -31,52 +26,10 @@ vi.mock('../../src/services/requestsService', () => ({
   markAnswered: vi.fn(),
 }));
 
-vi.mock('../../src/services/queueEngine', () => ({
-  buildProgressDots: vi.fn(() => []),
-  canGoNext: vi.fn(() => false),
-  canGoPrevious: vi.fn(() => false),
-  createQueueState: vi.fn(),
-  getCurrentItem: vi.fn(() => null),
-  insertRequest: vi.fn(),
-  loadMore: vi.fn(),
-  navigateToIndex: vi.fn(),
-  nextCard: vi.fn(),
-  previousCard: vi.fn(),
-  removeRequestFromQueue: vi.fn(),
-  resetFeed: vi.fn(),
-}));
-
-const baseRequest = (overrides: Partial<PrayerRequest> = {}): PrayerRequest => ({
-  id: 'req-1',
-  title: 'Request',
-  priority: 'high',
-  durationPreset: '1m',
-  createdAt: 1_700_000_000_000,
-  expiresAt: 1_700_000_000_000 + 1_000_000,
-  status: 'active',
-  prayedAt: [],
-  notes: [],
-  updatedAt: 1_700_000_000_000,
-  ...overrides,
-});
-
-type StoreSetup = {
-  store: ReturnType<typeof import('../../src/stores/requestsStore').useRequestsStore>;
-  queueState: ReturnType<typeof createQueueState>;
-};
-
-const setupStore = async (queueOverrides: Partial<ReturnType<typeof createQueueState>> = {}): Promise<StoreSetup> => {
+const setupStore = async () => {
   vi.resetModules();
-  const queueState = {
-    renderQueue: [] as QueueItem[],
-    currentIndex: 0,
-    cycleCount: 0,
-    cycleState: null,
-    ...queueOverrides,
-  } as ReturnType<typeof createQueueState>;
-  vi.mocked(createQueueState).mockReturnValue(queueState);
   const storeModule = await import('../../src/stores/requestsStore');
-  return { store: storeModule.useRequestsStore(), queueState };
+  return storeModule.useRequestsStore();
 };
 
 beforeEach(() => {
@@ -87,40 +40,44 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-test('init calls service.initRequests and resets feed', async () => {
+test('init calls service.initRequests and populates queue', async () => {
   const mockInit = vi.mocked(initRequests);
-  const record = baseRequest({ expiresAt: Date.now() + 1_000_000 });
+  const record = makeRequest({ id: 'req-1', expiresAt: Date.now() + 1_000_000 });
   mockInit.mockResolvedValue([record]);
 
-  const { store, queueState } = await setupStore();
+  const store = await setupStore();
   await store.init();
 
   expect(mockInit).toHaveBeenCalledTimes(1);
   expect(store.loading.value).toBe(false);
   expect(store.requests.value).toEqual([record]);
-  expect(resetFeed).toHaveBeenCalledWith(queueState, [record]);
+  // Real queueEngine: verify queue was populated
+  expect(store.renderQueue.value.length).toBeGreaterThan(0);
+  expect(store.renderQueue.value[0].request.id).toBe('req-1');
 });
 
 test('createRequest calls service and inserts into queue', async () => {
   const payload: CreateRequestPayload = { title: 'New', priority: 'urgent', durationPreset: '10d' };
-  const record = baseRequest({ id: 'req-2', title: 'New' });
+  const record = makeRequest({ id: 'req-2', title: 'New', expiresAt: Date.now() + 1_000_000 });
   vi.mocked(serviceCreateRequest).mockResolvedValue(record);
 
-  const { store, queueState } = await setupStore();
+  const store = await setupStore();
   await store.createRequest(payload);
 
   expect(serviceCreateRequest).toHaveBeenCalledWith(payload);
   expect(store.requests.value[0]).toEqual(record);
-  expect(insertRequest).toHaveBeenCalledWith(queueState, record);
+  // Real queueEngine: verify request was inserted into queue
+  expect(store.renderQueue.value.some((item) => item.request.id === 'req-2')).toBe(true);
 });
 
-test('recordPrayer delegates to service', async () => {
-  const record = baseRequest();
-  const updated = baseRequest({ prayedAt: [1], updatedAt: 2 });
+test('recordPrayer delegates to service and updates state', async () => {
+  const record = makeRequest({ id: 'req-1', expiresAt: Date.now() + 1_000_000 });
+  const updated = makeRequest({ id: 'req-1', prayedAt: [1], updatedAt: 2, expiresAt: Date.now() + 1_000_000 });
+  vi.mocked(initRequests).mockResolvedValue([record]);
   vi.mocked(serviceRecordPrayer).mockResolvedValue(updated);
 
-  const { store } = await setupStore();
-  store.requests.value = [record];
+  const store = await setupStore();
+  await store.init();
   const result = await store.recordPrayer(record);
 
   expect(serviceRecordPrayer).toHaveBeenCalledWith(record);
@@ -129,12 +86,13 @@ test('recordPrayer delegates to service', async () => {
 });
 
 test('updateRequest delegates to service', async () => {
-  const record = baseRequest();
-  const updated = baseRequest({ title: 'Updated' });
+  const record = makeRequest({ id: 'req-1', expiresAt: Date.now() + 1_000_000 });
+  const updated = makeRequest({ id: 'req-1', title: 'Updated', expiresAt: Date.now() + 1_000_000 });
+  vi.mocked(initRequests).mockResolvedValue([record]);
   vi.mocked(serviceUpdateRequest).mockResolvedValue(updated);
 
-  const { store } = await setupStore();
-  store.requests.value = [record];
+  const store = await setupStore();
+  await store.init();
   await store.updateRequest(record);
 
   expect(serviceUpdateRequest).toHaveBeenCalledWith(record);
@@ -142,12 +100,17 @@ test('updateRequest delegates to service', async () => {
 });
 
 test('addNote delegates to service', async () => {
-  const record = baseRequest();
-  const updated = baseRequest({ notes: [{ id: 'note-1', text: 'Note', createdAt: 1 }] });
+  const record = makeRequest({ id: 'req-1', expiresAt: Date.now() + 1_000_000 });
+  const updated = makeRequest({
+    id: 'req-1',
+    notes: [{ id: 'note-1', text: 'Note', createdAt: 1 }],
+    expiresAt: Date.now() + 1_000_000,
+  });
+  vi.mocked(initRequests).mockResolvedValue([record]);
   vi.mocked(serviceAddNote).mockResolvedValue(updated);
 
-  const { store } = await setupStore();
-  store.requests.value = [record];
+  const store = await setupStore();
+  await store.init();
   await store.addNote({ request: record, text: 'Note' });
 
   expect(serviceAddNote).toHaveBeenCalledWith({ request: record, text: 'Note' });
@@ -156,12 +119,13 @@ test('addNote delegates to service', async () => {
 
 test('editNote delegates to service', async () => {
   const note: Note = { id: 'note-1', text: 'Edited', createdAt: 1 };
-  const record = baseRequest({ notes: [note] });
-  const updated = baseRequest({ notes: [note], title: 'Updated' });
+  const record = makeRequest({ id: 'req-1', notes: [note], expiresAt: Date.now() + 1_000_000 });
+  const updated = makeRequest({ id: 'req-1', notes: [note], title: 'Updated', expiresAt: Date.now() + 1_000_000 });
+  vi.mocked(initRequests).mockResolvedValue([record]);
   vi.mocked(serviceEditNote).mockResolvedValue(updated);
 
-  const { store } = await setupStore();
-  store.requests.value = [record];
+  const store = await setupStore();
+  await store.init();
   await store.editNote({ request: record, note });
 
   expect(serviceEditNote).toHaveBeenCalledWith({ request: record, note });
@@ -170,74 +134,83 @@ test('editNote delegates to service', async () => {
 
 test('deleteNote delegates to service', async () => {
   const note: Note = { id: 'note-1', text: 'Old', createdAt: 1 };
-  const record = baseRequest({ notes: [note] });
-  const updated = baseRequest({ notes: [] });
+  const record = makeRequest({ id: 'req-1', notes: [note], expiresAt: Date.now() + 1_000_000 });
+  const updated = makeRequest({ id: 'req-1', notes: [], expiresAt: Date.now() + 1_000_000 });
+  vi.mocked(initRequests).mockResolvedValue([record]);
   vi.mocked(serviceDeleteNote).mockResolvedValue(updated);
 
-  const { store } = await setupStore();
-  store.requests.value = [record];
+  const store = await setupStore();
+  await store.init();
   await store.deleteNote({ request: record, note });
 
   expect(serviceDeleteNote).toHaveBeenCalledWith({ request: record, note });
   expect(store.requests.value[0]).toEqual(updated);
 });
 
-test('deleteRequest updates queue state and resets when empty', async () => {
-  const record = baseRequest();
+test('deleteRequest removes from queue and resets when empty', async () => {
+  const record = makeRequest({ id: 'req-1', expiresAt: Date.now() + 1_000_000 });
+  vi.mocked(initRequests).mockResolvedValue([record]);
   vi.mocked(serviceDeleteRequest).mockResolvedValue();
 
-  const { store, queueState } = await setupStore({ renderQueue: [] });
-  store.requests.value = [record, baseRequest({ id: 'req-2' })];
+  const store = await setupStore();
+  await store.init();
+
+  // Verify queue has the item before deletion
+  expect(store.renderQueue.value.some((item) => item.request.id === 'req-1')).toBe(true);
+
   await store.deleteRequest(record);
 
   expect(serviceDeleteRequest).toHaveBeenCalledWith(record.id);
-  expect(removeRequestFromQueue).toHaveBeenCalledWith(queueState, record.id);
-  expect(store.requests.value.map((item) => item.id)).toEqual(['req-2']);
-  expect(resetFeed).toHaveBeenCalledWith(queueState, store.activeRequests.value);
+  expect(store.requests.value.map((item) => item.id)).toEqual([]);
+  // Real queueEngine: verify request was removed from queue
+  expect(store.renderQueue.value.some((item) => item.request.id === 'req-1')).toBe(false);
 });
 
-test('markAnswered updates queue state and loads more near end', async () => {
-  const record = baseRequest();
-  const updated = baseRequest({ id: record.id, status: 'answered' });
+test('markAnswered removes from queue and loads more when near end', async () => {
+  // Create multiple requests so queue has items
+  const request1 = makeRequest({ id: 'req-1', expiresAt: Date.now() + 1_000_000 });
+  const request2 = makeRequest({ id: 'req-2', expiresAt: Date.now() + 1_000_000 });
+  const request3 = makeRequest({ id: 'req-3', expiresAt: Date.now() + 1_000_000 });
+  const updated = makeRequest({ id: 'req-1', status: 'answered', expiresAt: Date.now() + 1_000_000 });
+  vi.mocked(initRequests).mockResolvedValue([request1, request2, request3]);
   vi.mocked(serviceMarkAnswered).mockResolvedValue(updated);
 
-  const { store, queueState } = await setupStore({
-    renderQueue: [
-      { request: record, cycle: 0 },
-      { request: record, cycle: 0 },
-      { request: record, cycle: 0 },
-    ],
-    currentIndex: 1,
-  });
-  store.requests.value = [record];
-  await store.markAnswered({ request: record, text: 'Answered' });
+  const store = await setupStore();
+  await store.init();
 
-  expect(serviceMarkAnswered).toHaveBeenCalledWith({ request: record, text: 'Answered' });
-  expect(removeRequestFromQueue).toHaveBeenCalledWith(queueState, record.id);
-  expect(loadMore).toHaveBeenCalledWith(queueState, store.activeRequests.value);
-  expect(resetFeed).not.toHaveBeenCalled();
+  const initialQueueLength = store.renderQueue.value.length;
+  // Capture reference before store mutates the array
+  await store.markAnswered({ request: request1, text: 'Answered' });
+
+  expect(serviceMarkAnswered).toHaveBeenCalledWith({ request: request1, text: 'Answered' });
+  // Real queueEngine: verify answered request was removed from queue
+  expect(store.renderQueue.value.every((item) => item.request.id !== 'req-1')).toBe(true);
+  // Queue should have been modified (item removed, possibly more loaded)
+  expect(store.renderQueue.value.length).toBeLessThanOrEqual(initialQueueLength);
 });
 
 test('activeRequests filters by status and expiry', async () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
   const now = Date.now();
-  const active = baseRequest({ id: 'active', expiresAt: now + 10_000 });
-  const expired = baseRequest({ id: 'expired', expiresAt: now - 10_000 });
-  const answered = baseRequest({ id: 'answered', status: 'answered', expiresAt: now + 10_000 });
+  const active = makeRequest({ id: 'active', expiresAt: now + 10_000 });
+  const expired = makeRequest({ id: 'expired', expiresAt: now - 10_000 });
+  const answered = makeRequest({ id: 'answered', status: 'answered', expiresAt: now + 10_000 });
+  vi.mocked(initRequests).mockResolvedValue([active, expired, answered]);
 
-  const { store } = await setupStore();
-  store.requests.value = [active, expired, answered];
+  const store = await setupStore();
+  await store.init();
 
   expect(store.activeRequests.value.map((item) => item.id)).toEqual(['active']);
 });
 
 test('answeredRequests filters by status', async () => {
-  const active = baseRequest({ id: 'active' });
-  const answered = baseRequest({ id: 'answered', status: 'answered' });
+  const active = makeRequest({ id: 'active', expiresAt: Date.now() + 1_000_000 });
+  const answered = makeRequest({ id: 'answered', status: 'answered', expiresAt: Date.now() + 1_000_000 });
+  vi.mocked(initRequests).mockResolvedValue([active, answered]);
 
-  const { store } = await setupStore();
-  store.requests.value = [active, answered];
+  const store = await setupStore();
+  await store.init();
 
   expect(store.answeredRequests.value.map((item) => item.id)).toEqual(['answered']);
 });

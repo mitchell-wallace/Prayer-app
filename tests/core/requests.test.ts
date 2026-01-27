@@ -11,28 +11,21 @@ import {
   validateCreatePayload,
   validateRequestRecord,
 } from '../../src/core/requests';
-import type { CreateRequestPayload, Note, PrayerRequest } from '../../src/core/types';
+import type { CreateRequestPayload, Note } from '../../src/core/types';
 import { computeExpiry } from '../../src/formatting/time';
+import { makePayload, makeRequest } from '../fixtures/requests';
 
-const basePayload: CreateRequestPayload = {
-  title: 'Prayer request',
-  priority: 'high',
-  durationPreset: '1m',
-};
+const basePayload = makePayload();
 
-const baseRecord = (overrides: Partial<PrayerRequest> = {}): PrayerRequest => ({
-  id: 'req-1',
-  title: 'Prayer request',
-  priority: 'high',
-  durationPreset: '1m',
-  createdAt: 1_700_000_000_000,
-  expiresAt: 1_700_000_000_000 + 1_000,
-  status: 'active',
-  prayedAt: [],
-  notes: [],
-  updatedAt: 1_700_000_000_000,
-  ...overrides,
-});
+const baseRecord = (overrides: Partial<Parameters<typeof makeRequest>[0]> = {}) =>
+  makeRequest({
+    id: 'req-1',
+    title: 'Prayer request',
+    createdAt: 1_700_000_000_000,
+    expiresAt: 1_700_000_000_000 + 1_000,
+    updatedAt: 1_700_000_000_000,
+    ...overrides,
+  });
 
 test('validateCreatePayload throws on blank title', () => {
   const payload = { ...basePayload, title: '   ' };

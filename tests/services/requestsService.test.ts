@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest';
-import type { CreateRequestPayload, Note, PrayerRequest } from '../../src/core/types';
+import type { CreateRequestPayload, Note } from '../../src/core/types';
 import { computeExpiry } from '../../src/formatting/time';
 import { getAll, remove, save, seed } from '../../src/repositories/requestsRepository';
 import { now } from '../../src/services/dateTimeService';
@@ -15,6 +15,7 @@ import {
   updateRequest,
 } from '../../src/services/requestsService';
 import { createId } from '../../src/services/uuidService';
+import { makeRequest } from '../fixtures/requests';
 
 vi.mock('../../src/repositories/requestsRepository', () => ({
   getAll: vi.fn(),
@@ -26,19 +27,16 @@ vi.mock('../../src/repositories/requestsRepository', () => ({
 vi.mock('../../src/services/dateTimeService', () => ({ now: vi.fn() }));
 vi.mock('../../src/services/uuidService', () => ({ createId: vi.fn() }));
 
-const baseRequest = (overrides: Partial<PrayerRequest> = {}): PrayerRequest => ({
-  id: 'req-1',
-  title: 'Request',
-  priority: 'high',
-  durationPreset: '1m',
-  createdAt: 1_700_000_000_000,
-  expiresAt: 1_700_000_000_000 + 1_000,
-  status: 'active',
-  prayedAt: [],
-  notes: [],
-  updatedAt: 1_700_000_000_000,
-  ...overrides,
-});
+const baseRequest = (overrides: Partial<Parameters<typeof makeRequest>[0]> = {}) =>
+  makeRequest({
+    id: 'req-1',
+    title: 'Request',
+    durationPreset: '1m',
+    createdAt: 1_700_000_000_000,
+    expiresAt: 1_700_000_000_000 + 1_000,
+    updatedAt: 1_700_000_000_000,
+    ...overrides,
+  });
 
 beforeEach(() => {
   vi.resetAllMocks();

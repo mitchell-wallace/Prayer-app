@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { DEFAULT_QUEUE_CONFIG, createCycleState, pickNextFromCycle } from '../src/core/queueAlgorithm';
-import type { PrayerRequest, Priority } from '../src/core/types';
+import type { Priority } from '../src/core/types';
 import {
   buildProgressDots,
   canGoNext,
@@ -14,31 +14,7 @@ import {
   removeRequestFromQueue,
   resetFeed,
 } from '../src/services/queueEngine';
-
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
-
-type RequestSeed = {
-  id: string;
-  priority?: Priority;
-  createdAt?: number;
-  prayedAt?: number[];
-};
-
-function makeRequest({ id, priority = 'urgent', createdAt, prayedAt = [] }: RequestSeed): PrayerRequest {
-  const baseTime = createdAt ?? Date.now();
-  return {
-    id,
-    title: id,
-    priority,
-    durationPreset: '10d',
-    createdAt: baseTime,
-    expiresAt: baseTime + MS_PER_DAY,
-    status: 'active',
-    prayedAt,
-    notes: [],
-    updatedAt: baseTime,
-  };
-}
+import { makeRequest, MS_PER_DAY } from './fixtures/requests';
 
 beforeEach(() => {
   vi.useFakeTimers();
