@@ -1,7 +1,5 @@
-import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-
-const transitionWaitMs = 250;
+import { expect, test } from '@playwright/test';
 
 async function clearStorage(page: Page): Promise<void> {
   await page.evaluate(async () => {
@@ -27,42 +25,44 @@ async function clearStorage(page: Page): Promise<void> {
   });
 }
 
-async function waitForCard(page: Page): Promise<void> {
-  await page.getByTestId('request-title').first().waitFor();
+async function waitForSingleTitle(page: Page): Promise<void> {
+  await expect(page.getByTestId('request-title')).toHaveCount(1);
+}
+
+async function readActiveTitle(page: Page): Promise<string> {
+  await waitForSingleTitle(page);
+  return page.getByTestId('request-title').first().innerText();
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await clearStorage(page);
-  await page.reload();
-  await waitForCard(page);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await waitForSingleTitle(page);
 });
 
 test('pressing next moves forward', async ({ page }) => {
-  const title = page.getByTestId('request-title');
-  const before = await title.innerText();
+  const before = await readActiveTitle(page);
   await page.getByTestId('next-button').click();
-  await page.waitForTimeout(transitionWaitMs);
-  await expect(title).not.toHaveText(before);
+  const after = await readActiveTitle(page);
+  expect(after).not.toBe(before);
 });
 
 test('pressing back moves backward', async ({ page }) => {
-  const title = page.getByTestId('request-title');
-  const first = await title.innerText();
+  const first = await readActiveTitle(page);
   await page.getByTestId('next-button').click();
-  await page.waitForTimeout(transitionWaitMs);
-  await expect(title).not.toHaveText(first);
+  const second = await readActiveTitle(page);
+  expect(second).not.toBe(first);
   await page.getByTestId('prev-button').click();
-  await page.waitForTimeout(transitionWaitMs);
-  await expect(title).toHaveText(first);
+  const back = await readActiveTitle(page);
+  expect(back).toBe(first);
 });
 
 test('pressing prayed advances the card', async ({ page }) => {
-  const title = page.getByTestId('request-title');
-  const before = await title.innerText();
+  const before = await readActiveTitle(page);
   await page.getByTestId('pray-button').click();
-  await page.waitForTimeout(transitionWaitMs);
-  await expect(title).not.toHaveText(before);
+  const after = await readActiveTitle(page);
+  expect(after).not.toBe(before);
 });
 
 test('add note flow adds a note', async ({ page }) => {
@@ -74,8 +74,7 @@ test('add note flow adds a note', async ({ page }) => {
 });
 
 test('add request shows controls and queues new request after current', async ({ page }) => {
-  const title = page.getByTestId('request-title');
-  const before = await title.innerText();
+  const before = await readActiveTitle(page);
 
   const input = page.getByTestId('request-input');
   await input.click();
@@ -88,11 +87,12 @@ test('add request shows controls and queues new request after current', async ({
   await expect(page.getByTestId('request-controls')).toBeVisible();
   await expect(input).toHaveValue('');
   await expect(input).toBeFocused();
-  await expect(title).toHaveText(before);
+  const stillCurrent = await readActiveTitle(page);
+  expect(stillCurrent).toBe(before);
 
   await page.getByTestId('next-button').click();
-  await page.waitForTimeout(transitionWaitMs);
-  await expect(title).toHaveText(requestTitle);
+  const nextTitle = await readActiveTitle(page);
+  expect(nextTitle).toBe(requestTitle);
 });
 
 test('settings defaults apply to new request input', async ({ page }) => {
@@ -122,11 +122,11 @@ test('info modal shows active count increases after adding request', async ({ pa
 });
 
 test('next repeatedly keeps moving between cards', async ({ page }) => {
-  const title = page.getByTestId('request-title');
+  let before = await readActiveTitle(page);
   for (let i = 0; i < 12; i += 1) {
-    const before = await title.innerText();
     await page.getByTestId('next-button').click();
-    await page.waitForTimeout(transitionWaitMs);
-    await expect(title).not.toHaveText(before);
+    const after = await readActiveTitle(page);
+    expect(after).not.toBe(before);
+    before = after;
   }
 });
