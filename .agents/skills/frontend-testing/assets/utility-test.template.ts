@@ -1,13 +1,21 @@
 /**
- * Test Template for Utility Functions
+ * Test Template for Utility/Core Functions
  *
- * Instructions:
+ * WHY THIS STRUCTURE?
+ * - Pure functions are the easiest to test
+ * - No mocking needed - just input and output
+ * - Use test.each for data-driven tests
+ * - Focus on edge cases and boundary conditions
+ *
+ * INSTRUCTIONS:
  * 1. Replace `utilityFunction` with your function name
- * 2. Update import path
- * 3. Use test.each for data-driven tests
+ * 2. Update import path (typically from `@/core/` or `@/formatting/`)
+ * 3. Use test.each for multiple input/output combinations
+ * 4. Test edge cases thoroughly
  */
 
-// import { utilityFunction } from './utility'
+import { describe, it, expect, test } from 'vitest'
+// import { utilityFunction } from '@/core/utilityFunction'
 
 // ============================================================================
 // Tests
@@ -30,6 +38,7 @@ describe('utilityFunction', () => {
   // --------------------------------------------------------------------------
   // Data-Driven Tests
   // --------------------------------------------------------------------------
+  // WHY: Use test.each for multiple input/output combinations
   describe('Input/Output Mapping', () => {
     test.each([
       // [input, expected]
@@ -149,6 +158,29 @@ describe('utilityFunction', () => {
 
     it('should preserve order', () => {
       // expect(utilityFunction(['c', 'a', 'b'])).toEqual(['c', 'a', 'b'])
+    })
+  })
+
+  // --------------------------------------------------------------------------
+  // Time/ID Injection Pattern (for functions that need deterministic values)
+  // --------------------------------------------------------------------------
+  describe('Dependency Injection', () => {
+    it('should use injected timestamp', () => {
+      // const result = createRecord(payload, { now: 1609459200000 })
+      // expect(result.createdAt).toBe(1609459200000)
+    })
+
+    it('should use injected ID', () => {
+      // const result = createRecord(payload, { id: 'test-id-123' })
+      // expect(result.id).toBe('test-id-123')
+    })
+
+    it('should use default values when deps not provided', () => {
+      // const result = createRecord(payload)
+      // expect(result.id).toBeDefined()
+      // expect(result.createdAt).toBeDefined()
+      // expect(typeof result.id).toBe('string')
+      // expect(typeof result.createdAt).toBe('number')
     })
   })
 })

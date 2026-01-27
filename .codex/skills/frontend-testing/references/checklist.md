@@ -1,99 +1,83 @@
 # Test Generation Checklist
 
-Use this checklist when generating or reviewing tests for Dify frontend components.
+Use this checklist when generating or reviewing tests for Vue frontend code.
 
 ## Pre-Generation
 
-- [ ] Read the component source code completely
-- [ ] Identify component type (component, hook, utility, page)
-- [ ] Run `pnpm analyze-component <path>` if available
-- [ ] Note complexity score and features detected
-- [ ] Check for existing tests in the same directory
+- [ ] Read the source code completely
+- [ ] Identify the layer (core, repository, service, store, composable, component)
+- [ ] Determine what to mock based on layer rules
+- [ ] Check for existing tests in `tests/` directory
 - [ ] **Identify ALL files in the directory** that need testing (not just index)
 
-## Testing Strategy
+## Layer Identification
 
-### ⚠️ Incremental Workflow (CRITICAL for Multi-File)
+| Location | Layer | Mock Strategy |
+|----------|-------|---------------|
+| `src/core/` | Core | No mocking - pure functions |
+| `src/repositories/` | Repository | Use `resetDbForTests()` |
+| `src/services/` | Service | Mock repositories |
+| `src/stores/` | Store | Mock services |
+| `src/composables/` | Composable | Mock stores if stateful |
+| `src/components/` | Component | Mock services/stores |
+
+## Incremental Workflow (CRITICAL for Multi-File)
 
 - [ ] **NEVER generate all tests at once** - process one file at a time
-- [ ] Order files by complexity: utilities → hooks → simple → complex → integration
+- [ ] Order files by layer: core → repo → service → store → composable → component
 - [ ] Create a todo list to track progress before starting
 - [ ] For EACH file: write → run test → verify pass → then next
 - [ ] **DO NOT proceed** to next file until current one passes
 
-### Path-Level Coverage
-
-- [ ] **Test ALL files** in the assigned directory/path
-- [ ] List all components, hooks, utilities that need coverage
-- [ ] Decide: single spec file (integration) or multiple spec files (unit)
-
-### Complexity Assessment
-
-- [ ] Run `pnpm analyze-component <path>` for complexity score
-- [ ] **Complexity > 50**: Consider refactoring before testing
-- [ ] **500+ lines**: Consider splitting before testing
-- [ ] **30-50 complexity**: Use multiple describe blocks, organized structure
-
-### Integration vs Mocking
-
-- [ ] **DO NOT mock base components** (`Loading`, `Button`, `Tooltip`, etc.)
-- [ ] Import real project components instead of mocking
-- [ ] Only mock: API calls, complex context providers, third-party libs with side effects
-- [ ] Prefer integration testing when using single spec file
-
 ## Required Test Sections
 
-### All Components MUST Have
+### All Test Files MUST Have
 
-- [ ] **Rendering tests** - Component renders without crashing
-- [ ] **Props tests** - Required props, optional props, default values
-- [ ] **Edge cases** - null, undefined, empty values, boundaries
+- [ ] **Basic Functionality** - Primary behavior works correctly
+- [ ] **Edge Cases** - null, undefined, empty values, boundaries
 
-### Conditional Sections (Add When Feature Present)
+### Layer-Specific Requirements
 
-| Feature | Add Tests For |
-|---------|---------------|
-| `useState` | Initial state, transitions, cleanup |
-| `useEffect` | Execution, dependencies, cleanup |
-| Event handlers | onClick, onChange, onSubmit, keyboard |
-| API calls | Loading, success, error states |
-| Routing | Navigation, params, query strings |
-| `useCallback`/`useMemo` | Referential equality |
-| Context | Provider values, consumer behavior |
-| Forms | Validation, submission, error display |
+| Layer | Required Tests |
+|-------|----------------|
+| Core | Input validation, type coercion, error throwing |
+| Repository | CRUD operations, data persistence, query correctness |
+| Service | Orchestration flow, error propagation, correct delegation |
+| Store | Reactive updates, computed properties, service delegation |
+| Composable | State transitions, return value structure |
+| Component | Rendering, props, events, user interactions |
 
 ## Code Quality Checklist
 
-### Structure
+### File Structure
+
+- [ ] File uses `.test.ts` extension
+- [ ] Located in `tests/` directory mirroring `src/` structure
+- [ ] Imports from `vitest` for test utilities
+- [ ] Uses `@vue/test-utils` for component tests
+
+### Test Structure
 
 - [ ] Uses `describe` blocks to group related tests
 - [ ] Test names follow `should <behavior> when <condition>` pattern
 - [ ] AAA pattern (Arrange-Act-Assert) is clear
-- [ ] Comments explain complex test scenarios
+- [ ] `beforeEach` clears mocks with `vi.clearAllMocks()`
 
-### Mocks
+### Mocking
 
-- [ ] **DO NOT mock base components** (`@/app/components/base/*`)
-- [ ] `vi.clearAllMocks()` in `beforeEach` (not `afterEach`)
-- [ ] Shared mock state reset in `beforeEach`
-- [ ] i18n uses global mock (auto-loaded in `web/vitest.setup.ts`); only override locally for custom translations
-- [ ] Router mocks match actual Next.js API
-- [ ] Mocks reflect actual component conditional behavior
-- [ ] Only mock: API services, complex context providers, third-party libs
+- [ ] Mocks only one layer down (see mocking guide)
+- [ ] Uses `vi.mock()` at file top (before imports)
+- [ ] Uses `vi.mocked()` for type-safe mock access
+- [ ] Clears mocks in `beforeEach` (not `afterEach`)
+- [ ] Uses fake timers for time-dependent tests
 
-### Queries
+### Component Testing
 
-- [ ] Prefer semantic queries (`getByRole`, `getByLabelText`)
-- [ ] Use `queryBy*` for absence assertions
-- [ ] Use `findBy*` for async elements
-- [ ] `getByTestId` only as last resort
-
-### Async
-
-- [ ] All async tests use `async/await`
-- [ ] `waitFor` wraps async assertions
-- [ ] Fake timers properly setup/teardown
-- [ ] No floating promises
+- [ ] Uses `shallowMount` by default for unit tests
+- [ ] Uses `mount` only for integration tests
+- [ ] Tests props with different values
+- [ ] Tests emitted events
+- [ ] Awaits `trigger()` for async DOM updates
 
 ### TypeScript
 
@@ -114,60 +98,61 @@ For the current file being tested:
 
 **Run these checks after EACH test file, not just at the end:**
 
-- [ ] Run `pnpm test path/to/file.spec.tsx` - **MUST PASS before next file**
+- [ ] Run `npm test <file>.test.ts` - **MUST PASS before next file**
 - [ ] Fix any failures immediately
 - [ ] Mark file as complete in todo list
 - [ ] Only then proceed to next file
 
 ### After All Files Complete
 
-- [ ] Run full directory test: `pnpm test path/to/directory/`
-- [ ] Check coverage report: `pnpm test:coverage`
-- [ ] Run `pnpm lint:fix` on all test files
-- [ ] Run `pnpm type-check:tsgo`
+- [ ] Run full test suite: `npm test`
+- [ ] Check coverage: `npm test -- --coverage`
+- [ ] Run TypeScript check: `npm run type-check`
 
 ## Common Issues to Watch
 
-### False Positives
+### Wrong Mock Depth
 
 ```typescript
-// ❌ Mock doesn't match actual behavior
-vi.mock('./Component', () => () => <div>Mocked</div>)
+// ❌ Store test mocking repository (skips a layer)
+vi.mock('@/repositories/requestsRepository')
 
-// ✅ Mock matches actual conditional logic
-vi.mock('./Component', () => ({ isOpen }: any) =>
-  isOpen ? <div>Content</div> : null
-)
+// ✅ Store test mocking service (correct depth)
+vi.mock('@/services/requestsService')
+```
+
+### Missing Await on Triggers
+
+```typescript
+// ❌ Missing await
+wrapper.find('button').trigger('click')
+expect(wrapper.emitted('click')).toBeTruthy()
+
+// ✅ Awaited
+await wrapper.find('button').trigger('click')
+expect(wrapper.emitted('click')).toBeTruthy()
+```
+
+### Checking Non-Existent Elements
+
+```typescript
+// ❌ Throws if element doesn't exist
+expect(wrapper.find('.error').text()).toBe('')
+
+// ✅ Check existence first
+expect(wrapper.find('.error').exists()).toBe(false)
 ```
 
 ### State Leakage
 
 ```typescript
 // ❌ Shared state not reset
-let mockState = false
-vi.mock('./useHook', () => () => mockState)
+let mockState = { count: 0 }
 
 // ✅ Reset in beforeEach
 beforeEach(() => {
-  mockState = false
-})
-```
-
-### Async Race Conditions
-
-```typescript
-// ❌ Not awaited
-it('loads data', () => {
-  render(<Component />)
-  expect(screen.getByText('Data')).toBeInTheDocument()
-})
-
-// ✅ Properly awaited
-it('loads data', async () => {
-  render(<Component />)
-  await waitFor(() => {
-    expect(screen.getByText('Data')).toBeInTheDocument()
-  })
+  vi.clearAllMocks()
+  // Reset any shared state
 })
 ```
 
@@ -180,26 +165,49 @@ Always test these scenarios:
 - Boundary values (0, -1, MAX_INT)
 - Error states
 - Loading states
-- Disabled states
 
 ## Quick Commands
 
 ```bash
 # Run specific test
-pnpm test path/to/file.spec.tsx
+npm test tests/services/requestsService.test.ts
 
 # Run with coverage
-pnpm test:coverage path/to/file.spec.tsx
+npm test -- --coverage
 
 # Watch mode
-pnpm test:watch path/to/file.spec.tsx
+npm test -- --watch
 
-# Update snapshots (use sparingly)
-pnpm test -u path/to/file.spec.tsx
+# Run tests matching pattern
+npm test -- -t "should create"
 
-# Analyze component
-pnpm analyze-component path/to/component.tsx
+# Run tests in directory
+npm test tests/services/
+```
 
-# Review existing test
-pnpm analyze-component path/to/component.tsx --review
+## Vue Test Utils Quick Reference
+
+```typescript
+// Mount options
+const wrapper = shallowMount(Component, {
+  props: { title: 'Test' },
+  slots: { default: '<p>Content</p>' },
+  global: {
+    stubs: { ChildComponent: true },
+    mocks: { $route: { params: { id: '1' } } },
+  },
+})
+
+// Common assertions
+expect(wrapper.exists()).toBe(true)
+expect(wrapper.text()).toContain('Hello')
+expect(wrapper.find('button').exists()).toBe(true)
+expect(wrapper.classes()).toContain('active')
+expect(wrapper.emitted('click')).toHaveLength(1)
+expect(wrapper.vm.computedValue).toBe('expected')
+
+// Interactions
+await wrapper.find('input').setValue('new value')
+await wrapper.find('button').trigger('click')
+await wrapper.setProps({ title: 'Updated' })
 ```

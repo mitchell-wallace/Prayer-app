@@ -4,21 +4,19 @@ This guide defines the workflow for generating tests, especially for complex com
 
 ## Scope Clarification
 
-This guide addresses **multi-file workflow** (how to process multiple test files). For coverage requirements within a single test file, see `web/testing/testing.md` § Coverage Goals.
-
 | Scope | Rule |
 |-------|------|
 | **Single file** | Complete coverage in one generation (100% function, >95% branch) |
 | **Multi-file directory** | Process one file at a time, verify each before proceeding |
 
-## ⚠️ Critical Rule: Incremental Approach for Multi-File Testing
+## Critical Rule: Incremental Approach for Multi-File Testing
 
 When testing a **directory with multiple files**, **NEVER generate all test files at once.** Use an incremental, verify-as-you-go approach.
 
 ### Why Incremental?
 
-| Batch Approach (❌) | Incremental Approach (✅) |
-|---------------------|---------------------------|
+| Batch Approach | Incremental Approach |
+|----------------|----------------------|
 | Generate 5+ tests at once | Generate 1 test at a time |
 | Run tests only at the end | Run test immediately after each file |
 | Multiple failures compound | Single point of failure, easy to debug |
@@ -28,14 +26,14 @@ When testing a **directory with multiple files**, **NEVER generate all test file
 
 ## Single File Workflow
 
-When testing a **single component, hook, or utility**:
+When testing a **single component, composable, or service**:
 
 ```
 1. Read source code completely
-2. Run `pnpm analyze-component <path>` (if available)
-3. Check complexity score and features detected
+2. Identify the layer (core, repository, service, store, composable, component)
+3. Determine what to mock based on layer
 4. Write the test file
-5. Run test: `pnpm test <file>.spec.tsx`
+5. Run test: npm test <file>.test.ts
 6. Fix any failures
 7. Verify coverage meets goals (100% function, >95% branch)
 ```
@@ -47,31 +45,37 @@ When testing a **directory or multiple files**, follow this strict workflow:
 ### Step 1: Analyze and Plan
 
 1. **List all files** that need tests in the directory
-1. **Categorize by complexity**:
-   - 🟢 **Simple**: Utility functions, simple hooks, presentational components
-   - 🟡 **Medium**: Components with state, effects, or event handlers
-   - 🔴 **Complex**: Components with API calls, routing, or many dependencies
-1. **Order by dependency**: Test dependencies before dependents
-1. **Create a todo list** to track progress
+2. **Categorize by layer**:
+   - Core functions (pure, no dependencies)
+   - Repositories (database interaction)
+   - Services (business orchestration)
+   - Stores (reactive state)
+   - Composables (Vue composition functions)
+   - Components (Vue SFC)
+3. **Order by dependency**: Test dependencies before dependents
+4. **Create a todo list** to track progress
 
 ### Step 2: Determine Processing Order
 
-Process files in this recommended order:
+Process files in this recommended order (layers, then complexity within each layer):
 
 ```
-1. Utility functions (simplest, no React)
-2. Custom hooks (isolated logic)
-3. Simple presentational components (few/no props)
-4. Medium complexity components (state, effects)
-5. Complex components (API, routing, many deps)
-6. Container/index components (integration tests - last)
+1. Core functions (pure, no dependencies)
+2. Repositories (mock database layer)
+3. Services (mock repositories)
+4. Stores (mock services)
+5. Composables (mock stores if needed)
+6. Components - simple (few props, no state)
+7. Components - medium (state, events)
+8. Components - complex (API, routing)
+9. Integration tests (last)
 ```
 
 **Rationale**:
 
-- Simpler files help establish mock patterns
-- Hooks used by components should be tested first
-- Integration tests (index files) depend on child components working
+- Lower layers help establish mock patterns
+- Services used by stores should be tested first
+- Components depend on stores/services working
 
 ### Step 3: Process Each File Incrementally
 
@@ -80,7 +84,7 @@ Process files in this recommended order:
 ```
 ┌─────────────────────────────────────────────┐
 │  1. Write test file                         │
-│  2. Run: pnpm test <file>.spec.tsx          │
+│  2. Run: npm test <file>.test.ts            │
 │  3. If FAIL → Fix immediately, re-run       │
 │  4. If PASS → Mark complete in todo list    │
 │  5. ONLY THEN proceed to next file          │
@@ -95,70 +99,69 @@ After all individual tests pass:
 
 ```bash
 # Run all tests in the directory together
-pnpm test path/to/directory/
+npm test tests/services/
 
 # Check coverage
-pnpm test:coverage path/to/directory/
+npm test -- --coverage
 ```
 
-## Component Complexity Guidelines
+## Layer-Based Complexity Guidelines
 
-Use `pnpm analyze-component <path>` to assess complexity before testing.
+### Core Layer (Simplest)
 
-### 🔴 Very Complex Components (Complexity > 50)
+- Pure functions with no side effects
+- Test directly without mocks
+- Focus on edge cases and boundary conditions
 
-**Consider refactoring BEFORE testing:**
+### Repository Layer
 
-- Break component into smaller, testable pieces
-- Extract complex logic into custom hooks
-- Separate container and presentational layers
+- Test with real database (use `resetDbForTests()`)
+- Focus on CRUD operations
+- Verify data persistence
 
-**If testing as-is:**
+### Service Layer
 
-- Use integration tests for complex workflows
-- Use `test.each()` for data-driven testing
-- Multiple `describe` blocks for organization
-- Consider testing major sections separately
+- Mock repositories
+- Test orchestration logic
+- Verify correct delegation
 
-### 🟡 Medium Complexity (Complexity 30-50)
+### Store Layer
 
-- Group related tests in `describe` blocks
-- Test integration scenarios between internal parts
-- Focus on state transitions and side effects
-- Use helper functions to reduce test complexity
+- Mock services
+- Test reactive state updates
+- Verify computed properties
 
-### 🟢 Simple Components (Complexity < 30)
+### Composable Layer
 
-- Standard test structure
-- Focus on props, rendering, and edge cases
-- Usually straightforward to test
+- Test in isolation when possible
+- Mock stores if stateful dependencies
+- Test state transitions
 
-### 📏 Large Files (500+ lines)
+### Component Layer (Most Complex)
 
-Regardless of complexity score:
-
-- **Strongly consider refactoring** before testing
-- If testing as-is, test major sections separately
-- Create helper functions for test setup
-- May need multiple test files
+- Use `shallowMount` for unit tests
+- Mock services/stores
+- Focus on rendering, props, events
 
 ## Todo List Format
 
 When testing multiple files, use a todo list like this:
 
 ```
-Testing: path/to/directory/
+Testing: src/services/
 
-Ordered by complexity (simple → complex):
+Ordered by layer and complexity:
 
-☐ utils/helper.ts           [utility, simple]
-☐ hooks/use-custom-hook.ts  [hook, simple]
-☐ empty-state.tsx           [component, simple]
-☐ item-card.tsx             [component, medium]
-☐ list.tsx                  [component, complex]
-☐ index.tsx                 [integration]
+☐ core/validation.ts          [core, pure]
+☐ repositories/requestsRepo.ts [repository]
+☐ services/requestsService.ts  [service]
+☐ stores/requestsStore.ts      [store]
+☐ composables/useModal.ts      [composable]
+☐ components/RequestCard.vue   [component, simple]
+☐ components/RequestForm.vue   [component, medium]
+☐ components/RequestList.vue   [component, complex]
 
-Progress: 0/6 complete
+Progress: 0/8 complete
 ```
 
 Update status as you complete each:
@@ -185,44 +188,43 @@ Update status as you complete each:
 
 ## Common Pitfalls to Avoid
 
-### ❌ Don't: Generate Everything First
+### Don't Generate Everything First
 
 ```
 # BAD: Writing all files then testing
-Write component-a.spec.tsx
-Write component-b.spec.tsx  
-Write component-c.spec.tsx
-Write component-d.spec.tsx
-Run pnpm test  ← Multiple failures, hard to debug
+Write service.test.ts
+Write store.test.ts
+Write component.test.ts
+Run npm test  ← Multiple failures, hard to debug
 ```
 
-### ✅ Do: Verify Each Step
+### Do Verify Each Step
 
 ```
 # GOOD: Incremental with verification
-Write component-a.spec.tsx
-Run pnpm test component-a.spec.tsx ✅
-Write component-b.spec.tsx
-Run pnpm test component-b.spec.tsx ✅
+Write service.test.ts
+Run npm test service.test.ts ✅
+Write store.test.ts
+Run npm test store.test.ts ✅
 ...continue...
 ```
 
-### ❌ Don't: Skip Verification for "Simple" Components
+### Don't Skip Verification for "Simple" Files
 
-Even simple components can have:
+Even simple files can have:
 
 - Import errors
 - Missing mock setup
-- Incorrect assumptions about props
+- Incorrect assumptions about types
 
 **Always verify, regardless of perceived simplicity.**
 
-### ❌ Don't: Continue When Tests Fail
+### Don't Continue When Tests Fail
 
 Failing tests compound:
 
-- A mock issue in file A affects files B, C, D
-- Fixing A later requires revisiting all dependent tests
+- A mock issue in service tests affects store tests
+- Fixing services later requires revisiting all dependent tests
 - Time wasted on debugging cascading failures
 
 **Fix failures immediately before proceeding.**
@@ -232,15 +234,15 @@ Failing tests compound:
 When using Claude for multi-file testing:
 
 1. **Ask Claude to create a todo list** before starting
-1. **Request one file at a time** or ensure Claude processes incrementally
-1. **Verify each test passes** before asking for the next
-1. **Mark todos complete** as you progress
+2. **Request one file at a time** or ensure Claude processes incrementally
+3. **Verify each test passes** before asking for the next
+4. **Mark todos complete** as you progress
 
 Example prompt:
 
 ```
-Test all components in `path/to/directory/`.
-First, analyze the directory and create a todo list ordered by complexity.
+Test all files in `src/services/`.
+First, analyze the directory and create a todo list ordered by layer.
 Then, process ONE file at a time, waiting for my confirmation that tests pass
 before proceeding to the next.
 ```
@@ -250,7 +252,7 @@ before proceeding to the next.
 Before starting multi-file testing:
 
 - [ ] Listed all files needing tests
-- [ ] Ordered by complexity (simple → complex)
+- [ ] Ordered by layer (core → repo → service → store → composable → component)
 - [ ] Created todo list for tracking
 - [ ] Understand dependencies between files
 

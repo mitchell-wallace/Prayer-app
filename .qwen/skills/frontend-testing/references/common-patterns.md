@@ -1,175 +1,234 @@
-# Common Testing Patterns
+# Common Testing Patterns (Vue Test Utils)
 
-## Query Priority
+## Component Testing Approaches
 
-Use queries in this order (most to least preferred):
+### Shallow Unit Tests (Default)
+
+Use `shallowMount` for most component tests. Child components are stubbed automatically.
 
 ```typescript
-// 1. getByRole - Most recommended (accessibility)
-screen.getByRole('button', { name: /submit/i })
-screen.getByRole('textbox', { name: /email/i })
-screen.getByRole('heading', { level: 1 })
+import { shallowMount } from '@vue/test-utils'
+import MyComponent from '@/components/MyComponent.vue'
 
-// 2. getByLabelText - Form fields
-screen.getByLabelText('Email address')
-screen.getByLabelText(/password/i)
+// Child components rendered as stubs
+const wrapper = shallowMount(MyComponent, {
+  props: { title: 'Test' }
+})
+```
 
-// 3. getByPlaceholderText - When no label
-screen.getByPlaceholderText('Search...')
+**When to use**: Testing component logic in isolation, most unit tests.
 
-// 4. getByText - Non-interactive elements
-screen.getByText('Welcome to Dify')
-screen.getByText(/loading/i)
+### Integration Tests
 
-// 5. getByDisplayValue - Current input value
-screen.getByDisplayValue('current value')
+Use `mount` when testing component hierarchy interactions.
 
-// 6. getByAltText - Images
-screen.getByAltText('Company logo')
+```typescript
+import { mount } from '@vue/test-utils'
+import ParentComponent from '@/components/ParentComponent.vue'
 
-// 7. getByTitle - Tooltip elements
-screen.getByTitle('Close')
+// Child components fully rendered
+const wrapper = mount(ParentComponent)
+```
 
-// 8. getByTestId - Last resort only!
-screen.getByTestId('custom-element')
+**When to use**: Testing parent-child interactions, slot content, nested behavior.
+
+## Query Patterns
+
+### Finding Elements
+
+```typescript
+// By CSS selector
+wrapper.find('button')
+wrapper.find('.my-class')
+wrapper.find('[data-testid="submit"]')
+
+// Check existence
+expect(wrapper.find('button').exists()).toBe(true)
+expect(wrapper.find('.missing').exists()).toBe(false)
+
+// Find all matching elements
+const buttons = wrapper.findAll('button')
+expect(buttons).toHaveLength(3)
+```
+
+### Finding Components
+
+```typescript
+import ChildComponent from '@/components/ChildComponent.vue'
+
+// Find child component
+const child = wrapper.findComponent(ChildComponent)
+expect(child.exists()).toBe(true)
+
+// Find by name (for stubbed components)
+const stubbed = wrapper.findComponent({ name: 'ChildComponent' })
+```
+
+### Text Content
+
+```typescript
+// Get all text content
+expect(wrapper.text()).toContain('Hello')
+
+// Check specific element text
+expect(wrapper.find('h1').text()).toBe('Title')
+```
+
+### Attributes and Classes
+
+```typescript
+// Check attributes
+expect(wrapper.find('button').attributes('disabled')).toBeDefined()
+expect(wrapper.find('input').attributes('type')).toBe('text')
+
+// Check classes
+expect(wrapper.classes()).toContain('active')
+expect(wrapper.find('div').classes('highlighted')).toBe(true)
 ```
 
 ## Event Handling Patterns
 
-### Click Events
+### Trigger Events
 
 ```typescript
-// Basic click
-fireEvent.click(screen.getByRole('button'))
+// Click
+await wrapper.find('button').trigger('click')
 
-// With userEvent (preferred for realistic interaction)
-const user = userEvent.setup()
-await user.click(screen.getByRole('button'))
+// Input events
+await wrapper.find('input').trigger('input')
+await wrapper.find('input').trigger('focus')
+await wrapper.find('input').trigger('blur')
 
-// Double click
-await user.dblClick(screen.getByRole('button'))
+// Keyboard events
+await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+await wrapper.find('input').trigger('keyup.enter')
 
-// Right click
-await user.pointer({ keys: '[MouseRight]', target: screen.getByRole('button') })
+// Form submission
+await wrapper.find('form').trigger('submit.prevent')
 ```
 
-### Form Input
+### Set Input Values
 
 ```typescript
-const user = userEvent.setup()
+// Set input value
+await wrapper.find('input').setValue('new value')
 
-// Type in input
-await user.type(screen.getByRole('textbox'), 'Hello World')
+// Set checkbox/radio
+await wrapper.find('input[type="checkbox"]').setValue(true)
 
-// Clear and type
-await user.clear(screen.getByRole('textbox'))
-await user.type(screen.getByRole('textbox'), 'New value')
-
-// Select option
-await user.selectOptions(screen.getByRole('combobox'), 'option-value')
-
-// Check checkbox
-await user.click(screen.getByRole('checkbox'))
-
-// Upload file
-const file = new File(['content'], 'test.pdf', { type: 'application/pdf' })
-await user.upload(screen.getByLabelText(/upload/i), file)
+// Set select value
+await wrapper.find('select').setValue('option-value')
 ```
 
-### Keyboard Events
+### Check Emitted Events
 
 ```typescript
-const user = userEvent.setup()
+// Trigger action that emits
+await wrapper.find('button').trigger('click')
 
-// Press Enter
-await user.keyboard('{Enter}')
+// Check event was emitted
+expect(wrapper.emitted('submit')).toBeTruthy()
+expect(wrapper.emitted('submit')).toHaveLength(1)
 
-// Press Escape
-await user.keyboard('{Escape}')
+// Check event payload
+expect(wrapper.emitted('submit')![0]).toEqual([{ id: '123' }])
 
-// Keyboard shortcut
-await user.keyboard('{Control>}a{/Control}') // Ctrl+A
-
-// Tab navigation
-await user.tab()
-
-// Arrow keys
-await user.keyboard('{ArrowDown}')
-await user.keyboard('{ArrowUp}')
+// Check event not emitted
+expect(wrapper.emitted('cancel')).toBeFalsy()
 ```
 
 ## Component State Testing
 
-### Testing State Transitions
+### Testing Props
 
 ```typescript
-describe('Counter', () => {
-  it('should increment count', async () => {
-    const user = userEvent.setup()
-    render(<Counter initialCount={0} />)
-    
-    // Initial state
-    expect(screen.getByText('Count: 0')).toBeInTheDocument()
-    
-    // Trigger transition
-    await user.click(screen.getByRole('button', { name: /increment/i }))
-    
-    // New state
-    expect(screen.getByText('Count: 1')).toBeInTheDocument()
+describe('Props', () => {
+  it('should render with title prop', () => {
+    const wrapper = shallowMount(MyComponent, {
+      props: { title: 'Test Title' }
+    })
+    expect(wrapper.text()).toContain('Test Title')
+  })
+
+  it('should apply disabled state', () => {
+    const wrapper = shallowMount(Button, {
+      props: { disabled: true }
+    })
+    expect(wrapper.find('button').attributes('disabled')).toBeDefined()
   })
 })
 ```
 
-### Testing Controlled Components
+### Testing Computed Properties
 
 ```typescript
-describe('ControlledInput', () => {
-  it('should call onChange with new value', async () => {
-    const user = userEvent.setup()
-    const handleChange = vi.fn()
-    
-    render(<ControlledInput value="" onChange={handleChange} />)
-    
-    await user.type(screen.getByRole('textbox'), 'a')
-    
-    expect(handleChange).toHaveBeenCalledWith('a')
+it('should compute fullName correctly', () => {
+  const wrapper = shallowMount(UserCard, {
+    props: { firstName: 'John', lastName: 'Doe' }
   })
 
-  it('should display controlled value', () => {
-    render(<ControlledInput value="controlled" onChange={vi.fn()} />)
-    
-    expect(screen.getByRole('textbox')).toHaveValue('controlled')
-  })
+  // Access computed via vm
+  expect(wrapper.vm.fullName).toBe('John Doe')
+
+  // Or test via rendered output
+  expect(wrapper.text()).toContain('John Doe')
+})
+```
+
+### Testing Reactive State
+
+```typescript
+it('should update count on increment', async () => {
+  const wrapper = shallowMount(Counter)
+
+  // Initial state
+  expect(wrapper.text()).toContain('Count: 0')
+
+  // Trigger state change
+  await wrapper.find('button').trigger('click')
+
+  // Updated state reflected in DOM
+  expect(wrapper.text()).toContain('Count: 1')
 })
 ```
 
 ## Conditional Rendering Testing
 
 ```typescript
-describe('ConditionalComponent', () => {
+describe('Conditional Rendering', () => {
   it('should show loading state', () => {
-    render(<DataDisplay isLoading={true} data={null} />)
-    
-    expect(screen.getByText(/loading/i)).toBeInTheDocument()
-    expect(screen.queryByTestId('data-content')).not.toBeInTheDocument()
+    const wrapper = shallowMount(DataDisplay, {
+      props: { isLoading: true }
+    })
+
+    expect(wrapper.find('.loading').exists()).toBe(true)
+    expect(wrapper.find('.content').exists()).toBe(false)
   })
 
   it('should show error state', () => {
-    render(<DataDisplay isLoading={false} data={null} error="Failed to load" />)
-    
-    expect(screen.getByText(/failed to load/i)).toBeInTheDocument()
+    const wrapper = shallowMount(DataDisplay, {
+      props: { error: 'Failed to load' }
+    })
+
+    expect(wrapper.find('.error').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Failed to load')
   })
 
   it('should show data when loaded', () => {
-    render(<DataDisplay isLoading={false} data={{ name: 'Test' }} />)
-    
-    expect(screen.getByText('Test')).toBeInTheDocument()
+    const wrapper = shallowMount(DataDisplay, {
+      props: { data: { name: 'Test' } }
+    })
+
+    expect(wrapper.find('.content').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Test')
   })
 
-  it('should show empty state when no data', () => {
-    render(<DataDisplay isLoading={false} data={[]} />)
-    
-    expect(screen.getByText(/no data/i)).toBeInTheDocument()
+  it('should show empty state', () => {
+    const wrapper = shallowMount(DataDisplay, {
+      props: { data: [] }
+    })
+
+    expect(wrapper.text()).toContain('No items')
   })
 })
 ```
@@ -177,7 +236,7 @@ describe('ConditionalComponent', () => {
 ## List Rendering Testing
 
 ```typescript
-describe('ItemList', () => {
+describe('List Rendering', () => {
   const items = [
     { id: '1', name: 'Item 1' },
     { id: '2', name: 'Item 2' },
@@ -185,90 +244,77 @@ describe('ItemList', () => {
   ]
 
   it('should render all items', () => {
-    render(<ItemList items={items} />)
-    
-    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+    const wrapper = shallowMount(ItemList, {
+      props: { items }
+    })
+
+    const listItems = wrapper.findAll('li')
+    expect(listItems).toHaveLength(3)
+
     items.forEach(item => {
-      expect(screen.getByText(item.name)).toBeInTheDocument()
+      expect(wrapper.text()).toContain(item.name)
     })
   })
 
-  it('should handle item selection', async () => {
-    const user = userEvent.setup()
-    const onSelect = vi.fn()
-    
-    render(<ItemList items={items} onSelect={onSelect} />)
-    
-    await user.click(screen.getByText('Item 2'))
-    
-    expect(onSelect).toHaveBeenCalledWith(items[1])
+  it('should handle item click', async () => {
+    const wrapper = shallowMount(ItemList, {
+      props: { items }
+    })
+
+    await wrapper.findAll('li')[1].trigger('click')
+
+    expect(wrapper.emitted('select')).toBeTruthy()
+    expect(wrapper.emitted('select')![0]).toEqual([items[1]])
   })
 
   it('should handle empty list', () => {
-    render(<ItemList items={[]} />)
-    
-    expect(screen.getByText(/no items/i)).toBeInTheDocument()
+    const wrapper = shallowMount(ItemList, {
+      props: { items: [] }
+    })
+
+    expect(wrapper.text()).toContain('No items')
   })
 })
 ```
 
-## Modal/Dialog Testing
+## Slot Testing
 
 ```typescript
-describe('Modal', () => {
-  it('should not render when closed', () => {
-    render(<Modal isOpen={false} onClose={vi.fn()} />)
-    
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+describe('Slots', () => {
+  it('should render default slot', () => {
+    const wrapper = shallowMount(Card, {
+      slots: {
+        default: '<p>Card content</p>'
+      }
+    })
+
+    expect(wrapper.text()).toContain('Card content')
   })
 
-  it('should render when open', () => {
-    render(<Modal isOpen={true} onClose={vi.fn()} />)
-    
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  it('should render named slots', () => {
+    const wrapper = shallowMount(Modal, {
+      slots: {
+        header: '<h2>Modal Title</h2>',
+        default: '<p>Modal body</p>',
+        footer: '<button>Close</button>'
+      }
+    })
+
+    expect(wrapper.find('h2').text()).toBe('Modal Title')
+    expect(wrapper.text()).toContain('Modal body')
   })
 
-  it('should call onClose when clicking overlay', async () => {
-    const user = userEvent.setup()
-    const handleClose = vi.fn()
-    
-    render(<Modal isOpen={true} onClose={handleClose} />)
-    
-    await user.click(screen.getByTestId('modal-overlay'))
-    
-    expect(handleClose).toHaveBeenCalled()
-  })
+  it('should render scoped slots', () => {
+    const wrapper = shallowMount(DataList, {
+      props: { items: [{ id: 1, name: 'Test' }] },
+      slots: {
+        item: `<template #item="{ item }">
+          <span>{{ item.name }}</span>
+        </template>`
+      }
+    })
 
-  it('should call onClose when pressing Escape', async () => {
-    const user = userEvent.setup()
-    const handleClose = vi.fn()
-    
-    render(<Modal isOpen={true} onClose={handleClose} />)
-    
-    await user.keyboard('{Escape}')
-    
-    expect(handleClose).toHaveBeenCalled()
-  })
-
-  it('should trap focus inside modal', async () => {
-    const user = userEvent.setup()
-    
-    render(
-      <Modal isOpen={true} onClose={vi.fn()}>
-        <button>First</button>
-        <button>Second</button>
-      </Modal>
-    )
-    
-    // Focus should cycle within modal
-    await user.tab()
-    expect(screen.getByText('First')).toHaveFocus()
-    
-    await user.tab()
-    expect(screen.getByText('Second')).toHaveFocus()
-    
-    await user.tab()
-    expect(screen.getByText('First')).toHaveFocus() // Cycles back
+    expect(wrapper.text()).toContain('Test')
   })
 })
 ```
@@ -276,61 +322,36 @@ describe('Modal', () => {
 ## Form Testing
 
 ```typescript
-describe('LoginForm', () => {
+describe('Form', () => {
   it('should submit valid form', async () => {
-    const user = userEvent.setup()
-    const onSubmit = vi.fn()
-    
-    render(<LoginForm onSubmit={onSubmit} />)
-    
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
-    
-    expect(onSubmit).toHaveBeenCalledWith({
+    const wrapper = shallowMount(LoginForm)
+
+    await wrapper.find('input[name="email"]').setValue('test@example.com')
+    await wrapper.find('input[name="password"]').setValue('password123')
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.emitted('submit')).toBeTruthy()
+    expect(wrapper.emitted('submit')![0]).toEqual([{
       email: 'test@example.com',
       password: 'password123',
-    })
+    }])
   })
 
   it('should show validation errors', async () => {
-    const user = userEvent.setup()
-    
-    render(<LoginForm onSubmit={vi.fn()} />)
-    
+    const wrapper = shallowMount(LoginForm)
+
     // Submit empty form
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
-    
-    expect(screen.getByText(/email is required/i)).toBeInTheDocument()
-    expect(screen.getByText(/password is required/i)).toBeInTheDocument()
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.text()).toContain('Email is required')
   })
 
-  it('should validate email format', async () => {
-    const user = userEvent.setup()
-    
-    render(<LoginForm onSubmit={vi.fn()} />)
-    
-    await user.type(screen.getByLabelText(/email/i), 'invalid-email')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
-    
-    expect(screen.getByText(/invalid email/i)).toBeInTheDocument()
-  })
-
-  it('should disable submit button while submitting', async () => {
-    const user = userEvent.setup()
-    const onSubmit = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)))
-    
-    render(<LoginForm onSubmit={onSubmit} />)
-    
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
-    
-    expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled()
-    
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /sign in/i })).toBeEnabled()
+  it('should disable submit while processing', async () => {
+    const wrapper = shallowMount(LoginForm, {
+      props: { isSubmitting: true }
     })
+
+    expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeDefined()
   })
 })
 ```
@@ -340,25 +361,28 @@ describe('LoginForm', () => {
 ```typescript
 describe('StatusBadge', () => {
   test.each([
-    ['success', 'bg-green-500'],
-    ['warning', 'bg-yellow-500'],
-    ['error', 'bg-red-500'],
-    ['info', 'bg-blue-500'],
+    ['success', 'badge-success'],
+    ['warning', 'badge-warning'],
+    ['error', 'badge-error'],
+    ['info', 'badge-info'],
   ])('should apply correct class for %s status', (status, expectedClass) => {
-    render(<StatusBadge status={status} />)
-    
-    expect(screen.getByTestId('status-badge')).toHaveClass(expectedClass)
+    const wrapper = shallowMount(StatusBadge, {
+      props: { status }
+    })
+
+    expect(wrapper.classes()).toContain(expectedClass)
   })
 
   test.each([
     { input: null, expected: 'Unknown' },
     { input: undefined, expected: 'Unknown' },
     { input: '', expected: 'Unknown' },
-    { input: 'invalid', expected: 'Unknown' },
-  ])('should show "Unknown" for invalid input: $input', ({ input, expected }) => {
-    render(<StatusBadge status={input} />)
-    
-    expect(screen.getByText(expected)).toBeInTheDocument()
+  ])('should show fallback for invalid input: $input', ({ input, expected }) => {
+    const wrapper = shallowMount(StatusBadge, {
+      props: { status: input }
+    })
+
+    expect(wrapper.text()).toContain(expected)
   })
 })
 ```
@@ -366,84 +390,64 @@ describe('StatusBadge', () => {
 ## Debugging Tips
 
 ```typescript
-// Print entire DOM
-screen.debug()
+// Print wrapper HTML
+console.log(wrapper.html())
 
 // Print specific element
-screen.debug(screen.getByRole('button'))
+console.log(wrapper.find('button').html())
 
-// Log testing playground URL
-screen.logTestingPlaygroundURL()
+// Check component data
+console.log(wrapper.vm.$data)
 
-// Pretty print DOM
-import { prettyDOM } from '@testing-library/react'
-console.log(prettyDOM(screen.getByRole('dialog')))
+// Check component props
+console.log(wrapper.props())
 
-// Check available roles
-import { getRoles } from '@testing-library/react'
-console.log(getRoles(container))
+// List all emitted events
+console.log(wrapper.emitted())
 ```
 
 ## Common Mistakes to Avoid
 
-### ❌ Don't Use Implementation Details
+### Don't Test Implementation Details
 
 ```typescript
-// Bad - testing implementation
-expect(component.state.isOpen).toBe(true)
-expect(wrapper.find('.internal-class').length).toBe(1)
+// ❌ Bad - testing internal state
+expect(wrapper.vm.isOpen).toBe(true)
 
-// Good - testing behavior
-expect(screen.getByRole('dialog')).toBeInTheDocument()
+// ✅ Good - testing observable behavior
+expect(wrapper.find('.modal').exists()).toBe(true)
 ```
 
-### ❌ Don't Forget Cleanup
+### Don't Forget to Await
 
 ```typescript
-// Bad - may leak state between tests
-it('test 1', () => {
-  render(<Component />)
-})
+// ❌ Bad - not awaiting async operations
+wrapper.find('button').trigger('click')
+expect(wrapper.text()).toContain('Updated')
 
-// Good - cleanup is automatic with RTL, but reset mocks
-beforeEach(() => {
-  vi.clearAllMocks()
-})
+// ✅ Good - await trigger and DOM update
+await wrapper.find('button').trigger('click')
+expect(wrapper.text()).toContain('Updated')
 ```
 
-### ❌ Don't Use Exact String Matching (Prefer Black-Box Assertions)
+### Don't Check Non-Existent Elements Directly
 
 ```typescript
-// ❌ Bad - hardcoded strings are brittle
-expect(screen.getByText('Submit Form')).toBeInTheDocument()
-expect(screen.getByText('Loading...')).toBeInTheDocument()
+// ❌ Bad - throws if element doesn't exist
+expect(wrapper.find('.error').text()).toBe('')
 
-// ✅ Good - role-based queries (most semantic)
-expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument()
-expect(screen.getByRole('status')).toBeInTheDocument()
-
-// ✅ Good - pattern matching (flexible)
-expect(screen.getByText(/submit/i)).toBeInTheDocument()
-expect(screen.getByText(/loading/i)).toBeInTheDocument()
-
-// ✅ Good - test behavior, not exact UI text
-expect(screen.getByRole('button')).toBeDisabled()
-expect(screen.getByRole('alert')).toBeInTheDocument()
+// ✅ Good - check existence first
+expect(wrapper.find('.error').exists()).toBe(false)
 ```
 
-**Why prefer black-box assertions?**
-
-- Text content may change (i18n, copy updates)
-- Role-based queries test accessibility
-- Pattern matching is resilient to minor changes
-- Tests focus on behavior, not implementation details
-
-### ❌ Don't Assert on Absence Without Query
+### Don't Use Hardcoded Classes for Business Logic
 
 ```typescript
-// Bad - throws if not found
-expect(screen.getByText('Error')).not.toBeInTheDocument() // Error!
+// ❌ Bad - brittle, breaks if styling changes
+expect(wrapper.find('.bg-red-500').exists()).toBe(true)
 
-// Good - use queryBy for absence assertions
-expect(screen.queryByText('Error')).not.toBeInTheDocument()
+// ✅ Good - test semantic meaning
+expect(wrapper.find('[data-status="error"]').exists()).toBe(true)
+// Or test the actual behavior
+expect(wrapper.text()).toContain('Error occurred')
 ```

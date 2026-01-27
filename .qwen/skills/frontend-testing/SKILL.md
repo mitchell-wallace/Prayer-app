@@ -1,25 +1,22 @@
 ---
 name: frontend-testing
-description: Generate Vitest + React Testing Library tests for Dify frontend components, hooks, and utilities. Triggers on testing, spec files, coverage, Vitest, RTL, unit tests, integration tests, or write/review test requests.
+description: Generate Vitest tests for Vue 3 components, composables, stores, services, repositories, and core logic. Follows the layered architecture pattern.
 ---
 
-# Dify Frontend Testing Skill
+# Vue Frontend Testing Skill
 
-This skill enables Claude to generate high-quality, comprehensive frontend tests for the Dify project following established conventions and best practices.
-
-> **⚠️ Authoritative Source**: This skill is derived from `web/testing/testing.md`. Use Vitest mock/timer APIs (`vi.*`).
+This skill enables Claude to generate high-quality, comprehensive frontend tests following the codebase's layered architecture pattern.
 
 ## When to Apply This Skill
 
 Apply this skill when the user:
 
-- Asks to **write tests** for a component, hook, or utility
+- Asks to **write tests** for a component, composable, store, service, or utility
 - Asks to **review existing tests** for completeness
-- Mentions **Vitest**, **React Testing Library**, **RTL**, or **spec files**
+- Mentions **Vitest**, **Vue Test Utils**, **VTU**, or **test files**
 - Requests **test coverage** improvement
-- Uses `pnpm analyze-component` output as context
 - Mentions **testing**, **unit tests**, or **integration tests** for frontend code
-- Wants to understand **testing patterns** in the Dify codebase
+- Wants to understand **testing patterns** in the codebase
 
 **Do NOT apply** when:
 
@@ -31,114 +28,129 @@ Apply this skill when the user:
 
 ### Tech Stack
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Vitest | 4.0.16 | Test runner |
-| React Testing Library | 16.0 | Component testing |
-| jsdom | - | Test environment |
-| nock | 14.0 | HTTP mocking |
-| TypeScript | 5.x | Type safety |
+| Tool | Purpose |
+|------|---------|
+| Vitest | Test runner |
+| @vue/test-utils | Component testing |
+| jsdom | Test environment |
+| fake-indexeddb | IndexedDB mocking |
+| TypeScript | Type safety |
 
 ### Key Commands
 
 ```bash
 # Run all tests
-pnpm test
+npm test
 
 # Watch mode
-pnpm test:watch
+npm test -- --watch
 
 # Run specific file
-pnpm test path/to/file.spec.tsx
+npm test tests/core/validation.test.ts
+
+# Run specific directory
+npm test tests/services/
 
 # Generate coverage report
-pnpm test:coverage
-
-# Analyze component complexity
-pnpm analyze-component <path>
-
-# Review existing test
-pnpm analyze-component <path> --review
+npm test -- --coverage
 ```
 
 ### File Naming
 
-- Test files: `ComponentName.spec.tsx` (same directory as component)
-- Integration tests: `web/__tests__/` directory
+- Test files: `*.test.ts` in `tests/` directory
+- Mirror source structure: `src/services/foo.ts` → `tests/services/foo.test.ts`
+
+## Layered Architecture Testing
+
+The codebase follows a layered architecture. Test each layer appropriately:
+
+### Layer Overview
+
+| Layer | Location | Test Style | Mock Depth |
+|-------|----------|-----------|------------|
+| **Core** | `src/core/` | Pure unit tests | None - pure functions |
+| **Repositories** | `src/repositories/` | Integration | Database layer |
+| **Services** | `src/services/` | Unit tests | Repositories + time/id |
+| **Stores** | `src/stores/` | Unit tests | Services |
+| **Composables** | `src/composables/` | Unit tests | Stores if stateful |
+| **Components** | `src/components/` | Shallow unit | Stores, services |
+
+### Processing Order (Simple → Complex)
+
+When testing multiple files, process in this order:
+
+```
+1. Core functions (pure, no dependencies)
+2. Repositories (mock database layer)
+3. Services (mock repositories)
+4. Stores (mock services)
+5. Composables (mock stores if needed)
+6. Components (integration tests last)
+```
+
+### Import Rules
+
+Each layer should only import from specific other layers:
+
+- `core/` → only `formatting/`
+- `repositories/` → `db/`, `core/types`
+- `services/` → `core/`, `repositories/`
+- `stores/` → `services/`, `core/types`
+- `composables/` → `core/types`, Vue
+- `components/` → `stores/`, `composables/`, `formatting/`, `core/types`
 
 ## Test Structure Template
 
 ```typescript
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import Component from './index'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { mount, shallowMount } from '@vue/test-utils'
+import ComponentName from '@/components/path/ComponentName.vue'
 
-// ✅ Import real project components (DO NOT mock these)
-// import Loading from '@/app/components/base/loading'
-// import { ChildComponent } from './child-component'
-
-// ✅ Mock external dependencies only
-vi.mock('@/service/api')
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => '/test',
+// Mock services - mock only one layer down
+vi.mock('@/services/requestsService', () => ({
+  initRequests: vi.fn(),
+  createRequest: vi.fn(),
 }))
-
-// ✅ Zustand stores: Use real stores (auto-mocked globally)
-// Set test state with: useAppStore.setState({ ... })
-
-// Shared state for mocks (if needed)
-let mockSharedState = false
 
 describe('ComponentName', () => {
   beforeEach(() => {
-    vi.clearAllMocks()  // ✅ Reset mocks BEFORE each test
-    mockSharedState = false  // ✅ Reset shared state
+    vi.clearAllMocks()
   })
 
   // Rendering tests (REQUIRED)
   describe('Rendering', () => {
     it('should render without crashing', () => {
-      // Arrange
-      const props = { title: 'Test' }
-      
-      // Act
-      render(<Component {...props} />)
-      
-      // Assert
-      expect(screen.getByText('Test')).toBeInTheDocument()
+      const wrapper = shallowMount(ComponentName)
+      expect(wrapper.exists()).toBe(true)
     })
   })
 
   // Props tests (REQUIRED)
   describe('Props', () => {
-    it('should apply custom className', () => {
-      render(<Component className="custom" />)
-      expect(screen.getByRole('button')).toHaveClass('custom')
+    it('should apply custom class', () => {
+      const wrapper = shallowMount(ComponentName, {
+        props: { class: 'custom-class' }
+      })
+      expect(wrapper.classes()).toContain('custom-class')
     })
   })
 
   // User Interactions
   describe('User Interactions', () => {
-    it('should handle click events', () => {
-      const handleClick = vi.fn()
-      render(<Component onClick={handleClick} />)
-      
-      fireEvent.click(screen.getByRole('button'))
-      
-      expect(handleClick).toHaveBeenCalledTimes(1)
+    it('should emit event on click', async () => {
+      const wrapper = shallowMount(ComponentName)
+      await wrapper.find('button').trigger('click')
+      expect(wrapper.emitted('click')).toHaveLength(1)
     })
   })
 
   // Edge Cases (REQUIRED)
   describe('Edge Cases', () => {
-    it('should handle null data', () => {
-      render(<Component data={null} />)
-      expect(screen.getByText(/no data/i)).toBeInTheDocument()
-    })
-
-    it('should handle empty array', () => {
-      render(<Component items={[]} />)
-      expect(screen.getByText(/empty/i)).toBeInTheDocument()
+    it('should handle empty data', () => {
+      const wrapper = shallowMount(ComponentName, {
+        props: { items: [] }
+      })
+      expect(wrapper.text()).toContain('No items')
     })
   })
 })
@@ -146,63 +158,34 @@ describe('ComponentName', () => {
 
 ## Testing Workflow (CRITICAL)
 
-### ⚠️ Incremental Approach Required
+### Incremental Approach Required
 
 **NEVER generate all test files at once.** For complex components or multi-file directories:
 
-1. **Analyze & Plan**: List all files, order by complexity (simple → complex)
-1. **Process ONE at a time**: Write test → Run test → Fix if needed → Next
-1. **Verify before proceeding**: Do NOT continue to next file until current passes
+1. **Analyze & Plan**: List all files, order by layer/complexity
+2. **Process ONE at a time**: Write test → Run test → Fix if needed → Next
+3. **Verify before proceeding**: Do NOT continue to next file until current passes
 
 ```
 For each file:
   ┌────────────────────────────────────────┐
   │ 1. Write test                          │
-  │ 2. Run: pnpm test <file>.spec.tsx      │
+  │ 2. Run: npm test <file>.test.ts        │
   │ 3. PASS? → Mark complete, next file    │
   │    FAIL? → Fix first, then continue    │
   └────────────────────────────────────────┘
 ```
 
-### Complexity-Based Order
+### Layer-Based Testing Strategy
 
-Process in this order for multi-file testing:
-
-1. 🟢 Utility functions (simplest)
-1. 🟢 Custom hooks
-1. 🟡 Simple components (presentational)
-1. 🟡 Medium components (state, effects)
-1. 🔴 Complex components (API, routing)
-1. 🔴 Integration tests (index files - last)
-
-### When to Refactor First
-
-- **Complexity > 50**: Break into smaller pieces before testing
-- **500+ lines**: Consider splitting before testing
-- **Many dependencies**: Extract logic into hooks first
-
-> 📖 See `references/workflow.md` for complete workflow details and todo list format.
-
-## Testing Strategy
-
-### Path-Level Testing (Directory Testing)
-
-When assigned to test a directory/path, test **ALL content** within that path:
-
-- Test all components, hooks, utilities in the directory (not just `index` file)
-- Use incremental approach: one file at a time, verify each before proceeding
-- Goal: 100% coverage of ALL files in the directory
-
-### Integration Testing First
-
-**Prefer integration testing** when writing tests for a directory:
-
-- ✅ **Import real project components** directly (including base components and siblings)
-- ✅ **Only mock**: API services (`@/service/*`), `next/navigation`, complex context providers
-- ❌ **DO NOT mock** base components (`@/app/components/base/*`)
-- ❌ **DO NOT mock** sibling/child components in the same directory
-
-> See [Test Structure Template](#test-structure-template) for correct import/mock patterns.
+| Layer Being Tested | What to Mock | Example |
+|--------------------|--------------|---------|
+| Core (`src/core/`) | Nothing | Test pure functions directly |
+| Repositories | `src/db/database` | Use `resetDbForTests()` |
+| Services | Repositories, `dateTimeService` | `vi.mock('@/repositories/...')` |
+| Stores | Services | `vi.mock('@/services/...')` |
+| Composables | Stores if stateful | Mock store refs |
+| Components | Stores, services | `vi.mock('@/services/...')` |
 
 ## Core Principles
 
@@ -217,20 +200,8 @@ Every test should clearly separate:
 ### 2. Black-Box Testing
 
 - Test observable behavior, not implementation details
-- Use semantic queries (getByRole, getByLabelText)
+- Use `wrapper.find()` and `wrapper.text()` for assertions
 - Avoid testing internal state directly
-- **Prefer pattern matching over hardcoded strings** in assertions:
-
-```typescript
-// ❌ Avoid: hardcoded text assertions
-expect(screen.getByText('Loading...')).toBeInTheDocument()
-
-// ✅ Better: role-based queries
-expect(screen.getByRole('status')).toBeInTheDocument()
-
-// ✅ Better: pattern matching
-expect(screen.getByText(/loading/i)).toBeInTheDocument()
-```
 
 ### 3. Single Behavior Per Test
 
@@ -239,16 +210,16 @@ Each test verifies ONE user-observable behavior:
 ```typescript
 // ✅ Good: One behavior
 it('should disable button when loading', () => {
-  render(<Button loading />)
-  expect(screen.getByRole('button')).toBeDisabled()
+  const wrapper = shallowMount(Button, { props: { loading: true } })
+  expect(wrapper.find('button').attributes('disabled')).toBeDefined()
 })
 
 // ❌ Bad: Multiple behaviors
 it('should handle loading state', () => {
-  render(<Button loading />)
-  expect(screen.getByRole('button')).toBeDisabled()
-  expect(screen.getByText('Loading...')).toBeInTheDocument()
-  expect(screen.getByRole('button')).toHaveClass('loading')
+  const wrapper = shallowMount(Button, { props: { loading: true } })
+  expect(wrapper.find('button').attributes('disabled')).toBeDefined()
+  expect(wrapper.text()).toContain('Loading')
+  expect(wrapper.classes()).toContain('loading')
 })
 ```
 
@@ -264,62 +235,69 @@ it('should disable input when isReadOnly is true')
 
 ## Required Test Scenarios
 
-### Always Required (All Components)
+### Always Required (All Test Files)
 
-1. **Rendering**: Component renders without crashing
-1. **Props**: Required props, optional props, default values
-1. **Edge Cases**: null, undefined, empty values, boundary conditions
+1. **Basic Functionality**: Primary behavior works correctly
+2. **Edge Cases**: null, undefined, empty values, boundary conditions
 
-### Conditional (When Present)
+### By Layer
 
-| Feature | Test Focus |
-|---------|-----------|
-| `useState` | Initial state, transitions, cleanup |
-| `useEffect` | Execution, dependencies, cleanup |
-| Event handlers | All onClick, onChange, onSubmit, keyboard |
-| API calls | Loading, success, error states |
-| Routing | Navigation, params, query strings |
-| `useCallback`/`useMemo` | Referential equality |
-| Context | Provider values, consumer behavior |
-| Forms | Validation, submission, error display |
+| Layer | Focus Areas |
+|-------|-------------|
+| Core | Validation edge cases, type coercion, error throwing |
+| Repository | CRUD operations, data persistence, query correctness |
+| Service | Orchestration flow, error propagation, side effects |
+| Store | Reactive updates, computed properties, service delegation |
+| Composable | State transitions, lifecycle behavior |
+| Component | Rendering, props, events, user interactions |
 
 ## Coverage Goals (Per File)
 
-For each test file generated, aim for:
+For each test file generated:
 
 - ✅ **100%** function coverage
 - ✅ **100%** statement coverage
 - ✅ **>95%** branch coverage
 - ✅ **>95%** line coverage
 
-> **Note**: For multi-file directories, process one file at a time with full coverage each. See `references/workflow.md`.
-
 ## Detailed Guides
 
 For more detailed information, refer to:
 
 - `references/workflow.md` - **Incremental testing workflow** (MUST READ for multi-file testing)
-- `references/mocking.md` - Mock patterns, Zustand store testing, and best practices
-- `references/async-testing.md` - Async operations and API calls
-- `references/domain-components.md` - Workflow, Dataset, Configuration testing
-- `references/common-patterns.md` - Frequently used testing patterns
+- `references/mocking.md` - Layer-based mocking strategy
+- `references/async-testing.md` - Async operations and Vue reactivity
+- `references/layer-patterns.md` - Testing patterns per architecture layer
+- `references/common-patterns.md` - Vue Test Utils patterns
 - `references/checklist.md` - Test generation checklist and validation steps
 
-## Authoritative References
+## Reference Examples in Codebase
 
-### Primary Specification (MUST follow)
+- `tests/db.test.ts` - Repository/database integration tests
+- `tests/queueService.test.ts` - Service tests with fake timers
 
-- **`web/testing/testing.md`** - The canonical testing specification. This skill is derived from this document.
+## Dependency Injection Pattern
 
-### Reference Examples in Codebase
+For time and ID dependencies, use injection rather than mocking globals:
 
-- `web/utils/classnames.spec.ts` - Utility function tests
-- `web/app/components/base/button/index.spec.tsx` - Component tests
-- `web/__mocks__/provider-context.ts` - Mock factory example
+```typescript
+// Production code
+export function createRequestRecord(
+  payload: CreateRequestPayload,
+  deps = { now: Date.now(), id: crypto.randomUUID() }
+) {
+  return {
+    ...payload,
+    id: deps.id,
+    createdAt: deps.now,
+  }
+}
 
-### Project Configuration
-
-- `web/vitest.config.ts` - Vitest configuration
-- `web/vitest.setup.ts` - Test environment setup
-- `web/scripts/analyze-component.js` - Component analysis tool
-- Modules are not mocked automatically. Global mocks live in `web/vitest.setup.ts` (for example `react-i18next`, `next/image`); mock other modules like `ky` or `mime` locally in test files.
+// Test code - inject deterministic values
+const result = createRequestRecord(payload, {
+  now: 1609459200000,
+  id: 'test-id-123'
+})
+expect(result.id).toBe('test-id-123')
+expect(result.createdAt).toBe(1609459200000)
+```
