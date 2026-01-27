@@ -182,6 +182,7 @@
                   <button
                     class="rounded-xl bg-primary-200 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-md"
                     type="button"
+                    data-testid="note-edit-save"
                     @click="saveNoteEdit(note)"
                   >
                     Save
@@ -208,6 +209,7 @@
         <button
           class="h-12 rounded-xl bg-neutral-100 px-4 text-sm font-bold uppercase tracking-wide text-neutral-content shadow-sm transition-all duration-150 hover:bg-neutral-200 disabled:opacity-50 disabled:hover:bg-neutral-100"
           type="button"
+          data-testid="answered-button"
           :disabled="request.status === 'answered'"
           @click="emit('mark-answered', request)"
         >
@@ -283,6 +285,7 @@
               <button
                 class="rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md"
                 type="button"
+                data-testid="edit-request-cancel"
                 @click="closeEditing"
               >
                 Cancel
@@ -290,6 +293,7 @@
               <button
                 class="rounded-xl bg-primary-200 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-primary-100 hover:shadow-md"
                 type="button"
+                data-testid="edit-request-save"
                 @click="saveEdit"
               >
                 Save changes
@@ -319,6 +323,7 @@
               <button
                 class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md"
                 type="button"
+                data-testid="delete-note-cancel"
                 @click="cancelDeleteNote"
               >
                 Cancel
@@ -326,6 +331,7 @@
               <button
                 class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-danger/90 hover:shadow-md"
                 type="button"
+                data-testid="delete-note-confirm"
                 @click="confirmDeleteNote"
               >
                 Delete
@@ -355,6 +361,7 @@
               <button
                 class="w-full rounded-xl bg-base-300 px-4 py-2.5 text-sm font-semibold text-base-content/70 shadow-sm transition-all duration-150 hover:text-base-content hover:shadow-md"
                 type="button"
+                data-testid="delete-request-cancel"
                 @click="cancelDeleteRequest"
               >
                 Cancel
@@ -362,6 +369,7 @@
               <button
                 class="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-danger/90 hover:shadow-md"
                 type="button"
+                data-testid="delete-request-confirm"
                 @click="confirmDeleteRequest"
               >
                 Delete
