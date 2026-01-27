@@ -1,6 +1,8 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
+const transitionMinWaitMs = 200;
+
 async function clearStorage(page: Page): Promise<void> {
   await page.evaluate(async () => {
     localStorage.clear();
@@ -26,6 +28,7 @@ async function clearStorage(page: Page): Promise<void> {
 }
 
 async function waitForSingleTitle(page: Page): Promise<void> {
+  await page.waitForTimeout(transitionMinWaitMs);
   await expect(page.getByTestId('request-title')).toHaveCount(1);
 }
 
