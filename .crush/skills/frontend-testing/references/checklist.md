@@ -28,6 +28,7 @@ Use this checklist when generating or reviewing tests for Vue frontend code.
 - [ ] Create a todo list to track progress before starting
 - [ ] For EACH file: write → run test → verify pass → then next
 - [ ] **DO NOT proceed** to next file until current one passes
+- [ ] **Batch runs only at the end of a writing round**, or after shared test setup/util updates
 
 ## Required Test Sections
 
@@ -85,15 +86,6 @@ Use this checklist when generating or reviewing tests for Vue frontend code.
 - [ ] Mock data uses actual types from source
 - [ ] Factory functions have proper return types
 
-## Coverage Goals (Per File)
-
-For the current file being tested:
-
-- [ ] 100% function coverage
-- [ ] 100% statement coverage
-- [ ] >95% branch coverage
-- [ ] >95% line coverage
-
 ## Post-Generation (Per File)
 
 **Run these checks after EACH test file, not just at the end:**
@@ -106,7 +98,7 @@ For the current file being tested:
 ### After All Files Complete
 
 - [ ] Run full test suite: `npm test`
-- [ ] Check coverage: `npm test -- --coverage`
+- [ ] (Optional) Check coverage: `npm test -- --coverage`
 - [ ] Run TypeScript check: `npm run type-check`
 
 ## Common Issues to Watch

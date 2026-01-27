@@ -59,10 +59,10 @@ it('should load data and update display', async () => {
 
 ### 4. Waiting for Conditions
 
-Use `waitFor` from Vitest for conditions that may take time:
+Use `waitFor` from `@testing-library/dom` for eventual UI states:
 
 ```typescript
-import { waitFor } from 'vitest'
+import { waitFor } from '@testing-library/dom'
 
 it('should eventually show success message', async () => {
   const wrapper = shallowMount(AsyncForm)

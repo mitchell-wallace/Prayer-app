@@ -2,7 +2,7 @@
 
 ## Objective
 
-Expand unit test coverage for the data/business layers without over-testing a young codebase. Focus on:
+Expand unit test coverage for the data/business layers without over-testing a young codebase. This plan intentionally focuses on core/services/repositories/stores to keep the work chunk small; component/composable tests are deferred to a later milestone. Focus on:
 1. **Layer boundary verification** - stores call services, services call repositories
 2. **Critical business logic** - validation, state transitions, data transforms
 3. **Edge cases** - error handling, boundary conditions
@@ -15,6 +15,13 @@ Expand unit test coverage for the data/business layers without over-testing a yo
 |------|----------|-------|
 | `tests/db.test.ts` | `requestsRepository` | seed idempotency, save/getAll persistence |
 | `tests/queueService.test.ts` | `queueAlgorithm` + `queueEngine` | cycle building, priority interleaving, config validation |
+
+---
+
+## 0. One-Time Setup
+
+- Install testing utilities used by unit/integration tests (component/composable testing deferred in this plan):
+  - `npm install -D @vue/test-utils @testing-library/dom`
 
 ---
 
@@ -245,8 +252,8 @@ export const mockRequestsService = {
 
 ## 7. Scope Exclusions
 
-- **Components** - UI testing handled separately
-- **Composables** - behavioral hooks tested via E2E
+- **Components** - UI testing handled separately in a later milestone to keep this plan tightly scoped
+- **Composables** - behavioral hooks tested later (or via E2E), not in this unit/integration tranche
 - **Formatting** - `time.ts` considered stable utility
 - **Database infrastructure** - `db/database.ts`, `db/sqljs.ts` covered by integration
 

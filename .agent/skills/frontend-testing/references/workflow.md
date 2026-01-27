@@ -6,7 +6,7 @@ This guide defines the workflow for generating tests, especially for complex com
 
 | Scope | Rule |
 |-------|------|
-| **Single file** | Complete coverage in one generation (100% function, >95% branch) |
+| **Single file** | Complete intended scenarios in one generation |
 | **Multi-file directory** | Process one file at a time, verify each before proceeding |
 
 ## Critical Rule: Incremental Approach for Multi-File Testing
@@ -35,7 +35,7 @@ When testing a **single component, composable, or service**:
 4. Write the test file
 5. Run test: npm test <file>.test.ts
 6. Fix any failures
-7. Verify coverage meets goals (100% function, >95% branch)
+7. If a shared setup/util changes, run a broader batch after the round
 ```
 
 ## Directory/Multi-File Workflow (MUST FOLLOW)
@@ -93,6 +93,8 @@ Process files in this recommended order (layers, then complexity within each lay
 
 **DO NOT proceed to the next file until the current one passes.**
 
+**Batch runs:** While iterating, run only the single-file test. Run directory/all tests at the end of a writing round, or immediately after updating shared test setup/utilities that affect multiple files.
+
 ### Step 4: Final Verification
 
 After all individual tests pass:
@@ -101,8 +103,8 @@ After all individual tests pass:
 # Run all tests in the directory together
 npm test tests/services/
 
-# Check coverage
-npm test -- --coverage
+# (Optional) Check coverage if requested
+# npm test -- --coverage
 ```
 
 ## Layer-Based Complexity Guidelines
@@ -184,7 +186,6 @@ Update status as you complete each:
 - More than 2 consecutive test failures
 - Mock-related errors appearing
 - Unclear why a test is failing
-- Test passing but coverage unexpectedly low
 
 ## Common Pitfalls to Avoid
 
@@ -267,5 +268,4 @@ After completion:
 
 - [ ] All individual tests pass
 - [ ] Full directory test run passes
-- [ ] Coverage goals met
 - [ ] Todo list shows all complete

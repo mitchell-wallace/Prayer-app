@@ -24,6 +24,8 @@ Apply this skill when the user:
 - User is asking about E2E tests (Playwright/Cypress)
 - User is only asking conceptual questions without code context
 
+**Repo scope note (Prayer-app):** MIT-20 is intentionally limited to core/services/repositories/stores to keep the work chunk small. Component/composable testing is deferred to a later milestone unless explicitly requested.
+
 ## Quick Reference
 
 ### Tech Stack
@@ -32,6 +34,7 @@ Apply this skill when the user:
 |------|---------|
 | Vitest | Test runner |
 | @vue/test-utils | Component testing |
+| @testing-library/dom | `waitFor` for async conditions |
 | jsdom | Test environment |
 | fake-indexeddb | IndexedDB mocking |
 | TypeScript | Type safety |
@@ -74,6 +77,8 @@ The codebase follows a layered architecture. Test each layer appropriately:
 | **Stores** | `src/stores/` | Unit tests | Services |
 | **Composables** | `src/composables/` | Unit tests | Stores if stateful |
 | **Components** | `src/components/` | Shallow unit | Stores, services |
+
+**Note:** In MIT-20 scope, focus on core/services/repositories/stores; use the composable/component guidance only when those tests are explicitly in scope.
 
 ### Processing Order (Simple → Complex)
 
@@ -176,6 +181,8 @@ For each file:
   └────────────────────────────────────────┘
 ```
 
+**Batch runs:** Run only the single-file test while iterating. Run a larger batch (directory/all tests) at the end of a writing round, or immediately after changes to shared test setup/utilities that affect multiple tests.
+
 ### Layer-Based Testing Strategy
 
 | Layer Being Tested | What to Mock | Example |
@@ -250,15 +257,6 @@ it('should disable input when isReadOnly is true')
 | Store | Reactive updates, computed properties, service delegation |
 | Composable | State transitions, lifecycle behavior |
 | Component | Rendering, props, events, user interactions |
-
-## Coverage Goals (Per File)
-
-For each test file generated:
-
-- ✅ **100%** function coverage
-- ✅ **100%** statement coverage
-- ✅ **>95%** branch coverage
-- ✅ **>95%** line coverage
 
 ## Detailed Guides
 
