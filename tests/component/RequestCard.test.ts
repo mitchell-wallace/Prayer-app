@@ -1,8 +1,9 @@
-import { mount } from '@vue/test-utils';
+import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { nextTick } from 'vue';
 import RequestCard from '@/components/cards/RequestCard.vue';
 import { makeNote, makeRequest } from '../fixtures/requests';
+import { clickOutside, flushPromises } from './helpers';
 
 function mountCard(request = makeRequest({ id: 'test-1' })) {
   return mount(RequestCard, {
@@ -19,14 +20,18 @@ function mountCard(request = makeRequest({ id: 'test-1' })) {
 }
 
 describe('RequestCard', () => {
+  let wrapper: VueWrapper | null = null;
+
   afterEach(() => {
+    wrapper?.unmount();
+    wrapper = null;
     vi.restoreAllMocks();
   });
 
   describe('State/Logic Tests', () => {
     test('displays request title and priority', () => {
       const request = makeRequest({ id: 'test-1', title: 'My Prayer', priority: 'urgent' });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       expect(wrapper.find('[data-testid="request-title"]').text()).toBe('My Prayer');
       expect(wrapper.text()).toContain('urgent');
@@ -34,14 +39,14 @@ describe('RequestCard', () => {
 
     test('shows "never" when prayedAt is empty', () => {
       const request = makeRequest({ id: 'test-1', prayedAt: [] });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       expect(wrapper.text()).toContain('Last never');
     });
 
     test('emits pray event with request', async () => {
       const request = makeRequest({ id: 'test-1' });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       await wrapper.find('[data-testid="pray-button"]').trigger('click');
 
@@ -51,10 +56,9 @@ describe('RequestCard', () => {
 
     test('emits mark-answered with request', async () => {
       const request = makeRequest({ id: 'test-1', status: 'active' });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
-      const answeredBtn = wrapper.findAll('button').find((b) => b.text() === 'Answered');
-      await answeredBtn?.trigger('click');
+      await wrapper.find('[data-testid="answered-button"]').trigger('click');
 
       expect(wrapper.emitted('mark-answered')).toBeTruthy();
       expect(wrapper.emitted('mark-answered')![0]).toEqual([request]);
@@ -62,16 +66,16 @@ describe('RequestCard', () => {
 
     test('answered button disabled when status is answered', () => {
       const request = makeRequest({ id: 'test-1', status: 'answered' });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
-      const answeredBtn = wrapper.findAll('button').find((b) => b.text() === 'Answered');
-      expect(answeredBtn?.attributes('disabled')).toBeDefined();
+      const answeredBtn = wrapper.find('[data-testid="answered-button"]');
+      expect(answeredBtn.attributes('disabled')).toBeDefined();
     });
   });
 
   describe('Note Form State', () => {
     test('opens note form on add note click', async () => {
-      const wrapper = mountCard();
+      wrapper = mountCard();
 
       expect(wrapper.find('[data-testid="note-form"]').exists()).toBe(false);
 
@@ -81,7 +85,7 @@ describe('RequestCard', () => {
     });
 
     test('closes note form on cancel', async () => {
-      const wrapper = mountCard();
+      wrapper = mountCard();
 
       await wrapper.find('[data-testid="note-open"]').trigger('click');
       expect(wrapper.find('[data-testid="note-form"]').exists()).toBe(true);
@@ -93,7 +97,7 @@ describe('RequestCard', () => {
     });
 
     test('clears draft on submit', async () => {
-      const wrapper = mountCard();
+      wrapper = mountCard();
 
       await wrapper.find('[data-testid="note-open"]').trigger('click');
       const textarea = wrapper.find('[data-testid="note-input"]');
@@ -101,12 +105,18 @@ describe('RequestCard', () => {
 
       await wrapper.find('[data-testid="note-submit"]').trigger('click');
 
+      // Verify form closes AND textarea value is cleared
       expect(wrapper.find('[data-testid="note-form"]').exists()).toBe(false);
+
+      // Re-open to verify draft was cleared
+      await wrapper.find('[data-testid="note-open"]').trigger('click');
+      const newTextarea = wrapper.find('[data-testid="note-input"]');
+      expect((newTextarea.element as HTMLTextAreaElement).value).toBe('');
     });
 
     test('emits add-note with trimmed text', async () => {
       const request = makeRequest({ id: 'test-1' });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       await wrapper.find('[data-testid="note-open"]').trigger('click');
       const textarea = wrapper.find('[data-testid="note-input"]');
@@ -119,7 +129,7 @@ describe('RequestCard', () => {
     });
 
     test('submit does nothing for empty/whitespace text', async () => {
-      const wrapper = mountCard();
+      wrapper = mountCard();
 
       await wrapper.find('[data-testid="note-open"]').trigger('click');
       const textarea = wrapper.find('[data-testid="note-input"]');
@@ -130,21 +140,33 @@ describe('RequestCard', () => {
       expect(wrapper.emitted('add-note')).toBeFalsy();
     });
 
-    test('textarea exists and is focusable when form opens', async () => {
-      const wrapper = mountCard();
+    test('focuses textarea when form opens', async () => {
+      // Attach to DOM body for focus tracking to work in jsdom
+      wrapper = mount(RequestCard, {
+        props: { request: makeRequest({ id: 'test-1' }) },
+        global: {
+          stubs: {
+            Teleport: true,
+            IconDotsVertical: true,
+            IconPlus: true,
+            IconX: true,
+          },
+        },
+        attachTo: document.body,
+      });
 
       await wrapper.find('[data-testid="note-open"]').trigger('click');
       await nextTick();
 
       const textarea = wrapper.find('[data-testid="note-input"]');
       expect(textarea.exists()).toBe(true);
-      expect(textarea.attributes('placeholder')).toBe('Capture the latest update');
+      expect(document.activeElement).toBe(textarea.element);
     });
   });
 
   describe('Menu Behavior', () => {
     test('toggles request menu on click', async () => {
-      const wrapper = mountCard();
+      wrapper = mountCard();
 
       const menuBtn = wrapper.find('[data-request-menu] button');
       await menuBtn.trigger('click');
@@ -157,7 +179,7 @@ describe('RequestCard', () => {
     });
 
     test('opens edit modal from menu', async () => {
-      const wrapper = mountCard();
+      wrapper = mountCard();
 
       await wrapper.find('[data-request-menu] button').trigger('click');
       const editBtn = wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Edit');
@@ -166,10 +188,36 @@ describe('RequestCard', () => {
       expect(wrapper.find('h4').text()).toBe('Edit request');
     });
 
+    test('closes request menu on outside click', async () => {
+      wrapper = mountCard();
+
+      await wrapper.find('[data-request-menu] button').trigger('click');
+      expect(wrapper.find('[data-request-menu] [role="menu"]').exists()).toBe(true);
+
+      clickOutside();
+      await flushPromises();
+
+      expect(wrapper.find('[data-request-menu] [role="menu"]').exists()).toBe(false);
+    });
+
+    test('closes note menu on outside click', async () => {
+      const note = makeNote({ id: 'note-1', text: 'Test note' });
+      const request = makeRequest({ id: 'test-1', notes: [note] });
+      wrapper = mountCard(request);
+
+      await wrapper.find('[data-note-menu] button').trigger('click');
+      expect(wrapper.find('[data-note-menu] [role="menu"]').exists()).toBe(true);
+
+      clickOutside();
+      await flushPromises();
+
+      expect(wrapper.find('[data-note-menu] [role="menu"]').exists()).toBe(false);
+    });
+
     test('toggles note menu for specific note', async () => {
       const note = makeNote({ id: 'note-1', text: 'Test note' });
       const request = makeRequest({ id: 'test-1', notes: [note] });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       const noteMenuBtn = wrapper.find('[data-note-menu] button');
       await noteMenuBtn.trigger('click');
@@ -181,7 +229,7 @@ describe('RequestCard', () => {
   describe('Edit/Delete Flows', () => {
     test('opens edit modal with form pre-populated', async () => {
       const request = makeRequest({ id: 'test-1', title: 'Original Title', priority: 'high' });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       await wrapper.find('[data-request-menu] button').trigger('click');
       const editBtn = wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Edit');
@@ -193,7 +241,7 @@ describe('RequestCard', () => {
 
     test('emits update-request on save edit', async () => {
       const request = makeRequest({ id: 'test-1', title: 'Original' });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       await wrapper.find('[data-request-menu] button').trigger('click');
       const editBtn = wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Edit');
@@ -202,8 +250,7 @@ describe('RequestCard', () => {
       const titleInput = wrapper.find('input');
       await titleInput.setValue('Updated Title');
 
-      const saveBtn = wrapper.findAll('button').find((b) => b.text() === 'Save changes');
-      await saveBtn?.trigger('click');
+      await wrapper.find('[data-testid="edit-request-save"]').trigger('click');
 
       expect(wrapper.emitted('update-request')).toBeTruthy();
       const emitted = wrapper.emitted('update-request')![0][0] as { title: string };
@@ -211,7 +258,7 @@ describe('RequestCard', () => {
     });
 
     test('shows delete confirmation on delete click', async () => {
-      const wrapper = mountCard();
+      wrapper = mountCard();
 
       await wrapper.find('[data-request-menu] button').trigger('click');
       const deleteBtn = wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Delete');
@@ -222,15 +269,13 @@ describe('RequestCard', () => {
 
     test('emits delete-request on confirm', async () => {
       const request = makeRequest({ id: 'test-1' });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       await wrapper.find('[data-request-menu] button').trigger('click');
       const deleteBtn = wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Delete');
       await deleteBtn?.trigger('click');
 
-      const deleteButtons = wrapper.findAll('button').filter((b) => b.text() === 'Delete');
-      const confirmBtn = deleteButtons[deleteButtons.length - 1];
-      await confirmBtn?.trigger('click');
+      await wrapper.find('[data-testid="delete-request-confirm"]').trigger('click');
 
       expect(wrapper.emitted('delete-request')).toBeTruthy();
       expect(wrapper.emitted('delete-request')![0]).toEqual([request]);
@@ -239,15 +284,13 @@ describe('RequestCard', () => {
     test('emits delete-note with correct note', async () => {
       const note = makeNote({ id: 'note-1', text: 'Test note' });
       const request = makeRequest({ id: 'test-1', notes: [note] });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       await wrapper.find('[data-note-menu] button').trigger('click');
       const deleteBtn = wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Delete');
       await deleteBtn?.trigger('click');
 
-      const deleteButtons2 = wrapper.findAll('button').filter((b) => b.text() === 'Delete');
-      const confirmBtn2 = deleteButtons2[deleteButtons2.length - 1];
-      await confirmBtn2?.trigger('click');
+      await wrapper.find('[data-testid="delete-note-confirm"]').trigger('click');
 
       expect(wrapper.emitted('delete-note')).toBeTruthy();
       expect(wrapper.emitted('delete-note')![0]).toEqual([{ request, note }]);
@@ -256,7 +299,7 @@ describe('RequestCard', () => {
     test('emits edit-note with updated text', async () => {
       const note = makeNote({ id: 'note-1', text: 'Original note' });
       const request = makeRequest({ id: 'test-1', notes: [note] });
-      const wrapper = mountCard(request);
+      wrapper = mountCard(request);
 
       await wrapper.find('[data-note-menu] button').trigger('click');
       const editBtn = wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Edit');
@@ -266,8 +309,7 @@ describe('RequestCard', () => {
       const textarea = textareas[textareas.length - 1];
       await textarea?.setValue('Updated note');
 
-      const saveBtn = wrapper.findAll('button').find((b) => b.text() === 'Save');
-      await saveBtn?.trigger('click');
+      await wrapper.find('[data-testid="note-edit-save"]').trigger('click');
 
       expect(wrapper.emitted('edit-note')).toBeTruthy();
       const emitted = wrapper.emitted('edit-note')![0][0] as { note: { text: string } };

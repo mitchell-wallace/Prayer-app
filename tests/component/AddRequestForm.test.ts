@@ -1,7 +1,9 @@
-import { mount } from '@vue/test-utils';
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { mount, type VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { nextTick } from 'vue';
 import AddRequestForm from '@/components/forms/AddRequestForm.vue';
+import { clickOutside, flushPromises } from './helpers';
+import { settings } from '@/stores/settings';
 
 function mountForm() {
   return mount(AddRequestForm, {
@@ -15,29 +17,76 @@ function mountForm() {
 }
 
 describe('AddRequestForm', () => {
+  let wrapper: VueWrapper | null = null;
+
+  beforeEach(() => {
+    // Reset settings to defaults before each test
+    settings.defaultPriority = 'medium';
+    settings.defaultDuration = '1m';
+  });
+
   afterEach(() => {
+    wrapper?.unmount();
+    wrapper = null;
     vi.restoreAllMocks();
   });
 
   describe('Initial State', () => {
     test('renders collapsed form initially', () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       expect(wrapper.find('[data-testid="request-input"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="request-controls"]').exists()).toBe(false);
     });
 
     test('submit button disabled when title is empty', () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       const submitBtn = wrapper.find('[data-testid="request-submit"]');
       expect(submitBtn.attributes('disabled')).toBeDefined();
+    });
+
+    test('syncs defaults from settings when title empty', async () => {
+      wrapper = mountForm();
+
+      // Expand form to see controls
+      await wrapper.find('[data-testid="request-input"]').trigger('focus');
+
+      // Initial defaults
+      expect(wrapper.find('[data-testid="priority-toggle"]').text()).toContain('Medium');
+      expect(wrapper.find('[data-testid="duration-toggle"]').text()).toContain('1 month');
+
+      // Change settings
+      settings.defaultPriority = 'high';
+      settings.defaultDuration = '3m';
+      await nextTick();
+
+      // Should sync because title is empty
+      expect(wrapper.find('[data-testid="priority-toggle"]').text()).toContain('High');
+      expect(wrapper.find('[data-testid="duration-toggle"]').text()).toContain('3 months');
+    });
+
+    test('does not sync defaults when form in use', async () => {
+      wrapper = mountForm();
+
+      // Start typing
+      await wrapper.find('[data-testid="request-input"]').setValue('My prayer');
+      await nextTick();
+
+      // Change settings
+      settings.defaultPriority = 'urgent';
+      settings.defaultDuration = '1y';
+      await nextTick();
+
+      // Should NOT sync because form is in use
+      expect(wrapper.find('[data-testid="priority-toggle"]').text()).toContain('Medium');
+      expect(wrapper.find('[data-testid="duration-toggle"]').text()).toContain('1 month');
     });
   });
 
   describe('Form Expansion', () => {
     test('expands on input focus', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').trigger('focus');
 
@@ -45,17 +94,46 @@ describe('AddRequestForm', () => {
     });
 
     test('shows controls when title has content', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').setValue('Test prayer');
 
       expect(wrapper.find('[data-testid="request-controls"]').exists()).toBe(true);
     });
+
+    test('collapses on blur when empty', async () => {
+      wrapper = mountForm();
+
+      // Expand by focusing
+      await wrapper.find('[data-testid="request-input"]').trigger('focus');
+      expect(wrapper.find('[data-testid="request-controls"]').exists()).toBe(true);
+
+      // Blur and click outside
+      await wrapper.find('[data-testid="request-input"]').trigger('blur');
+      clickOutside();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="request-controls"]').exists()).toBe(false);
+    });
+
+    test('collapses on outside click', async () => {
+      wrapper = mountForm();
+
+      // Expand by focusing
+      await wrapper.find('[data-testid="request-input"]').trigger('focus');
+      expect(wrapper.find('[data-testid="request-controls"]').exists()).toBe(true);
+
+      // Click outside
+      clickOutside();
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="request-controls"]').exists()).toBe(false);
+    });
   });
 
   describe('Dropdown Behavior', () => {
     test('toggles priority dropdown', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').trigger('focus');
       await wrapper.find('[data-testid="priority-toggle"]').trigger('click');
@@ -64,7 +142,7 @@ describe('AddRequestForm', () => {
     });
 
     test('toggles duration dropdown', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').trigger('focus');
       await wrapper.find('[data-testid="duration-toggle"]').trigger('click');
@@ -73,7 +151,7 @@ describe('AddRequestForm', () => {
     });
 
     test('selects priority option', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').trigger('focus');
       await wrapper.find('[data-testid="priority-toggle"]').trigger('click');
@@ -85,7 +163,7 @@ describe('AddRequestForm', () => {
     });
 
     test('selects duration option', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').trigger('focus');
       await wrapper.find('[data-testid="duration-toggle"]').trigger('click');
@@ -97,7 +175,7 @@ describe('AddRequestForm', () => {
     });
 
     test('closes priority dropdown when duration opens', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').trigger('focus');
       await wrapper.find('[data-testid="priority-toggle"]').trigger('click');
@@ -112,7 +190,7 @@ describe('AddRequestForm', () => {
 
   describe('Form Submission', () => {
     test('emits save with trimmed payload on submit', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').setValue('  My prayer request  ');
       await nextTick();
@@ -124,7 +202,7 @@ describe('AddRequestForm', () => {
     });
 
     test('clears form after submission', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').setValue('Test prayer');
       await nextTick();
@@ -136,7 +214,7 @@ describe('AddRequestForm', () => {
     });
 
     test('does not emit save for empty/whitespace title', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').setValue('   ');
       await wrapper.find('[data-testid="request-submit"]').trigger('click');
@@ -145,7 +223,7 @@ describe('AddRequestForm', () => {
     });
 
     test('emits save with selected priority and duration', async () => {
-      const wrapper = mountForm();
+      wrapper = mountForm();
 
       await wrapper.find('[data-testid="request-input"]').trigger('focus');
       await wrapper.find('[data-testid="request-input"]').setValue('Test prayer');
@@ -166,6 +244,31 @@ describe('AddRequestForm', () => {
       expect(payload.title).toBe('Test prayer');
       expect(payload.priority).toBe('high');
       expect(payload.durationPreset).toBe('3m');
+    });
+
+    test('keeps form expanded after submit for rapid entry', async () => {
+      // Attach to DOM body for focus tracking to work in jsdom
+      wrapper = mount(AddRequestForm, {
+        global: {
+          stubs: {
+            IconChevronDown: true,
+            IconPlus: true,
+          },
+        },
+        attachTo: document.body,
+      });
+
+      await wrapper.find('[data-testid="request-input"]').trigger('focus');
+      await wrapper.find('[data-testid="request-input"]').setValue('Test prayer');
+      await nextTick();
+      await wrapper.find('[data-testid="add-request-form"]').trigger('submit');
+      await nextTick();
+
+      // Form should stay expanded after submit
+      expect(wrapper.find('[data-testid="request-controls"]').exists()).toBe(true);
+      // And input should be focused for rapid entry
+      const input = wrapper.find('[data-testid="request-input"]');
+      expect(document.activeElement).toBe(input.element);
     });
   });
 });
