@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.13/schema.json",
   "root": true,
   "linter": {
     "enabled": true,
@@ -27,7 +27,7 @@
     }
   },
   "files": {
-    "includes": ["src/**/*.ts", "src/**/*.js", "tests/**", "*.js", "*.ts", "*.json"],
+    "includes": ["src/**/*.ts", "src/**/*.js", "src/**/*.vue", "tests/**", "*.js", "*.ts", "*.json"],
     "ignoreUnknown": true
   },
   "overrides": [
@@ -38,6 +38,141 @@
           "correctness": {
             "noUnusedVariables": "off",
             "noUnusedImports": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/stores/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/repositories/**", "**/db/**"],
+                    "message": "Stores may only import from services/composables/formatting/core types."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/services/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/stores/**", "**/components/**", "**/db/**"],
+                    "message": "Services may not import from stores, components, or db."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/repositories/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "**/services/**",
+                      "**/stores/**",
+                      "**/components/**",
+                      "**/composables/**",
+                      "**/formatting/**",
+                      "**/core/**",
+                      "!**/core/types"
+                    ],
+                    "message": "Repositories may only import from db/ and core/types."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/core/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "**/repositories/**",
+                      "**/services/**",
+                      "**/stores/**",
+                      "**/components/**",
+                      "**/composables/**",
+                      "**/db/**"
+                    ],
+                    "message": "Core may only import from formatting/."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/composables/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/stores/**", "**/services/**", "**/repositories/**", "**/components/**", "**/db/**"],
+                    "message": "Composables may only import from core types and Vue."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/**/*.{ts,vue}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/services/**", "**/repositories/**", "**/db/**", "**/core/**", "!**/core/types"],
+                    "message": "Components may only import from stores, composables, formatting, and core/types."
+                  }
+                ]
+              }
+            }
           }
         }
       }
