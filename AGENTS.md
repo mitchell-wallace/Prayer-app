@@ -4,6 +4,8 @@
 - For design system guidance (colors, typography, spacing, components), see `specs/standards/branding/DESIGN.md`.
 - Use TypeScript everywhere in `src/` and `tests/` (no `.js` files), avoid `any`, and ensure Vue SFC scripts use `lang="ts"`.
 - Testing strategy: unit tests cover core/repositories/services/stores; integration tests start at services and run through repositories/db; component tests start at stores and run up to UI; e2e tests cover full app flows.
+- This codebase uses `npm`, not `yarn` or `pnpm`.
+- When writing tests, always write test files one at a time, and run tests on that file before moving on to the next file.
 
 ## Architecture
 
