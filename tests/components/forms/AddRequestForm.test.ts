@@ -2,8 +2,8 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { nextTick } from 'vue';
 import AddRequestForm from '@/components/forms/AddRequestForm.vue';
-import { clickOutside, flushPromises } from './helpers';
 import { settings } from '@/stores/settings';
+import { clickOutside, flushPromises } from '../helpers';
 
 function mountForm() {
   return mount(AddRequestForm, {

@@ -12,7 +12,7 @@
     "test:comp": "vitest --run tests/components",
     "test:int": "vitest --run tests/integration",
     "test:e2e": "playwright test",
-    "test:all": "npm run test:unit, npm run test:comp, npm run test:int, npm run test:e2e",
+    "test:all": "npm run test:unit && npm run test:comp && npm run test:int",
     "typecheck": "npm run type-check",
     "type-check": "vue-tsc --noEmit",
     "lint": "biome lint .",

@@ -2,8 +2,8 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { nextTick } from 'vue';
 import RequestCard from '@/components/cards/RequestCard.vue';
-import { makeNote, makeRequest } from '../fixtures/requests';
-import { clickOutside, flushPromises } from './helpers';
+import { makeNote, makeRequest } from '../../fixtures/requests';
+import { clickOutside, flushPromises } from '../helpers';
 
 function mountCard(request = makeRequest({ id: 'test-1' })) {
   return mount(RequestCard, {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
-import type { ProgressDot } from '@/core/types';
 import { useProgressDotsAnimation } from '@/composables/useProgressDotsAnimation';
+import type { ProgressDot } from '@/core/types';
 
 function makeDot(overrides: Partial<ProgressDot> = {}): ProgressDot {
   return {
@@ -34,10 +34,7 @@ describe('useProgressDotsAnimation', () => {
 
     const { motionDirection } = useProgressDotsAnimation(progressDots, slideDirection);
 
-    progressDots.value = [
-      makeDot({ slot: 0, index: 4 }),
-      makeDot({ slot: 1, index: 5, isCurrent: true }),
-    ];
+    progressDots.value = [makeDot({ slot: 0, index: 4 }), makeDot({ slot: 1, index: 5, isCurrent: true })];
 
     await vi.runAllTimersAsync();
 
@@ -53,10 +50,7 @@ describe('useProgressDotsAnimation', () => {
 
     const { previousDots, motionDirection } = useProgressDotsAnimation(progressDots, slideDirection);
 
-    progressDots.value = [
-      makeDot({ slot: 0, index: 4 }),
-      makeDot({ slot: 1, index: 5, isCurrent: true }),
-    ];
+    progressDots.value = [makeDot({ slot: 0, index: 4 }), makeDot({ slot: 1, index: 5, isCurrent: true })];
 
     await vi.advanceTimersByTimeAsync(200);
 
@@ -73,10 +67,7 @@ describe('useProgressDotsAnimation', () => {
 
     const { isOutgoingDot } = useProgressDotsAnimation(progressDots, slideDirection);
 
-    progressDots.value = [
-      makeDot({ slot: 0, index: 1 }),
-      makeDot({ slot: 1, index: 2, isCurrent: true }),
-    ];
+    progressDots.value = [makeDot({ slot: 0, index: 1 }), makeDot({ slot: 1, index: 2, isCurrent: true })];
 
     await nextTick();
 
@@ -93,10 +84,7 @@ describe('useProgressDotsAnimation', () => {
 
     const { isIncomingDot } = useProgressDotsAnimation(progressDots, slideDirection);
 
-    progressDots.value = [
-      makeDot({ slot: 0, index: 1 }),
-      makeDot({ slot: 1, index: 2, isCurrent: true }),
-    ];
+    progressDots.value = [makeDot({ slot: 0, index: 1 }), makeDot({ slot: 1, index: 2, isCurrent: true })];
 
     expect(isIncomingDot(makeDot({ slot: 1 }))).toBe(false);
 
@@ -114,10 +102,7 @@ describe('useProgressDotsAnimation', () => {
 
     const { isCurrentDot } = useProgressDotsAnimation(progressDots, slideDirection);
 
-    progressDots.value = [
-      makeDot({ slot: 0, index: 1 }),
-      makeDot({ slot: 1, index: 2, isCurrent: true }),
-    ];
+    progressDots.value = [makeDot({ slot: 0, index: 1 }), makeDot({ slot: 1, index: 2, isCurrent: true })];
 
     await nextTick();
 
@@ -125,18 +110,14 @@ describe('useProgressDotsAnimation', () => {
   });
 
   test('cleans up timers on unmount', async () => {
-    const progressDots = ref<ProgressDot[]>([
-      makeDot({ slot: 0, index: 0, isCurrent: true }),
-    ]);
+    const progressDots = ref<ProgressDot[]>([makeDot({ slot: 0, index: 0, isCurrent: true })]);
     const slideDirection = ref('card-slide-left');
 
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
 
     const { motionDirection } = useProgressDotsAnimation(progressDots, slideDirection);
 
-    progressDots.value = [
-      makeDot({ slot: 0, index: 1, isCurrent: true }),
-    ];
+    progressDots.value = [makeDot({ slot: 0, index: 1, isCurrent: true })];
 
     expect(motionDirection.value).toBeDefined();
 

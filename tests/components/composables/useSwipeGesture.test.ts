@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { useSwipeGesture, type SwipeHandlers } from '@/composables/useSwipeGesture';
+import { type SwipeHandlers, useSwipeGesture } from '@/composables/useSwipeGesture';
 
 function createTouchEvent(x: number, y: number): TouchEvent {
   return {
