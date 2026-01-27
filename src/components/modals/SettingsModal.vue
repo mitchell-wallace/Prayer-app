@@ -111,11 +111,11 @@
 </template>
 
 <script setup lang="ts">
-import { Teleport, Transition } from 'vue';
 import { IconSettings, IconX } from '@tabler/icons-vue';
-import { settings, setDefaultDuration, setDefaultPriority, setTheme } from '../../stores/settings';
-import type { DurationPreset, Priority, SelectOption, Theme } from '../../core/types';
-import { useModal } from '../../composables/useModal';
+import { Teleport, Transition } from 'vue';
+import { useModal } from '@/composables/useModal';
+import type { DurationPreset, Priority, SelectOption, Theme } from '@/core/types';
+import { setDefaultDuration, setDefaultPriority, setTheme, settings } from '@/stores/settings';
 
 const { isOpen, open, close } = useModal();
 

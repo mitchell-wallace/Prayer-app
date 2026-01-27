@@ -1,15 +1,9 @@
 import { expect, test, vi } from 'vitest';
-import type { Settings } from '../../src/core/types';
-import { load, save } from '../../src/repositories/settingsRepository';
-import {
-  isValidDuration,
-  isValidPriority,
-  isValidTheme,
-  loadSettings,
-  saveSettings,
-} from '../../src/services/settingsService';
+import type { Settings } from '@/core/types';
+import { load, save } from '@/repositories/settingsRepository';
+import { isValidDuration, isValidPriority, isValidTheme, loadSettings, saveSettings } from '@/services/settingsService';
 
-vi.mock('../../src/repositories/settingsRepository', () => ({
+vi.mock('@/repositories/settingsRepository', () => ({
   load: vi.fn(),
   save: vi.fn(),
 }));

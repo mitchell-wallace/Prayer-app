@@ -1,4 +1,4 @@
-import type { DurationPreset } from '../core/types';
+import type { DurationPreset } from '@/core/types';
 
 export function computeExpiry(createdAt: number, preset: DurationPreset): number;
 export function timeAgo(timestamp: number | null | undefined): string;

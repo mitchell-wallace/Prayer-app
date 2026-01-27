@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
-import type { Settings } from '../../src/core/types';
-import { isValidDuration, isValidPriority, isValidTheme, loadSettings } from '../../src/services/settingsService';
+import type { Settings } from '@/core/types';
+import { isValidDuration, isValidPriority, isValidTheme, loadSettings } from '@/services/settingsService';
 
-vi.mock('../../src/services/settingsService', () => ({
+vi.mock('@/services/settingsService', () => ({
   loadSettings: vi.fn(),
   saveSettings: vi.fn(),
   isValidTheme: vi.fn(),
@@ -19,7 +19,7 @@ const baseSettings: Settings = {
 const setupStore = async (settingsOverride: Settings = baseSettings) => {
   vi.resetModules();
   vi.mocked(loadSettings).mockReturnValue({ ...settingsOverride });
-  const storeModule = await import('../../src/stores/settings');
+  const storeModule = await import('@/stores/settings');
   return storeModule;
 };
 

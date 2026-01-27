@@ -375,10 +375,10 @@
 </template>
 
 <script setup lang="ts">
-import { Teleport, Transition, computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconDotsVertical, IconPlus, IconX } from '@tabler/icons-vue';
-import { daysLeft, formatNoteTimestamp, timeAgo } from '../../formatting/time';
-import type { Note, PrayerRequest, Priority } from '../../core/types';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, Teleport, Transition, watch } from 'vue';
+import type { Note, PrayerRequest, Priority } from '@/core/types';
+import { daysLeft, formatNoteTimestamp, timeAgo } from '@/formatting/time';
 
 const props = defineProps<{
   request: PrayerRequest;
@@ -425,7 +425,6 @@ const lastPrayed = computed<string>(() => {
   return stamp ? timeAgo(stamp) : 'never';
 });
 const expiryCopy = computed<string>(() => daysLeft(props.request.expiresAt));
-
 
 const sortedNotes = computed<Note[]>(() => [...(props.request.notes || [])].sort((a, b) => b.createdAt - a.createdAt));
 

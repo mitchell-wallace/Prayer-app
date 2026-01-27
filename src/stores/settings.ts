@@ -1,12 +1,6 @@
 import { reactive, watch, watchEffect } from 'vue';
-import type { DurationPreset, Priority, Settings, Theme } from '../core/types';
-import {
-  loadSettings,
-  saveSettings,
-  isValidTheme,
-  isValidPriority,
-  isValidDuration,
-} from '../services/settingsService';
+import type { DurationPreset, Priority, Settings, Theme } from '@/core/types';
+import { isValidDuration, isValidPriority, isValidTheme, loadSettings, saveSettings } from '@/services/settingsService';
 
 export const settings = reactive<Settings>(loadSettings());
 

@@ -2,7 +2,7 @@
  * Queue scoring and cycle selection logic.
  * Pure algorithmic decisions only; no persistence or UI state.
  */
-import type { PrayerRequest, Priority } from './types';
+import type { PrayerRequest, Priority } from '@/core/types';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const REQUIRED_PRIORITIES: Priority[] = ['urgent', 'high', 'medium', 'low'];

@@ -1,6 +1,7 @@
+import { MS_PER_DAY, makeRequest } from '@tests/fixtures/requests';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { DEFAULT_QUEUE_CONFIG, createCycleState, pickNextFromCycle } from '../../src/core/queueAlgorithm';
-import type { Priority } from '../../src/core/types';
+import { createCycleState, DEFAULT_QUEUE_CONFIG, pickNextFromCycle } from '@/core/queueAlgorithm';
+import type { Priority } from '@/core/types';
 import {
   buildProgressDots,
   canGoNext,
@@ -13,8 +14,7 @@ import {
   previousCard,
   removeRequestFromQueue,
   resetFeed,
-} from '../../src/services/queueEngine';
-import { makeRequest, MS_PER_DAY } from '../fixtures/requests';
+} from '@/services/queueEngine';
 
 beforeEach(() => {
   vi.useFakeTimers();

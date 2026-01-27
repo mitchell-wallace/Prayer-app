@@ -1,5 +1,5 @@
-import { computeExpiry } from '../formatting/time';
-import type { CreateRequestPayload, Note, PrayerRequest, Priority, RequestStatus } from './types';
+import type { CreateRequestPayload, Note, PrayerRequest, Priority, RequestStatus } from '@/core/types';
+import { computeExpiry } from '@/formatting/time';
 
 export const priorityScore: Record<Priority, number> = {
   urgent: 4,

@@ -42,9 +42,9 @@
 
 <script setup lang="ts">
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-vue';
-import AddRequestForm from '../forms/AddRequestForm.vue';
-import ProgressDots from '../navigation/ProgressDots.vue';
-import type { CreateRequestPayload, ProgressDot, QueueItem } from '../../core/types';
+import AddRequestForm from '@/components/forms/AddRequestForm.vue';
+import ProgressDots from '@/components/navigation/ProgressDots.vue';
+import type { CreateRequestPayload, ProgressDot, QueueItem } from '@/core/types';
 
 defineProps<{
   renderQueue: QueueItem[];

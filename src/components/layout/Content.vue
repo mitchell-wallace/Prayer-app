@@ -48,8 +48,8 @@
 
 <script setup lang="ts">
 import { Transition } from 'vue';
-import RequestCard from '../cards/RequestCard.vue';
-import type { Note, PrayerRequest, QueueItem } from '../../core/types';
+import RequestCard from '@/components/cards/RequestCard.vue';
+import type { Note, PrayerRequest, QueueItem } from '@/core/types';
 
 defineProps<{
   activeRequests: PrayerRequest[];

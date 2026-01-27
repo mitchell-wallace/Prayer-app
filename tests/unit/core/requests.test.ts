@@ -1,3 +1,4 @@
+import { makePayload, makeRequest } from '@tests/fixtures/requests';
 import { expect, test } from 'vitest';
 import {
   applyAddNote,
@@ -10,10 +11,9 @@ import {
   createRequestRecord,
   validateCreatePayload,
   validateRequestRecord,
-} from '../../src/core/requests';
-import type { CreateRequestPayload, Note } from '../../src/core/types';
-import { computeExpiry } from '../../src/formatting/time';
-import { makePayload, makeRequest } from '../fixtures/requests';
+} from '@/core/requests';
+import type { CreateRequestPayload, Note } from '@/core/types';
+import { computeExpiry } from '@/formatting/time';
 
 const basePayload = makePayload();
 

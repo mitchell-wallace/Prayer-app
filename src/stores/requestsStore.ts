@@ -1,5 +1,5 @@
 import { computed, reactive, ref, toRefs } from 'vue';
-import type { CreateRequestPayload, InfoStats, Note, PrayerRequest } from '../core/types';
+import type { CreateRequestPayload, InfoStats, Note, PrayerRequest } from '@/core/types';
 import {
   buildProgressDots,
   canGoNext as canGoNextFromState,
@@ -11,10 +11,10 @@ import {
   navigateToIndex,
   nextCard,
   previousCard,
+  type QueueState,
   removeRequestFromQueue,
   resetFeed,
-  type QueueState,
-} from '../services/queueEngine';
+} from '@/services/queueEngine';
 import {
   initRequests,
   addNote as serviceAddNote,
@@ -25,7 +25,7 @@ import {
   markAnswered as serviceMarkAnswered,
   recordPrayer as serviceRecordPrayer,
   updateRequest as serviceUpdateRequest,
-} from '../services/requestsService';
+} from '@/services/requestsService';
 
 const requests = ref<PrayerRequest[]>([]);
 const loading = ref<boolean>(true);

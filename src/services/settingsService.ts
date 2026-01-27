@@ -1,5 +1,5 @@
-import type { DurationPreset, Priority, Settings, Theme } from '../core/types';
-import { load, save } from '../repositories/settingsRepository';
+import type { DurationPreset, Priority, Settings, Theme } from '@/core/types';
+import { load, save } from '@/repositories/settingsRepository';
 
 const allowedThemes = new Set<Theme>(['light', 'dark', 'system']);
 const allowedPriorities = new Set<Priority>(['urgent', 'high', 'medium', 'low']);

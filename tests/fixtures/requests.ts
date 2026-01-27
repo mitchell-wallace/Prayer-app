@@ -1,4 +1,4 @@
-import type { CreateRequestPayload, Note, PrayerRequest, Priority } from '../../src/core/types';
+import type { CreateRequestPayload, Note, PrayerRequest, Priority } from '@/core/types';
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 

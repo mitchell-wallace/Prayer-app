@@ -82,20 +82,15 @@
 </template>
 
 <script setup lang="ts">
-import { Teleport, Transition, onMounted, reactive, ref } from 'vue';
 import { IconX } from '@tabler/icons-vue';
-import AppFooter from './components/layout/AppFooter.vue';
-import AppHeader from './components/layout/AppHeader.vue';
-import Content from './components/layout/Content.vue';
-import { useRequestsStore } from './stores/requestsStore';
-import { initThemeWatcher } from './stores/settings';
-import { useSwipeGesture } from './composables/useSwipeGesture';
-import type {
-  AnsweredModalState,
-  CreateRequestPayload,
-  Note,
-  PrayerRequest,
-} from './core/types';
+import { onMounted, reactive, ref, Teleport, Transition } from 'vue';
+import AppFooter from '@/components/layout/AppFooter.vue';
+import AppHeader from '@/components/layout/AppHeader.vue';
+import Content from '@/components/layout/Content.vue';
+import { useSwipeGesture } from '@/composables/useSwipeGesture';
+import type { AnsweredModalState, CreateRequestPayload, Note, PrayerRequest } from '@/core/types';
+import { useRequestsStore } from '@/stores/requestsStore';
+import { initThemeWatcher } from '@/stores/settings';
 
 // Initialize theme watcher
 initThemeWatcher();

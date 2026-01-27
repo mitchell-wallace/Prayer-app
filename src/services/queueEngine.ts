@@ -2,7 +2,7 @@
  * Queue engine for feed state transitions.
  * Pure state manipulation only; no Vue reactivity and no persistence.
  */
-import type { PrayerRequest, ProgressDot, QueueItem } from '../core/types';
+
 import {
   type CycleState,
   createCycleState,
@@ -10,7 +10,8 @@ import {
   pickNextFromCycle,
   type QueueConfig,
   removeFromCycle,
-} from '../core/queueAlgorithm';
+} from '@/core/queueAlgorithm';
+import type { PrayerRequest, ProgressDot, QueueItem } from '@/core/types';
 
 const PAGE_SIZE = 6;
 const MAX_RENDER_QUEUE_SIZE = 36;

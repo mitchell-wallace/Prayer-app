@@ -5,7 +5,7 @@
  */
 import { del, get, set } from 'idb-keyval';
 import type { Database } from 'sql.js';
-import { openDatabase } from './sqljs';
+import { openDatabase } from '@/db/sqljs';
 
 const STORAGE_KEY = 'prayer-sql-db';
 let dbInstance: Database | null = null;

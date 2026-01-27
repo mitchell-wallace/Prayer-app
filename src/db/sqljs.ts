@@ -25,7 +25,7 @@ export async function getSqlModule(): Promise<SqlJsStatic> {
       const fs = await import('node:fs/promises');
       nodeWasmBinary = await fs.readFile(resolveWasmPath());
     }
-    options.wasmBinary = nodeWasmBinary.buffer as ArrayBuffer | undefined;
+    options.wasmBinary = nodeWasmBinary;
   }
 
   sqlInstance = await initSqlJs(options);

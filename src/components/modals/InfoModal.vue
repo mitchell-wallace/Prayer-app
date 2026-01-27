@@ -95,10 +95,10 @@
 </template>
 
 <script setup lang="ts">
-import { Teleport, Transition } from 'vue';
 import { IconInfoCircle, IconX } from '@tabler/icons-vue';
-import type { InfoStats } from '../../core/types';
-import { useModal } from '../../composables/useModal';
+import { Teleport, Transition } from 'vue';
+import { useModal } from '@/composables/useModal';
+import type { InfoStats } from '@/core/types';
 
 function formatDate(ts: number): string {
   if (!ts) return '';

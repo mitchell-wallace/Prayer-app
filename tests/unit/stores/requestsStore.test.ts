@@ -1,5 +1,6 @@
+import { makeRequest } from '@tests/fixtures/requests';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import type { CreateRequestPayload, Note } from '../../src/core/types';
+import type { CreateRequestPayload, Note } from '@/core/types';
 import {
   initRequests,
   addNote as serviceAddNote,
@@ -10,11 +11,10 @@ import {
   markAnswered as serviceMarkAnswered,
   recordPrayer as serviceRecordPrayer,
   updateRequest as serviceUpdateRequest,
-} from '../../src/services/requestsService';
-import { makeRequest } from '../fixtures/requests';
+} from '@/services/requestsService';
 
 // Only mock the service layer - use real queueEngine functions
-vi.mock('../../src/services/requestsService', () => ({
+vi.mock('@/services/requestsService', () => ({
   initRequests: vi.fn(),
   createRequest: vi.fn(),
   recordPrayer: vi.fn(),
@@ -28,7 +28,7 @@ vi.mock('../../src/services/requestsService', () => ({
 
 const setupStore = async () => {
   vi.resetModules();
-  const storeModule = await import('../../src/stores/requestsStore');
+  const storeModule = await import('@/stores/requestsStore');
   return storeModule.useRequestsStore();
 };
 

@@ -1,4 +1,4 @@
-import type { DurationPreset, Priority, Settings, Theme } from '../core/types';
+import type { DurationPreset, Priority, Settings, Theme } from '@/core/types';
 
 const STORAGE_KEY = 'prayer-app-settings';
 

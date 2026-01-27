@@ -1,4 +1,4 @@
-import type { DurationPreset, Priority, Settings, Theme } from '../core/types';
+import type { DurationPreset, Priority, Settings, Theme } from '@/core/types';
 
 export function loadSettings(): Settings;
 export function saveSettings(settings: Settings): void;

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { defaultSettings, load, save } from '../../src/repositories/settingsRepository';
+import { defaultSettings, load, save } from '@/repositories/settingsRepository';
 
 const storageKey = 'prayer-app-settings';
 

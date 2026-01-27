@@ -1,8 +1,9 @@
+import { makeRequest } from '@tests/fixtures/requests';
 import { beforeEach, expect, test, vi } from 'vitest';
-import type { CreateRequestPayload, Note } from '../../src/core/types';
-import { computeExpiry } from '../../src/formatting/time';
-import { getAll, remove, save, seed } from '../../src/repositories/requestsRepository';
-import { now } from '../../src/services/dateTimeService';
+import type { CreateRequestPayload, Note } from '@/core/types';
+import { computeExpiry } from '@/formatting/time';
+import { getAll, remove, save, seed } from '@/repositories/requestsRepository';
+import { now } from '@/services/dateTimeService';
 import {
   addNote,
   createRequest,
@@ -13,19 +14,18 @@ import {
   markAnswered,
   recordPrayer,
   updateRequest,
-} from '../../src/services/requestsService';
-import { createId } from '../../src/services/uuidService';
-import { makeRequest } from '../fixtures/requests';
+} from '@/services/requestsService';
+import { createId } from '@/services/uuidService';
 
-vi.mock('../../src/repositories/requestsRepository', () => ({
+vi.mock('@/repositories/requestsRepository', () => ({
   getAll: vi.fn(),
   remove: vi.fn(),
   save: vi.fn(),
   seed: vi.fn(),
 }));
 
-vi.mock('../../src/services/dateTimeService', () => ({ now: vi.fn() }));
-vi.mock('../../src/services/uuidService', () => ({ createId: vi.fn() }));
+vi.mock('@/services/dateTimeService', () => ({ now: vi.fn() }));
+vi.mock('@/services/uuidService', () => ({ createId: vi.fn() }));
 
 const baseRequest = (overrides: Partial<Parameters<typeof makeRequest>[0]> = {}) =>
   makeRequest({

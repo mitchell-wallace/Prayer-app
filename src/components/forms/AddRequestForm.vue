@@ -107,10 +107,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { IconChevronDown, IconPlus } from '@tabler/icons-vue';
-import { settings } from '../../stores/settings';
-import type { CreateRequestPayload, DurationPreset, Priority, SelectOption } from '../../core/types';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import type { CreateRequestPayload, DurationPreset, Priority, SelectOption } from '@/core/types';
+import { settings } from '@/stores/settings';
 
 const emit = defineEmits<{
   save: [payload: CreateRequestPayload];

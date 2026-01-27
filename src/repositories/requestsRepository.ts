@@ -1,4 +1,4 @@
-import type { DurationPreset, Note, PrayerRequest, Priority, RequestStatus } from '../core/types';
+import type { DurationPreset, Note, PrayerRequest, Priority, RequestStatus } from '@/core/types';
 import {
   getSchemaVersion,
   initDb,
@@ -7,7 +7,7 @@ import {
   setSchemaVersion,
   tableExists,
   tableHasColumn,
-} from '../db/database';
+} from '@/db/database';
 
 type DbInstance = Awaited<ReturnType<typeof initDb>>;
 

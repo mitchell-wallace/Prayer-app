@@ -11,11 +11,11 @@ import {
   applyRequestUpdate,
   createRequestRecord,
   validateRequestRecord,
-} from '../core/requests';
-import type { CreateRequestPayload, Note, PrayerRequest } from '../core/types';
-import { getAll, remove, save as saveToRepository, seed } from '../repositories/requestsRepository';
-import { now } from './dateTimeService';
-import { createId } from './uuidService';
+} from '@/core/requests';
+import type { CreateRequestPayload, Note, PrayerRequest } from '@/core/types';
+import { getAll, remove, save as saveToRepository, seed } from '@/repositories/requestsRepository';
+import { now } from '@/services/dateTimeService';
+import { createId } from '@/services/uuidService';
 
 export async function initRequests(): Promise<PrayerRequest[]> {
   await seed();

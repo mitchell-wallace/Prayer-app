@@ -43,6 +43,26 @@
       }
     },
     {
+      "includes": ["src/**/*.{ts,tsx,vue}", "tests/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "warn",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["../*", "../**"],
+                    "message": "Avoid relative imports that traverse upward; use @ or @tests."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["src/stores/**/*.ts"],
       "linter": {
         "rules": {
@@ -51,6 +71,10 @@
               "level": "error",
               "options": {
                 "patterns": [
+                  {
+                    "group": ["../*", "../**"],
+                    "message": "Avoid relative imports that traverse upward; use @ or @tests."
+                  },
                   {
                     "group": ["**/repositories/**", "**/db/**"],
                     "message": "Stores may only import from services/composables/formatting/core types."
@@ -72,6 +96,10 @@
               "options": {
                 "patterns": [
                   {
+                    "group": ["../*", "../**"],
+                    "message": "Avoid relative imports that traverse upward; use @ or @tests."
+                  },
+                  {
                     "group": ["**/stores/**", "**/components/**", "**/db/**"],
                     "message": "Services may not import from stores, components, or db."
                   }
@@ -91,6 +119,10 @@
               "level": "error",
               "options": {
                 "patterns": [
+                  {
+                    "group": ["../*", "../**"],
+                    "message": "Avoid relative imports that traverse upward; use @ or @tests."
+                  },
                   {
                     "group": [
                       "**/services/**",
@@ -120,6 +152,10 @@
               "options": {
                 "patterns": [
                   {
+                    "group": ["../*", "../**"],
+                    "message": "Avoid relative imports that traverse upward; use @ or @tests."
+                  },
+                  {
                     "group": [
                       "**/repositories/**",
                       "**/services/**",
@@ -147,6 +183,10 @@
               "options": {
                 "patterns": [
                   {
+                    "group": ["../*", "../**"],
+                    "message": "Avoid relative imports that traverse upward; use @ or @tests."
+                  },
+                  {
                     "group": ["**/stores/**", "**/services/**", "**/repositories/**", "**/components/**", "**/db/**"],
                     "message": "Composables may only import from core types and Vue."
                   }
@@ -166,6 +206,10 @@
               "level": "error",
               "options": {
                 "patterns": [
+                  {
+                    "group": ["../*", "../**"],
+                    "message": "Avoid relative imports that traverse upward; use @ or @tests."
+                  },
                   {
                     "group": ["**/services/**", "**/repositories/**", "**/db/**", "**/core/**", "!**/core/types"],
                     "message": "Components may only import from stores, composables, formatting, and core/types."

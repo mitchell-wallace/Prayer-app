@@ -15,9 +15,9 @@
 </template>
 
 <script setup lang="ts">
-import InfoModal from '../modals/InfoModal.vue';
-import SettingsModal from '../modals/SettingsModal.vue';
-import type { InfoStats } from '../../core/types';
+import InfoModal from '@/components/modals/InfoModal.vue';
+import SettingsModal from '@/components/modals/SettingsModal.vue';
+import type { InfoStats } from '@/core/types';
 
 defineProps<{ infoStats: InfoStats }>();
 </script>

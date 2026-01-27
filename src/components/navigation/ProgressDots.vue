@@ -91,10 +91,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, toRef } from 'vue';
 import { IconRefresh } from '@tabler/icons-vue';
-import type { ProgressDot } from '../../core/types';
-import { useProgressDotsAnimation } from '../../composables/useProgressDotsAnimation';
+import { computed, ref, toRef } from 'vue';
+import { useProgressDotsAnimation } from '@/composables/useProgressDotsAnimation';
+import type { ProgressDot } from '@/core/types';
 
 const props = defineProps<{
   progressDots: ProgressDot[];
