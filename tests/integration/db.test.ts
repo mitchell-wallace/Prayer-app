@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, expect, test } from 'vitest';
-import type { PrayerRequest } from '../src/core/types';
-import { clearDbCache, resetDbForTests } from '../src/db/database';
-import { computeExpiry } from '../src/formatting/time';
-import { getAll, remove, save, seed } from '../src/repositories/requestsRepository';
+import type { PrayerRequest } from '../../src/core/types';
+import { clearDbCache, resetDbForTests } from '../../src/db/database';
+import { computeExpiry } from '../../src/formatting/time';
+import { getAll, remove, save, seed } from '../../src/repositories/requestsRepository';
 
 beforeEach(async () => {
   await resetDbForTests();
