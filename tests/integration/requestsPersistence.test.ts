@@ -1,20 +1,17 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { clearDbCache, resetDbForTests } from '@/db/database';
-import {
-  addNote,
-  createRequest,
-  initRequests,
-  markAnswered,
-  recordPrayer,
-} from '@/services/requestsService';
+import { addNote, createRequest, initRequests, markAnswered, recordPrayer } from '@/services/requestsService';
 
 describe('Requests Persistence (service → repo → db)', () => {
   beforeEach(async () => {
     await resetDbForTests();
     clearDbCache();
+    vi.useFakeTimers({ shouldAdvanceTime: true, advanceTimeDelta: 1 });
+    vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     clearDbCache();
   });
 
@@ -34,6 +31,8 @@ describe('Requests Persistence (service → repo → db)', () => {
     expect(found?.title).toBe('Test persistence');
     expect(found?.priority).toBe('high');
     expect(found?.durationPreset).toBe('3m');
+    expect(found?.createdAt).toBe(created.createdAt);
+    expect(found?.updatedAt).toBe(created.updatedAt);
   });
 
   test('recordPrayer persists prayedAt and updatedAt', async () => {
@@ -51,7 +50,7 @@ describe('Requests Persistence (service → repo → db)', () => {
     const found = requests.find((r) => r.id === created.id);
 
     expect(found).toBeTruthy();
-    expect(found?.prayedAt.length).toBeGreaterThan(0);
+    expect(found?.prayedAt).toEqual(afterPrayer.prayedAt);
     expect(found?.updatedAt).toBe(afterPrayer.updatedAt);
   });
 
